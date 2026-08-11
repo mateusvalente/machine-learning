@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Três grupos | Perceptron Lab</title><link rel="stylesheet" href="../css/styles.css"></head>
+<body>
+  <header class="site-header"><a class="brand" href="../index.html"><span>π</span> Machine Learning Lab</a><nav><a href="../index.html">Introdução</a><a href="perceptron-introducao.html">Perceptron</a><a href="perceptron-multicamadas.html">Perceptron MultiCamadas</a><a href="adaline.html">ADALINE</a><a href="madaline.html">MADALINE</a><a class="active" href="laboratorios.html">Laboratórios</a></nav></header>
+  <main>
+    <header class="lab-intro"><div><p class="eyebrow">LABORATÓRIO 04 · MULTICLASSE</p><h1>Uma decisão, três grupos.</h1><p>Adicione dados A, B e C, treine o modelo e observe o plano ser dividido em três regiões de decisão.</p></div></header>
+    <section class="separator-layout">
+      <aside class="side-panel">
+        <h2>Configure o experimento</h2><p>Cada ponto possui duas entradas, x₁ e x₂, e um rótulo: A, B ou C.</p>
+        <div class="control-group"><label>CENÁRIO<select id="preset"><option value="clusters">Três grupos separáveis</option><option value="nonlinear">Três grupos não lineares</option></select></label><button class="button outline full-button" id="loadPreset">Carregar cenário</button></div>
+        <div class="control-group"><label>ARQUITETURA<select id="model"><option value="linear">Classificador linear · Softmax</option><option value="mlp" selected>MLP · camada oculta</option></select></label><label>ATIVAÇÃO OCULTA<select id="activation"><option value="tanh">Tanh</option><option value="sigmoid">Sigmoid</option><option value="relu">ReLU</option></select></label></div>
+        <div class="control-group"><label>NOVO PONTO</label><div class="point-inputs"><label>x₁<input id="newX" type="number" value="0" min="-1" max="1" step="0.1"></label><label>x₂<input id="newY" type="number" value="0" min="-1" max="1" step="0.1"></label></div><div class="point-buttons three-buttons"><button class="button class-a" data-add="A">A</button><button class="button class-b" data-add="B">B</button><button class="button class-c" data-add="C">C</button></div><p class="selected-class">Classe selecionada: <b id="selectedClass">A</b></p><button class="button outline full-button" id="removePoint">Remover último</button><button class="button outline full-button" id="clearPoints">Limpar pontos</button></div>
+        <div class="control-group"><label>TAXA DE APRENDIZADO η<input id="lr" type="number" value="0.12" min="0.01" max="1" step="0.01"></label><button class="button full-button" id="trainOne">Treinar 1 época</button><button class="button outline full-button" id="trainAuto">Treinar automaticamente</button><button class="button outline full-button" id="resetNet">Reiniciar rede</button></div>
+        <div class="control-group"><label>TESTAR PONTO</label><div class="point-inputs"><label>x₁<input id="testX" type="number" value="0" min="-1" max="1" step="0.1"></label><label>x₂<input id="testY" type="number" value="0" min="-1" max="1" step="0.1"></label></div><button class="button full-button" id="testButton">Classificar</button><div class="test-result" id="testResult">A previsão e as probabilidades aparecerão aqui.</div></div>
+      </aside>
+      <div>
+        <article class="separator-card"><div class="card-top"><div><h2 id="chartTitle">Três regiões com MLP</h2><p class="canvas-note left-note">Clique no gráfico para adicionar um ponto à classe selecionada.</p></div><span class="status" id="chartStatus">Pronto</span></div><canvas id="multiPlane" width="720" height="530" aria-label="Plano com três regiões de classificação"></canvas><div class="separator-legend"><span><i class="dot class-a-dot"></i>Grupo A</span><span><i class="dot class-b-dot"></i>Grupo B</span><span><i class="dot class-c-dot"></i>Grupo C</span><span><i class="boundary-sample"></i>Limites</span></div><div class="sep-metrics"><div class="stat"><span>Épocas</span><b id="epochs">0</b></div><div class="stat"><span>Acertos</span><b id="accuracy">—</b></div><div class="stat"><span>Entropia</span><b id="loss">—</b></div></div></article>
+        <article class="network-visual-card"><div class="card-top"><div><h2 id="networkTitle">Neurônios da MLP · 2 → 8 → 3</h2><p>As três saídas representam as probabilidades dos grupos A, B e C.</p></div></div><canvas id="mlpNetworkCanvas" width="720" height="520" aria-label="Rede multicamadas com oito neurônios ocultos e três saídas"></canvas><div class="network-readout" id="networkReadout">Teste um ponto para acompanhar os potenciais e as probabilidades.</div><div class="neuron-methods"><div><b>1 · Potencial</b><span>u = Σ(wᵢxᵢ) + b</span></div><div><b>2 · Ativação</b><span>a = g(u)</span></div><div><b>3 · Forward</b><span>entrada → oculta → saídas</span></div><div><b>4 · Softmax</b><span>uA, uB, uC → probabilidades</span></div><div><b>5 · Backprop</b><span>o erro retorna às camadas</span></div><div><b>6 · Atualização</b><span>w ← w − η∇w</span></div></div></article>
+        <article class="math-steps-card"><div class="card-top"><div><h2>Passo a passo matemático</h2><p>Potenciais, Softmax, entropia e gradientes da última amostra.</p></div></div><div id="multiMathSteps" class="math-steps"><p>Treine uma época para visualizar as contas.</p></div></article>
+        <article class="training-history-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>Compare a entropia média com a taxa de classificações corretas.</p></div></div><canvas id="trainingChart" width="720" height="300" aria-label="Gráfico da entropia e da taxa de acerto por época"></canvas><div class="history-legend"><span><i class="error-line"></i>Entropia média</span><span><i class="accuracy-line"></i>Taxa de acerto</span></div></article>
+        <article class="explanation-card"><h2 id="explanationTitle">Como escolher entre três respostas?</h2><p id="explanation">A camada de saída possui três neurônios. A função Softmax transforma seus valores em probabilidades para A, B e C; a maior delas define a classe prevista.</p></article>
+        <article class="lab-concept"><p class="eyebrow">SAÍDA MULTICLASSE</p><div class="equation mini">[u<sub>A</sub>, u<sub>B</sub>, u<sub>C</sub>] → Softmax → [P(A), P(B), P(C)]<br>ŷ = classe com maior probabilidade</div></article>
+      </div>
+    </section>
+    <section class="algorithm-section" aria-labelledby="multi-code-title"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2 id="multi-code-title">MLP multiclasse com Softmax</h2><p>Esta versão usa quatro neurônios ocultos e três saídas. Cada etapa foi isolada para mostrar onde entram Tanh, Softmax e backpropagation.</p><div class="algorithm-flow"><span>tanh()</span><span>softmax()</span><span>forward()</span><span>oneHot()</span><span>backpropagation()</span><span>atualizarPesos()</span></div></header><div class="code-window"><div class="code-window-bar"><span>mlp-tres-grupos.js</span><i>exemplo simplificado</i></div><pre><code>// As posições do vetor representam as classes A, B e C.
+const classes = ["A", "B", "C"];
+
+// Tanh produz ativações ocultas entre -1 e 1.
+function tanh(u) {
+  return Math.tanh(u);
+}
+
+// A derivada de Tanh usa a ativação calculada no forward pass.
+function derivadaTanh(ativacao) {
+  return 1 - ativacao * ativacao;
+}
+
+// Softmax transforma três potenciais em probabilidades que somam 1.
+function softmax(potenciais) {
+  // Subtrair o maior valor evita estouro numérico no Math.exp.
+  const maior = Math.max(...potenciais);
+  const exponenciais = potenciais.map(u => Math.exp(u - maior));
+  const total = exponenciais.reduce((soma, valor) => soma + valor, 0);
+  return exponenciais.map(valor => valor / total);
+}
+
+// Cria valores iniciais pequenos para quebrar a simetria da rede.
+function pesoAleatorio() {
+  return Math.random() * 1.2 - 0.6;
+}
+
+// Cria uma MLP 2 → 4 → 3.
+function criarRede() {
+  const oculta = Array.from({ length: 4 }, () => ({
+    pesos: [pesoAleatorio(), pesoAleatorio()],
+    bias: pesoAleatorio()
+  }));
+
+  const saida = Array.from({ length: 3 }, () => ({
+    pesos: Array.from({ length: 4 }, pesoAleatorio),
+    bias: pesoAleatorio()
+  }));
+
+  return { oculta, saida };
+}
+
+// Calcula u = Σ(wᵢxᵢ) + b para qualquer neurônio.
+function potencial(entradas, pesos, bias) {
+  return entradas.reduce(
+    (soma, entrada, indice) => soma + entrada * pesos[indice],
+    bias
+  );
+}
+
+// Propaga uma entrada pelas camadas sem modificar os parâmetros.
+function forward(entradas, rede) {
+  const oculta = rede.oculta.map(neuronio => {
+    const u = potencial(entradas, neuronio.pesos, neuronio.bias);
+    const a = tanh(u);
+    return { u, a };
+  });
+
+  const ativacoesOcultas = oculta.map(neuronio => neuronio.a);
+  const potenciaisSaida = rede.saida.map(neuronio =>
+    potencial(ativacoesOcultas, neuronio.pesos, neuronio.bias)
+  );
+
+  const probabilidades = softmax(potenciaisSaida);
+  return { oculta, potenciaisSaida, probabilidades };
+}
+
+// Converte a classe correta em um vetor alvo.
+// Exemplo: B torna-se [0, 1, 0].
+function oneHot(classeCorreta) {
+  return classes.map(classe => classe === classeCorreta ? 1 : 0);
+}
+
+// Calcula os deltas da saída e da camada oculta.
+function backpropagation(entradas, classeCorreta, rede, resultado) {
+  const alvo = oneHot(classeCorreta);
+
+  // Com Softmax + entropia cruzada, delta = probabilidade - alvo.
+  const deltasSaida = resultado.probabilidades.map(
+    (probabilidade, indice) => probabilidade - alvo[indice]
+  );
+
+  // Soma a responsabilidade das três saídas para cada neurônio oculto.
+  const deltasOcultos = resultado.oculta.map((neuronio, indiceOculto) => {
+    const erroRecebido = deltasSaida.reduce(
+      (soma, delta, indiceClasse) =>
+        soma + delta * rede.saida[indiceClasse].pesos[indiceOculto],
+      0
+    );
+
+    return erroRecebido * derivadaTanh(neuronio.a);
+  });
+
+  return {
+    entradas,
+    ativacoesOcultas: resultado.oculta.map(neuronio => neuronio.a),
+    deltasSaida,
+    deltasOcultos
+  };
+}
+
+// Atualiza todos os pesos usando os gradientes calculados.
+function atualizarPesos(rede, gradientes, taxa) {
+  // Primeiro atualiza os três neurônios da saída.
+  rede.saida.forEach((neuronio, indiceClasse) => {
+    neuronio.pesos = neuronio.pesos.map(
+      (peso, indiceOculto) =>
+        peso -
+        taxa *
+        gradientes.deltasSaida[indiceClasse] *
+        gradientes.ativacoesOcultas[indiceOculto]
+    );
+    neuronio.bias -= taxa * gradientes.deltasSaida[indiceClasse];
+  });
+
+  // Depois atualiza os quatro neurônios ocultos.
+  rede.oculta.forEach((neuronio, indiceOculto) => {
+    neuronio.pesos = neuronio.pesos.map(
+      (peso, indiceEntrada) =>
+        peso -
+        taxa *
+        gradientes.deltasOcultos[indiceOculto] *
+        gradientes.entradas[indiceEntrada]
+    );
+    neuronio.bias -= taxa * gradientes.deltasOcultos[indiceOculto];
+  });
+}
+
+// Treina uma amostra completa.
+function treinarAmostra(amostra, rede, taxa) {
+  const resultado = forward(amostra.x, rede);
+  const gradientes = backpropagation(
+    amostra.x,
+    amostra.classe,
+    rede,
+    resultado
+  );
+  atualizarPesos(rede, gradientes, taxa);
+}
+
+// Repete o conjunto de dados durante várias épocas.
+function treinar(dados, epocas, taxa) {
+  const rede = criarRede();
+
+  Array.from({ length: epocas }).forEach(() => {
+    dados.forEach(amostra => treinarAmostra(amostra, rede, taxa));
+  });
+
+  return rede;
+}
+
+// Escolhe a classe que recebeu a maior probabilidade.
+function prever(entradas, rede) {
+  const probabilidades = forward(entradas, rede).probabilidades;
+  const maior = Math.max(...probabilidades);
+  const indice = probabilidades.indexOf(maior);
+
+  return {
+    classe: classes[indice],
+    probabilidades
+  };
+}
+
+// Pequeno conjunto de exemplo com três grupos.
+const dados = [
+  { x: [-0.8, 0.6], classe: "A" },
+  { x: [0.7, 0.6], classe: "B" },
+  { x: [0.0, -0.7], classe: "C" }
+];
+
+const redeTreinada = treinar(dados, 3000, 0.1);
+console.log(prever([0.1, -0.6], redeTreinada));</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://embarcados.com.br/rede-perceptron-de-uma-unica-camada/" target="_blank" rel="noopener">Embarcados — Rede Perceptron</a> · <a href="https://felipetulio.com.br/aprendizado-supervisionado-redes-neurais-artificiais/" target="_blank" rel="noopener">Felipe Túlio — Redes neurais artificiais</a> · <a href="https://developers.google.com/machine-learning/crash-course/neural-networks/activation-functions" target="_blank" rel="noopener">Google ML — Funções de ativação</a> · <a href="https://www.ncbi.nlm.nih.gov/books/NBK441977/" target="_blank" rel="noopener">NCBI — Neuroanatomia dos neurônios</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../js/labs/training-history-chart.js"></script><script src="../js/labs/mlp-network-view.js"></script><script src="../js/labs/multiclasse-lab.js"></script><script src="../js/didactic-code-examples.js"></script><script src="../js/code-highlighting.js"></script>
+</body></html>

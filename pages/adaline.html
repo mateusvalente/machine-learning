@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADALINE e Regra Delta | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="../index.html"><span>π</span> Machine Learning Lab</a><nav><a href="../index.html">Introdução</a><a href="perceptron-introducao.html">Perceptron</a><a href="perceptron-multicamadas.html">Perceptron MultiCamadas</a><a class="active" href="adaline.html">ADALINE</a><a href="madaline.html">MADALINE</a><a href="laboratorios.html">Laboratórios</a></nav></header>
+
+  <main class="adaline-page">
+    <section class="adaline-hero">
+      <div><p class="eyebrow">CAPÍTULO 03 · ADALINE</p><h1>Aprender com a saída linear antes de decidir.</h1><p class="lead"><b>ADALINE</b> significa <i>Adaptive Linear Neuron</i>. Ela calcula um valor contínuo, mede a distância até a resposta desejada e ajusta seus parâmetros com a Regra Delta/LMS.</p><a class="button" href="#fundamentos-adaline">Estudar a matemática ↓</a></div>
+      <div class="adaline-hero-flow" aria-label="Fluxo da ADALINE"><div><b>x</b><span>entradas</span></div><i>→</i><div><b>u</b><span>saída linear</span></div><i>→</i><div><b>e</b><span>d − u</span></div><i>→</i><div><b>Δw</b><span>Regra Delta</span></div></div>
+    </section>
+
+    <section class="adaline-overview">
+      <header class="narrative-head"><p class="eyebrow">PERCEPTRON RULE × REGRA DELTA</p><h2>A soma é a mesma. O ponto onde medimos o erro é diferente.</h2><p>Perceptron e ADALINE calculam o mesmo potencial <span class="mono">u = Σ(wᵢxᵢ) + b</span>. A diferença aparece no treinamento: o Perceptron compara o alvo com a classe produzida pelo degrau; a ADALINE compara o alvo diretamente com a saída linear.</p></header>
+
+      <div class="rule-comparison">
+        <article class="rule-card perceptron-rule-card">
+          <p class="eyebrow">REGRA DO PERCEPTRON</p>
+          <h3>O erro é calculado depois da decisão.</h3>
+          <p>Primeiro o potencial atravessa a função Step. Depois, a classe prevista <span class="mono">ŷ</span> é comparada com o alvo <span class="mono">y</span>.</p>
+          <div class="math-expression"><small>Forward</small><strong>u = Σ(wᵢxᵢ) + b<br>ŷ = Step(u)</strong><small>Erro e atualização</small><strong>e<sub>P</sub> = y − ŷ<br>wᵢ ← wᵢ + ηe<sub>P</sub>xᵢ<br>b ← b + ηe<sub>P</sub></strong></div>
+          <aside>Como <span class="mono">ŷ</span> é discreto, o erro informa principalmente se a decisão foi correta e em qual direção corrigir.</aside>
+        </article>
+        <article class="rule-card adaline-rule-card">
+          <p class="eyebrow">ADALINE · REGRA DELTA/LMS</p>
+          <h3>O erro é calculado antes da decisão.</h3>
+          <p>O alvo <span class="mono">d</span> é comparado diretamente com o potencial contínuo <span class="mono">u</span>. O limitador fica fora do caminho usado para aprender.</p>
+          <div class="math-expression"><small>Saída linear</small><strong>u = Σ(wᵢxᵢ) + b</strong><small>Erro, custo e atualização</small><strong>e<sub>A</sub> = d − u<br>E = ½e<sub>A</sub>²<br>wᵢ ← wᵢ + ηe<sub>A</sub>xᵢ<br>b ← b + ηe<sub>A</sub></strong></div>
+          <aside>Como <span class="mono">u</span> é contínuo, o erro também mostra a distância numérica entre a saída linear e o alvo.</aside>
+        </article>
+      </div>
+
+      <figure class="perceptron-reference adaline-comparison-figure"><img src="../assets/images/comparacao_perceptron_adaline.png" alt="Comparação entre a Regra do Perceptron e a Regra Delta da ADALINE"><figcaption>Observe as setas de retorno: no Perceptron, o erro retorna depois do limitador; na ADALINE, ele retorna diretamente da saída linear.</figcaption></figure>
+
+      <section class="rule-calculation-comparison">
+        <header><p class="eyebrow">O QUE MUDA NA CONTA?</p><h3>A mesma amostra calculada pelos dois métodos</h3><p>Para isolar apenas a diferença entre as regras, usamos o exemplo binário da página do Perceptron: <span class="mono">x₁ = 1</span>, <span class="mono">x₂ = 0</span>, resposta correta <span class="mono">y = d = 0</span>, <span class="mono">w₁ = 0,40</span>, <span class="mono">w₂ = −0,20</span>, <span class="mono">b = −0,10</span> e <span class="mono">η = 0,20</span>.</p></header>
+
+        <aside class="desired-output-explanation">
+          <div class="desired-symbol">d</div>
+          <div><h4>O que significa d?</h4><p><span class="mono">d</span> vem de <i>desired output</i>: é a <b>saída desejada</b>, isto é, a resposta correta fornecida pelo conjunto de treinamento. Ela não é calculada pela ADALINE.</p><p>Nesta mesma amostra, o Perceptron chama a resposta correta de <span class="mono">y = 0</span>, enquanto a notação tradicional da ADALINE escreve <span class="mono">d = 0</span>. Portanto, <b>y e d têm o mesmo valor e cumprem o mesmo papel</b>; somente o nome do símbolo mudou.</p></div>
+          <div class="desired-example"><span>Perceptron</span><strong>alvo y = 0</strong><i>=</i><span>ADALINE</span><strong>alvo d = 0</strong></div>
+        </aside>
+
+        <div class="shared-calculation"><b>Parte igual nos dois modelos</b><span>u = (0,40 × 1) + (−0,20 × 0) − 0,10 = <strong>0,30</strong></span></div>
+
+        <div class="calculation-comparison-grid">
+          <article>
+            <div class="calculation-method">PERCEPTRON</div>
+            <div class="math-expression">
+              <small>1 · Aplicar Step</small><strong>ŷ = Step(0,30) = 1</strong>
+              <small>2 · Calcular erro com a classe</small><strong>e<sub>P</sub> = y − ŷ = 0 − 1 = −1</strong>
+              <small>3 · Calcular correções</small><strong>Δw₁ = 0,20 × (−1) × 1 = −0,20<br>Δw₂ = 0,20 × (−1) × 0 = 0<br>Δb = 0,20 × (−1) = −0,20</strong>
+              <small>4 · Novos parâmetros</small><strong>w₁′ = 0,20 · w₂′ = −0,20 · b′ = −0,30</strong>
+              <small>5 · Nova resposta</small><strong>u′ = −0,10 → ŷ′ = 0</strong>
+            </div>
+          </article>
+          <article>
+            <div class="calculation-method">ADALINE</div>
+            <div class="math-expression">
+              <small>1 · Não usar Step no treinamento</small><strong>saída linear = u = 0,30</strong>
+              <small>2A · Calcular o erro linear</small><strong>e<sub>A</sub> = d − u<br>e<sub>A</sub> = 0 − 0,30 = −0,30</strong>
+              <small>2B · Elevar o erro ao quadrado</small><strong>e<sub>A</sub>² = (−0,30) × (−0,30) = 0,09</strong>
+              <small>2C · Multiplicar o quadrado por um meio</small><strong>E = ½ × e<sub>A</sub>²<br>E = 0,5 × 0,09 = 0,045</strong>
+              <small>3 · Calcular correções LMS</small><strong>Δw₁ = 0,20 × (−0,30) × 1 = −0,06<br>Δw₂ = 0,20 × (−0,30) × 0 = 0<br>Δb = 0,20 × (−0,30) = −0,06</strong>
+              <small>4 · Novos parâmetros</small><strong>w₁′ = 0,34 · w₂′ = −0,20 · b′ = −0,16</strong>
+              <small>5 · Nova saída linear</small><strong>u′ = 0,18 · mais próximo do alvo 0</strong>
+            </div>
+            <aside class="half-error-explanation"><b>Como ler ½e²?</b><span>Primeiro calculamos <strong>e²</strong>; depois multiplicamos o resultado por <strong>½ = 0,5</strong>. O fator ½ simplifica a derivada usada na Regra Delta: a derivada de ½e² em relação a e é simplesmente e. Ele não altera onde o custo é mínimo, pois o menor valor continua ocorrendo em e = 0.</span></aside>
+          </article>
+        </div>
+
+        <div class="rule-difference-table"><table><thead><tr><th>Elemento</th><th>Regra do Perceptron</th><th>Regra Delta da ADALINE</th></tr></thead><tbody><tr><td>Valor comparado ao alvo</td><td>Classe ŷ = 1</td><td>Saída linear u = 0,30</td></tr><tr><td>Erro calculado</td><td>−1</td><td>−0,30</td></tr><tr><td>Correção de w₁</td><td>−0,20</td><td>−0,06</td></tr><tr><td>Novo w₁</td><td>0,20</td><td>0,34</td></tr><tr><td>Novo bias</td><td>−0,30</td><td>−0,16</td></tr><tr><td>Comportamento</td><td>Correção orientada pela classe</td><td>Aproximação gradual da saída linear</td></tr></tbody></table></div>
+        <aside class="note"><b>A linha que realmente muda é a do erro:</b> o Perceptron usa <span class="mono">y − ŷ</span>; a ADALINE usa <span class="mono">d − u</span>. Como esse valor multiplica a taxa de aprendizado, as entradas e o ajuste do bias, todos os novos parâmetros também ficam diferentes.</aside>
+      </section>
+    </section>
+
+    <section class="adaline-foundation" id="fundamentos-adaline">
+      <header class="narrative-head"><p class="eyebrow">01 · FUNDAMENTOS DA ADALINE</p><h2>Onde entram o erro quadrático e a Regra Delta?</h2><p>Esses conceitos pertencem ao aprendizado da ADALINE. Diferentemente do Perceptron clássico, ela calcula o erro usando a saída linear antes do limitador.</p></header>
+
+      <div class="adaline-signal-flow" aria-label="Fluxo do treinamento da ADALINE">
+        <div><b>Entradas</b><span>x₁, x₂, …, xₙ</span></div><i>→</i>
+        <div><b>Saída linear</b><span>u = Σ(wᵢxᵢ) + b</span></div><i>→</i>
+        <div><b>Erro linear</b><span>e = d − u</span></div><i>→</i>
+        <div><b>Erro quadrático</b><span>E = ½e²</span></div><i>→</i>
+        <div><b>Regra Delta</b><span>wᵢ ← wᵢ + ηexᵢ</span></div>
+      </div>
+
+      <div class="adaline-foundation-grid">
+        <article><h3>1. O erro vem antes do limiar</h3><p>A ADALINE compara a resposta desejada <span class="mono">d</span> com o potencial linear <span class="mono">u</span>. O sinal usado para classificar não participa do cálculo do erro de treinamento.</p><div class="math-expression"><small>Saída linear</small><strong>u = Σᵢ(wᵢxᵢ) + b</strong><small>Erro linear</small><strong>e = d − u</strong></div></article>
+        <article><h3>2. Erro quadrático da amostra</h3><p>Ele transforma erros positivos e negativos em valores não negativos e penaliza mais intensamente erros de maior magnitude.</p><div class="math-expression"><small>Fórmula</small><strong>E = ½e²</strong><small>Exemplo para e = −1</small><strong>E = ½(−1)² = 0,50</strong></div></article>
+        <article><h3>3. Somatória sobre o conjunto</h3><p>A função de custo reúne os erros das <span class="mono">N</span> amostras. O treinamento procura pesos que diminuam esse total.</p><div class="math-expression"><small>Soma dos erros quadráticos</small><strong>J(w,b) = ½ Σₚ₌₁ᴺ eₚ²</strong><small>Erro quadrático médio</small><strong>MSE = (1/N) Σₚ₌₁ᴺ eₚ²</strong></div></article>
+        <article><h3>4. Regra Delta / LMS</h3><p>O gradiente informa como cada parâmetro altera o custo. A descida do gradiente move pesos e bias no sentido que tende a reduzir o erro quadrático.</p><div class="math-expression"><small>Gradientes da amostra</small><strong>∂E/∂wᵢ = −exᵢ<br>∂E/∂b = −e</strong><small>Atualização</small><strong>wᵢ ← wᵢ + ηexᵢ<br>b ← b + ηe</strong></div></article>
+      </div>
+      <aside class="note"><b>ADALINE × Perceptron:</b> as fórmulas de atualização podem parecer semelhantes, mas o erro é calculado em pontos diferentes. O Perceptron usa a decisão binária <span class="mono">ŷ</span>; a ADALINE usa a saída contínua <span class="mono">u</span> e minimiza uma função de custo quadrática.</aside>
+    </section>
+
+    <section class="adaline-worked-example">
+      <header class="narrative-head"><p class="eyebrow">02 · EXEMPLO COMPLETO</p><h2>Uma atualização da ADALINE, conta por conta.</h2><p>Na comparação anterior usamos alvos 0/1 para repetir o exemplo do Perceptron. Agora aplicamos a mesma Regra Delta com a notação bipolar histórica da ADALINE: <span class="mono">x = [1, 0]</span>, <span class="mono">d = −1</span>, <span class="mono">w₁ = 0,40</span>, <span class="mono">w₂ = −0,20</span>, <span class="mono">b = −0,10</span> e <span class="mono">η = 0,20</span>.</p></header>
+      <div class="adaline-example-grid">
+        <article><b>1 · Saída linear</b><div class="math-expression"><strong>u = (0,40 × 1) + (−0,20 × 0) − 0,10<br>u = 0,30</strong></div></article>
+        <article><b>2 · Erro e custo</b><div class="math-expression"><strong>e = d − u = −1 − 0,30 = −1,30<br>E = ½(−1,30)² = 0,845</strong></div></article>
+        <article><b>3 · Correções</b><div class="math-expression"><strong>Δw₁ = 0,20 × (−1,30) × 1 = −0,26<br>Δw₂ = 0,20 × (−1,30) × 0 = 0<br>Δb = 0,20 × (−1,30) = −0,26</strong></div></article>
+        <article><b>4 · Novos parâmetros</b><div class="math-expression"><strong>w₁′ = 0,40 − 0,26 = 0,14<br>w₂′ = −0,20<br>b′ = −0,10 − 0,26 = −0,36</strong></div></article>
+      </div>
+      <aside class="note"><b>Conferência:</b> com os novos parâmetros, <span class="mono">u′ = (0,14 × 1) + (−0,20 × 0) − 0,36 = −0,22</span>. A saída linear se aproximou do alvo <span class="mono">d = −1</span>.</aside>
+    </section>
+
+    <section class="deep-closing"><p class="eyebrow">PRÓXIMO CAPÍTULO</p><h2>Uma ADALINE cria uma fronteira. Uma MADALINE combina várias.</h2><p>Agora avance para a arquitetura formada por múltiplas unidades ADALINE.</p><a class="button" href="madaline.html">Estudar MADALINE →</a></section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://isl.stanford.edu/~widrow/papers/j199030years.pdf" target="_blank" rel="noopener">Widrow e Lehr — ADALINE, MADALINE e LMS</a> · <a href="https://embarcados.com.br/rede-perceptron-de-uma-unica-camada/" target="_blank" rel="noopener">Embarcados — Rede Perceptron</a> · <a href="https://felipetulio.com.br/aprendizado-supervisionado-redes-neurais-artificiais/" target="_blank" rel="noopener">Felipe Túlio — Redes neurais artificiais</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../js/image-lightbox.js"></script>
+</body>
+</html>

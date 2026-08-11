@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Laboratório XOR | Perceptron Lab</title><link rel="stylesheet" href="../css/styles.css"></head>
+<body>
+  <header class="site-header"><a class="brand" href="../index.html"><span>π</span> Machine Learning Lab</a><nav><a href="../index.html">Introdução</a><a href="perceptron-introducao.html">Perceptron</a><a href="perceptron-multicamadas.html">Perceptron MultiCamadas</a><a href="adaline.html">ADALINE</a><a href="madaline.html">MADALINE</a><a class="active" href="laboratorios.html">Laboratórios</a></nav></header>
+  <main>
+    <header class="lab-intro"><div><p class="eyebrow">LABORATÓRIO 03 · XOR</p><h1>Por que uma reta não resolve XOR?</h1><p>Compare um Perceptron de uma camada com uma MLP. As regiões coloridas mostram, ao vivo, a decisão aprendida por cada arquitetura.</p></div></header>
+    <section class="separator-layout">
+      <aside class="side-panel">
+        <h2>Configure o treinamento</h2><p>No XOR, a saída vale 1 quando apenas uma das entradas vale 1.</p>
+        <div class="xor-rule"><span>0 ⊕ 0 = 0</span><span>0 ⊕ 1 = 1</span><span>1 ⊕ 0 = 1</span><span>1 ⊕ 1 = 0</span></div>
+        <div class="control-group"><label>ARQUITETURA<select id="model"><option value="perceptron">Perceptron · uma reta</option><option value="mlp" selected>MLP · camada oculta</option></select></label><label>ATIVAÇÃO OCULTA<select id="activation"><option value="sigmoid">Sigmoid</option><option value="tanh">Tanh</option><option value="relu">ReLU</option></select></label></div>
+        <div class="control-group"><label>TAXA DE APRENDIZADO η<input id="lr" type="number" value="0.7" min="0.01" max="1" step="0.01"></label><button class="button" id="trainOne">Treinar 1 época</button><button class="button outline full-button" id="trainAuto">Treinar automaticamente</button><button class="button outline full-button" id="resetNet">Reiniciar rede</button></div>
+        <div class="control-group"><label>TESTAR UMA ENTRADA</label><div class="point-inputs"><label>x₁<select id="testX1"><option>0</option><option>1</option></select></label><label>x₂<select id="testX2"><option>0</option><option>1</option></select></label></div><button class="button full-button" id="testButton">Testar</button><div class="test-result" id="testResult">Escolha as entradas e teste a rede.</div></div>
+      </aside>
+      <div>
+        <article class="separator-card"><div class="card-top"><div><h2 id="chartTitle">Decisão da MLP para XOR</h2><p class="canvas-note left-note">Cada ponto representa uma combinação da tabela-verdade.</p></div><span class="status" id="chartStatus">Rede nova</span></div><canvas id="xorPlane" width="720" height="530" aria-label="Plano de decisão do problema XOR"></canvas><div class="separator-legend"><span><i class="dot class-zero"></i>Saída 0</span><span><i class="dot class-one"></i>Saída 1</span><span><i class="boundary-sample"></i>Fronteira aprendida</span></div><div class="sep-metrics"><div class="stat"><span>Épocas</span><b id="epochs">0</b></div><div class="stat"><span>Acertos</span><b id="accuracy">—</b></div><div class="stat"><span>Erro médio</span><b id="loss">—</b></div></div></article>
+        <article class="network-visual-card"><div class="card-top"><div><h2 id="networkTitle">Neurônios da MLP · 2 → 4 → 1</h2><p id="networkSubtitle">Os valores dentro dos círculos são as ativações do forward pass.</p></div></div><canvas id="mlpNetworkCanvas" width="720" height="430" aria-label="Rede neural com entradas, camada oculta e saída"></canvas><div class="network-readout" id="networkReadout">Selecione uma entrada de teste para acompanhar seu caminho pela rede.</div><div class="neuron-methods"><div><b>1 · Potencial</b><span>u = Σ(wᵢxᵢ) + b</span></div><div><b>2 · Ativação</b><span>a = g(u)</span></div><div><b>3 · Forward</b><span>entrada → oculta → ŷ</span></div><div><b>4 · Erro</b><span>e = y − ŷ</span></div><div><b>5 · Backprop</b><span>gradientes voltam pela rede</span></div><div><b>6 · Atualização</b><span>w ← w − η∇w</span></div></div></article>
+        <article class="math-steps-card"><div class="card-top"><div><h2>Passo a passo matemático</h2><p>Forward, deltas e pesos da última amostra.</p></div></div><div id="xorMathSteps" class="math-steps"><p>Treine uma época para visualizar as contas.</p></div></article>
+        <article class="training-history-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>Compare a queda do erro com o aumento da taxa de acertos.</p></div></div><canvas id="trainingChart" width="720" height="300" aria-label="Gráfico do erro médio e da taxa de acerto por época"></canvas><div class="history-legend"><span><i class="error-line"></i>Erro médio</span><span><i class="accuracy-line"></i>Taxa de acerto</span></div></article>
+        <article class="explanation-card"><h2 id="explanationTitle">Duas regiões são necessárias</h2><p id="explanation">Os resultados 1 ocupam cantos opostos. Uma única reta sempre deixa pelo menos um ponto do lado errado. A camada oculta permite combinar várias retas e formar uma decisão não linear.</p></article>
+        <article class="lab-concept"><p class="eyebrow">LEITURA DO MODELO</p><div class="concept-grid"><div class="concept-card"><h3>Perceptron</h3><p>Calcula <span class="mono">u = w₁x₁ + w₂x₂ + b</span> e produz <span class="mono">ŷ = Step(u)</span>. Há apenas uma fronteira: <span class="mono">u = 0</span>.</p></div><div class="concept-card"><h3>MLP</h3><p>Cada neurônio oculto calcula seu próprio potencial <span class="mono">u</span>. A combinação dessas ativações cria as duas regiões exigidas pelo XOR.</p></div></div></article>
+      </div>
+    </section>
+    <section class="algorithm-section" aria-labelledby="xor-code-title"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2 id="xor-code-title">MLP simples para resolver XOR</h2><p>A camada oculta possui dois neurônios. O código separa forward pass, cálculo dos gradientes, backpropagation e atualização dos pesos.</p><div class="algorithm-flow"><span>sigmoid()</span><span>criarRede()</span><span>forward()</span><span>backpropagation()</span><span>atualizarPesos()</span><span>treinar()</span></div></header><div class="code-window"><div class="code-window-bar"><span>mlp-xor.js</span><i>exemplo simplificado</i></div><pre><code>// Tabela-verdade completa do XOR.
+const dadosXOR = [
+  { x: [0, 0], y: 0 },
+  { x: [0, 1], y: 1 },
+  { x: [1, 0], y: 1 },
+  { x: [1, 1], y: 0 }
+];
+
+// Sigmoid comprime qualquer potencial u para o intervalo de 0 a 1.
+function sigmoid(u) {
+  return 1 / (1 + Math.exp(-u));
+}
+
+// Calcula a derivada usando a ativação já obtida no forward pass.
+function derivadaSigmoid(ativacao) {
+  return ativacao * (1 - ativacao);
+}
+
+// A semente fixa torna o exemplo reproduzível em qualquer execução.
+let semente = 1;
+
+// Gera um peso pseudoaleatório pequeno a partir da semente.
+function pesoAleatorio() {
+  semente = (semente * 16807) % 2147483647;
+  return (semente / 2147483647) * 2 - 1;
+}
+
+// Cria uma arquitetura 2 → 2 → 1.
+function criarRede() {
+  return {
+    oculta: [
+      { pesos: [pesoAleatorio(), pesoAleatorio()], bias: pesoAleatorio() },
+      { pesos: [pesoAleatorio(), pesoAleatorio()], bias: pesoAleatorio() }
+    ],
+    saida: {
+      pesos: [pesoAleatorio(), pesoAleatorio()],
+      bias: pesoAleatorio()
+    }
+  };
+}
+
+// Multiplica entradas por pesos e acrescenta o bias.
+function potencial(entradas, pesos, bias) {
+  return entradas.reduce(
+    (soma, entrada, indice) => soma + entrada * pesos[indice],
+    bias
+  );
+}
+
+// Executa somente o forward pass; nenhum peso é alterado aqui.
+function forward(entradas, rede) {
+  const oculta = rede.oculta.map(neuronio => {
+    const u = potencial(entradas, neuronio.pesos, neuronio.bias);
+    const a = sigmoid(u);
+    return { u, a };
+  });
+
+  const uSaida = potencial(
+    oculta.map(neuronio => neuronio.a),
+    rede.saida.pesos,
+    rede.saida.bias
+  );
+
+  const probabilidade = sigmoid(uSaida);
+  return { oculta, uSaida, probabilidade };
+}
+
+// Usa o erro da saída para calcular os deltas de todas as camadas.
+function backpropagation(entradas, y, rede, resultado) {
+  // Com Sigmoid + entropia cruzada, o delta da saída é ŷ - y.
+  const deltaSaida = resultado.probabilidade - y;
+
+  // Cada neurônio oculto recebe uma parte do erro da saída.
+  const deltasOcultos = resultado.oculta.map((neuronio, indice) =>
+    deltaSaida *
+    rede.saida.pesos[indice] *
+    derivadaSigmoid(neuronio.a)
+  );
+
+  return { entradas, deltaSaida, deltasOcultos, ativacoes: resultado.oculta };
+}
+
+// Aplica descida do gradiente depois que todos os deltas foram calculados.
+function atualizarPesos(rede, gradientes, taxa) {
+  rede.saida.pesos = rede.saida.pesos.map(
+    (peso, indice) =>
+      peso - taxa * gradientes.deltaSaida * gradientes.ativacoes[indice].a
+  );
+  rede.saida.bias -= taxa * gradientes.deltaSaida;
+
+  rede.oculta.forEach((neuronio, indiceOculto) => {
+    neuronio.pesos = neuronio.pesos.map(
+      (peso, indiceEntrada) =>
+        peso -
+        taxa *
+        gradientes.deltasOcultos[indiceOculto] *
+        gradientes.entradas[indiceEntrada]
+    );
+    neuronio.bias -= taxa * gradientes.deltasOcultos[indiceOculto];
+  });
+}
+
+// Reúne forward, erro, backpropagation e atualização para uma amostra.
+function treinarAmostra(amostra, rede, taxa) {
+  const resultado = forward(amostra.x, rede);
+  const gradientes = backpropagation(amostra.x, amostra.y, rede, resultado);
+  atualizarPesos(rede, gradientes, taxa);
+}
+
+// Repete todas as amostras por várias épocas.
+function treinar(dados, epocas, taxa) {
+  const rede = criarRede();
+
+  Array.from({ length: epocas }).forEach(() => {
+    dados.forEach(amostra => treinarAmostra(amostra, rede, taxa));
+  });
+
+  return rede;
+}
+
+// A decisão final usa limiar de probabilidade igual a 0,5.
+function prever(entradas, rede) {
+  return forward(entradas, rede).probabilidade >= 0.5 ? 1 : 0;
+}
+
+const redeTreinada = treinar(dadosXOR, 10000, 0.7);
+dadosXOR.forEach(amostra => {
+  console.log(amostra.x, prever(amostra.x, redeTreinada));
+});</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://embarcados.com.br/rede-perceptron-de-uma-unica-camada/" target="_blank" rel="noopener">Embarcados — Rede Perceptron</a> · <a href="https://felipetulio.com.br/aprendizado-supervisionado-redes-neurais-artificiais/" target="_blank" rel="noopener">Felipe Túlio — Redes neurais artificiais</a> · <a href="https://developers.google.com/machine-learning/crash-course/neural-networks/activation-functions" target="_blank" rel="noopener">Google ML — Funções de ativação</a> · <a href="https://www.ncbi.nlm.nih.gov/books/NBK441977/" target="_blank" rel="noopener">NCBI — Neuroanatomia dos neurônios</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../js/labs/training-history-chart.js"></script><script src="../js/labs/mlp-network-view.js"></script><script src="../js/labs/xor-lab.js"></script><script src="../js/didactic-code-examples.js"></script><script src="../js/code-highlighting.js"></script>
+</body></html>
