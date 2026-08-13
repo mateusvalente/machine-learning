@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADALINE e Regra Delta | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <style>
+    .adaline-symbol-guide{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0}.adaline-symbol-guide article{padding:22px;background:#fff;border:1px solid #ead8c8;border-radius:11px}.adaline-symbol-guide h3{margin:0 0 8px;font-size:21px}.adaline-symbol-guide p{margin:0 0 14px;color:var(--muted)}.adaline-symbol-guide .math-expression{height:auto;margin:0}.adaline-symbol-guide .math-expression strong{font-size:20px}.adaline-cost-explanation{display:grid;grid-template-columns:90px 1fr;gap:20px;align-items:center;margin:22px 0;padding:24px;background:#fff4e9;border:1px solid #edcdb2;border-left:5px solid #d77c42;border-radius:11px}.adaline-cost-symbol{display:grid;place-items:center;width:76px;height:76px;border-radius:14px;background:#d77c42;color:#fff;font:800 34px 'DM Mono',monospace}.adaline-cost-explanation h3{margin:0 0 8px;font-size:22px}.adaline-cost-explanation p{margin:5px 0;color:#535e75}.adaline-cost-formula{display:block;margin-top:12px;padding:15px 18px;background:#fff;border-radius:8px;color:#27304a;font:700 20px/1.7 'DM Mono',monospace}.calculation-comparison-grid .math-expression{height:auto}.calculation-comparison-grid>article{height:auto}.half-error-explanation{position:static;margin-bottom:0}.adaline-gradient-section{margin-top:78px;padding:38px;background:#f2f1ff;border:1px solid #d9d6f3;border-radius:18px}.adaline-gradient-section>.narrative-head{margin-top:0}.adaline-gradient-intro{display:grid;grid-template-columns:1.15fr .85fr;gap:22px;align-items:stretch}.adaline-gradient-reading{padding:25px;background:#fff;border:1px solid var(--line);border-radius:13px}.adaline-gradient-reading p{margin:0 0 14px;color:#535e75}.adaline-gradient-reading .equation{margin:17px 0 0}.adaline-gradient-visual{padding:20px;background:#fff;border:1px solid var(--line);border-radius:13px}.adaline-gradient-visual h3{margin:0 0 6px;font-size:21px}.adaline-gradient-visual>p{margin:0 0 10px;color:var(--muted)}.adaline-gradient-visual svg{display:block;width:100%;height:auto}.gradient-axis{stroke:#7a8499;stroke-width:2}.gradient-curve{fill:none;stroke:#d77c42;stroke-width:6;stroke-linecap:round}.gradient-step{fill:none;stroke:#4e46e5;stroke-width:3;stroke-dasharray:8 6;marker-end:url(#gradientArrow)}.gradient-point{fill:#4e46e5;stroke:#fff;stroke-width:4}.gradient-minimum{fill:#159b80;stroke:#fff;stroke-width:4}.gradient-label{fill:#3e4961;font:700 15px Manrope}.gradient-formula{fill:#a95521;font:800 16px 'DM Mono',monospace}.adaline-gradient-reasons{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:20px}.adaline-gradient-reasons article{padding:22px;background:#fff;border:1px solid var(--line);border-top:4px solid var(--indigo);border-radius:12px}.adaline-gradient-reasons article:nth-child(2),.adaline-gradient-reasons article:nth-child(4){border-top-color:#d77c42}.adaline-gradient-reasons b{display:block;margin-bottom:8px;font-size:19px}.adaline-gradient-reasons p{margin:0;color:#535e75}.adaline-gradient-section>.note{margin-top:18px}.adaline-code-invitation{margin:20px 0 0;padding:20px;background:#292f48;border-radius:11px;color:#fff;text-align:center}.adaline-code-invitation b{display:block;color:#9cebdc;font-size:20px}.adaline-code-invitation span{display:block;margin-top:5px}.adaline-code-invitation a{display:inline-block;margin-top:13px;color:#fff;font-weight:800}@media(max-width:850px){.adaline-symbol-guide{grid-template-columns:1fr}.adaline-cost-explanation{grid-template-columns:1fr}.adaline-cost-symbol{width:64px;height:64px}.adaline-gradient-section{padding:22px}.adaline-gradient-intro,.adaline-gradient-reasons{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+
+  <main class="adaline-page">
+    <section class="adaline-hero">
+      <div><p class="eyebrow">CAPÍTULO 03 · ADALINE</p><h1>Aprender com a saída linear antes de decidir.</h1><p class="lead"><b>ADALINE</b> significa <i>Adaptive Linear Neuron</i>. Ela calcula um valor contínuo, mede a distância até a resposta desejada e ajusta seus parâmetros com a Regra Delta/LMS.</p><a class="button" href="#fundamentos-adaline">Estudar a matemática ↓</a></div>
+      <div class="adaline-hero-flow" aria-label="Fluxo da ADALINE"><div><b>x</b><span>entradas</span></div><i>→</i><div><b>u</b><span>saída linear</span></div><i>→</i><div><b>e</b><span>d − u</span></div><i>→</i><div><b>Δw</b><span>Regra Delta</span></div></div>
+    </section>
+
+    <section class="adaline-overview">
+      <header class="narrative-head"><p class="eyebrow">PERCEPTRON RULE × REGRA DELTA</p><h2>A soma é a mesma. O ponto onde medimos o erro é diferente.</h2><p>Perceptron e ADALINE calculam o mesmo potencial <span class="mono">u = Σ(wᵢxᵢ) + b</span>. A diferença aparece no treinamento: o Perceptron compara o alvo com a classe produzida pelo degrau; a ADALINE compara o alvo diretamente com a saída linear.</p></header>
+
+      <aside class="desired-output-explanation">
+        <div class="desired-symbol">d</div>
+        <div><h4>Primeiro: o que é d na ADALINE?</h4><p><span class="mono">d</span> vem de <i>desired output</i> e significa <b>saída desejada</b>. É a resposta correta que acompanha cada entrada no conjunto de treinamento.</p><p><b>A ADALINE não calcula d.</b> Esse valor já é fornecido pelo professor ou pelos dados rotulados. A rede calcula <span class="mono">u</span> e compara esse resultado com <span class="mono">d</span> para saber quanto precisa corrigir.</p></div>
+        <div class="desired-example"><span>Amostra de treinamento</span><strong>[x₁, x₂, d] = [1, 0, 0]</strong><i>significa</i><span>Para x = [1, 0]</span><strong>a resposta correta é d = 0</strong></div>
+      </aside>
+
+      <div class="adaline-symbol-guide">
+        <article><h3>d · resposta desejada</h3><p>É o alvo correto fornecido junto com a amostra.</p><div class="math-expression"><strong>d = 0</strong></div></article>
+        <article><h3>u · resposta calculada</h3><p>É a saída linear produzida pela ADALINE com os pesos atuais.</p><div class="math-expression"><strong>u = 0,30</strong></div></article>
+        <article><h3>e · diferença</h3><p>Mostra quanto a saída calculada está distante da resposta desejada.</p><div class="math-expression"><strong>e = d − u = 0 − 0,30 = −0,30</strong></div></article>
+      </div>
+
+      <aside class="note"><b>Relação entre as notações:</b> no Perceptron, usamos normalmente <span class="mono">y</span> para a resposta correta e <span class="mono">ŷ</span> para a classe prevista. Na ADALINE, a notação tradicional chama essa mesma resposta correta de <span class="mono">d</span>. Portanto, nesta comparação, <span class="mono">d = y</span>. Já <span class="mono">u</span> é o valor calculado pelo modelo.</aside>
+
+      <aside class="adaline-cost-explanation">
+        <div class="adaline-cost-symbol">E</div>
+        <div><h3>O que é E maiúsculo?</h3><p><span class="mono">E</span> representa o <b>erro quadrático</b>, também chamado de <b>custo da amostra</b>. Ele transforma o erro linear <span class="mono">e</span> em um número não negativo que indica o tamanho do erro cometido pela ADALINE.</p><p>Primeiro calculamos <span class="mono">e = d − u</span>. Depois usamos esse resultado para calcular <span class="mono">E = ½e²</span>. Quanto menor for <span class="mono">E</span>, melhor: <span class="mono">E = 0</span> significa que a saída linear <span class="mono">u</span> chegou exatamente ao alvo <span class="mono">d</span>.</p><span class="adaline-cost-formula">e = −0,30 &nbsp;→&nbsp; E = ½(−0,30)² = 0,045</span></div>
+      </aside>
+
+      <div class="rule-comparison">
+        <article class="rule-card perceptron-rule-card">
+          <p class="eyebrow">REGRA DO PERCEPTRON</p>
+          <h3>O erro é calculado depois da decisão.</h3>
+          <p>Primeiro o potencial atravessa a função Step. Depois, a classe prevista <span class="mono">ŷ</span> é comparada com o alvo <span class="mono">y</span>.</p>
+          <div class="math-expression"><small>Forward</small><strong>u = Σ(wᵢxᵢ) + b<br>ŷ = Step(u)</strong><small>Erro e atualização</small><strong>e<sub>P</sub> = y − ŷ<br>wᵢ ← wᵢ + ηe<sub>P</sub>xᵢ<br>b ← b + ηe<sub>P</sub></strong></div>
+          <aside>Como <span class="mono">ŷ</span> é discreto, o erro informa principalmente se a decisão foi correta e em qual direção corrigir.</aside>
+        </article>
+        <article class="rule-card adaline-rule-card">
+          <p class="eyebrow">ADALINE · REGRA DELTA/LMS</p>
+          <h3>O erro é calculado antes da decisão.</h3>
+          <p>O alvo <span class="mono">d</span> é comparado diretamente com o potencial contínuo <span class="mono">u</span>. O limitador fica fora do caminho usado para aprender.</p>
+          <div class="math-expression"><small>Saída linear</small><strong>u = Σ(wᵢxᵢ) + b</strong><small>Erro, custo e atualização</small><strong>e<sub>A</sub> = d − u<br>E = ½e<sub>A</sub>²<br>wᵢ ← wᵢ + ηe<sub>A</sub>xᵢ<br>b ← b + ηe<sub>A</sub></strong></div>
+          <aside>Como <span class="mono">u</span> é contínuo, o erro também mostra a distância numérica entre a saída linear e o alvo.</aside>
+        </article>
+      </div>
+
+      <figure class="perceptron-reference adaline-comparison-figure"><img src="../../assets/images/comparacao_perceptron_adaline.png" alt="Comparação entre a Regra do Perceptron e a Regra Delta da ADALINE"><figcaption>Observe as setas de retorno: no Perceptron, o erro retorna depois do limitador; na ADALINE, ele retorna diretamente da saída linear.</figcaption></figure>
+
+      <section class="rule-calculation-comparison">
+        <header><p class="eyebrow">O QUE MUDA NA CONTA?</p><h3>A mesma amostra calculada pelos dois métodos</h3><p>Para isolar apenas a diferença entre as regras, usamos o exemplo binário da página do Perceptron: <span class="mono">x₁ = 1</span>, <span class="mono">x₂ = 0</span>, resposta correta <span class="mono">y = d = 0</span>, <span class="mono">w₁ = 0,40</span>, <span class="mono">w₂ = −0,20</span>, <span class="mono">b = −0,10</span> e <span class="mono">η = 0,20</span>.</p></header>
+
+        <aside class="desired-output-explanation">
+          <div class="desired-symbol">d</div>
+          <div><h4>De onde saiu d = 0 nesta conta?</h4><p>Da amostra rotulada escolhida para o treinamento: a entrada é <span class="mono">x = [1, 0]</span> e sua resposta correta é <span class="mono">0</span>. Por isso escrevemos <span class="mono">d = 0</span>. Se a amostra pertencesse à outra classe, usaríamos <span class="mono">d = 1</span> na codificação binária ou <span class="mono">d = +1</span> na codificação bipolar.</p></div>
+          <div class="desired-example"><span>Dado completo</span><strong>[x₁, x₂, d] = [1, 0, 0]</strong><i>→</i><span>Separação usada na conta</span><strong>x = [1, 0] e d = 0</strong></div>
+        </aside>
+
+        <div class="shared-calculation"><b>Parte igual nos dois modelos</b><span>u = (0,40 × 1) + (−0,20 × 0) − 0,10 = <strong>0,30</strong></span></div>
+
+        <div class="calculation-comparison-grid">
+          <article>
+            <div class="calculation-method">PERCEPTRON</div>
+            <div class="math-expression">
+              <small>1 · Aplicar Step</small><strong>ŷ = Step(0,30) = 1</strong>
+              <small>2 · Calcular erro com a classe</small><strong>e<sub>P</sub> = y − ŷ = 0 − 1 = −1</strong>
+              <small>3 · Calcular correções</small><strong>Δw₁ = 0,20 × (−1) × 1 = −0,20<br>Δw₂ = 0,20 × (−1) × 0 = 0<br>Δb = 0,20 × (−1) = −0,20</strong>
+              <small>4 · Novos parâmetros</small><strong>w₁′ = 0,20 · w₂′ = −0,20 · b′ = −0,30</strong>
+              <small>5 · Nova resposta</small><strong>u′ = −0,10 → ŷ′ = 0</strong>
+            </div>
+          </article>
+          <article>
+            <div class="calculation-method">ADALINE</div>
+            <div class="math-expression">
+              <small>1 · Não usar Step no treinamento</small><strong>saída linear = u = 0,30</strong>
+              <small>2A · Calcular o erro linear</small><strong>e<sub>A</sub> = d − u<br>e<sub>A</sub> = 0 − 0,30 = −0,30</strong>
+              <small>2B · Elevar o erro ao quadrado</small><strong>e<sub>A</sub>² = (−0,30) × (−0,30) = 0,09</strong>
+              <small>2C · Calcular o custo que será minimizado</small><strong>E = ½ × e<sub>A</sub>²<br>E = 0,5 × 0,09 = 0,045</strong>
+              <small>2D · Usar E para calcular os gradientes</small><strong>∂E/∂wᵢ = (∂E/∂e) × (∂e/∂u) × (∂u/∂wᵢ)<br>∂E/∂wᵢ = e<sub>A</sub> × (−1) × xᵢ = −e<sub>A</sub>xᵢ<br>∂E/∂b = −e<sub>A</sub><br>∂E/∂w₁ = −(−0,30) × 1 = 0,30<br>∂E/∂w₂ = −(−0,30) × 0 = 0<br>∂E/∂b = −(−0,30) = 0,30</strong>
+              <small>3 · Descer E pela Regra Delta/LMS</small><strong>Δwᵢ = −η × ∂E/∂wᵢ = ηe<sub>A</sub>xᵢ<br>Δw₁ = −0,20 × 0,30 = −0,06<br>Δw₂ = −0,20 × 0 = 0<br>Δb = −0,20 × 0,30 = −0,06</strong>
+              <small>4 · Novos parâmetros</small><strong>w₁′ = 0,34 · w₂′ = −0,20 · b′ = −0,16</strong>
+              <small>5 · Nova saída linear</small><strong>u′ = 0,18 · mais próximo do alvo 0</strong>
+              <small>6 · Confirmar que o novo custo diminuiu</small><strong>e′ = d − u′ = 0 − 0,18 = −0,18<br>E′ = ½(−0,18)² = 0,0162<br>E′ = 0,0162 &lt; E = 0,045</strong>
+            </div>
+            <aside class="half-error-explanation"><b>Por que E desaparece da fórmula final?</b><span>Ele não é descartado. A Regra Delta calcula a <strong>derivada de E</strong> em relação a cada peso. Depois da derivação, obtemos <strong>∂E/∂wᵢ = −exᵢ</strong>; por isso a forma simplificada da atualização mostra <strong>e</strong>, mas ela veio diretamente de <strong>E = ½e²</strong>. Ao final, recalculamos E para confirmar que o custo caiu de <strong>0,045</strong> para <strong>0,0162</strong>.</span></aside>
+          </article>
+        </div>
+
+        <div class="rule-difference-table"><table><thead><tr><th>Elemento</th><th>Regra do Perceptron</th><th>Regra Delta da ADALINE</th></tr></thead><tbody><tr><td>Valor comparado ao alvo</td><td>Classe ŷ = 1</td><td>Saída linear u = 0,30</td></tr><tr><td>Erro calculado</td><td>−1</td><td>−0,30</td></tr><tr><td>Correção de w₁</td><td>−0,20</td><td>−0,06</td></tr><tr><td>Novo w₁</td><td>0,20</td><td>0,34</td></tr><tr><td>Novo bias</td><td>−0,30</td><td>−0,16</td></tr><tr><td>Comportamento</td><td>Correção orientada pela classe</td><td>Aproximação gradual da saída linear</td></tr></tbody></table></div>
+        <aside class="note"><b>A linha que realmente muda é a do erro:</b> o Perceptron usa <span class="mono">y − ŷ</span>; a ADALINE usa <span class="mono">d − u</span>. Como esse valor multiplica a taxa de aprendizado, as entradas e o ajuste do bias, todos os novos parâmetros também ficam diferentes.</aside>
+      </section>
+    </section>
+
+    <section class="adaline-foundation" id="fundamentos-adaline">
+      <header class="narrative-head"><p class="eyebrow">01 · FUNDAMENTOS DA ADALINE</p><h2>Onde entram o erro quadrático e a Regra Delta?</h2><p>Esses conceitos pertencem ao aprendizado da ADALINE. Diferentemente do Perceptron clássico, ela calcula o erro usando a saída linear antes do limitador.</p></header>
+
+      <div class="adaline-signal-flow" aria-label="Fluxo do treinamento da ADALINE">
+        <div><b>Entradas</b><span>x₁, x₂, …, xₙ</span></div><i>→</i>
+        <div><b>Saída linear</b><span>u = Σ(wᵢxᵢ) + b</span></div><i>→</i>
+        <div><b>Erro linear</b><span>e = d − u</span></div><i>→</i>
+        <div><b>Erro quadrático</b><span>E = ½e²</span></div><i>→</i>
+        <div><b>Regra Delta</b><span>wᵢ ← wᵢ + ηexᵢ</span></div>
+      </div>
+
+      <div class="adaline-foundation-grid">
+        <article><h3>1. O erro vem antes do limiar</h3><p>A ADALINE compara a resposta desejada <span class="mono">d</span> com o potencial linear <span class="mono">u</span>. O sinal usado para classificar não participa do cálculo do erro de treinamento.</p><div class="math-expression"><small>Saída linear</small><strong>u = Σᵢ(wᵢxᵢ) + b</strong><small>Erro linear</small><strong>e = d − u</strong></div></article>
+        <article><h3>2. Erro quadrático da amostra</h3><p><span class="mono">E</span> maiúsculo é o custo da amostra. Ele transforma o erro linear <span class="mono">e</span> em um valor não negativo e penaliza mais intensamente erros de maior magnitude.</p><div class="math-expression"><small>Fórmula do custo</small><strong>E = ½e²</strong><small>Exemplo para e = −1</small><strong>E = ½(−1)² = 0,50</strong></div></article>
+        <article><h3>3. Somatória sobre o conjunto</h3><p>A função de custo reúne os erros das <span class="mono">N</span> amostras. O treinamento procura pesos que diminuam esse total.</p><div class="math-expression"><small>Soma dos erros quadráticos</small><strong>J(w,b) = ½ Σₚ₌₁ᴺ eₚ²</strong><small>Erro quadrático médio</small><strong>MSE = (1/N) Σₚ₌₁ᴺ eₚ²</strong></div></article>
+        <article><h3>4. Regra Delta / LMS</h3><p>O gradiente de <span class="mono">E</span> informa como cada parâmetro altera o custo. A descida do gradiente corrige pesos e bias no sentido que reduz esse valor.</p><div class="math-expression"><small>Derivação a partir de E</small><strong>E = ½(d − u)²<br>∂E/∂wᵢ = (∂E/∂e)(∂e/∂u)(∂u/∂wᵢ)<br>∂E/∂wᵢ = e(−1)xᵢ = −exᵢ<br>∂E/∂b = −e</strong><small>Descida do gradiente</small><strong>wᵢ ← wᵢ − η(∂E/∂wᵢ)<br>wᵢ ← wᵢ + ηexᵢ<br>b ← b + ηe</strong></div></article>
+      </div>
+      <aside class="note"><b>ADALINE × Perceptron:</b> as fórmulas de atualização podem parecer semelhantes, mas o erro é calculado em pontos diferentes. O Perceptron usa a decisão binária <span class="mono">ŷ</span>; a ADALINE usa a saída contínua <span class="mono">u</span> e minimiza uma função de custo quadrática.</aside>
+    </section>
+
+    <section class="adaline-gradient-section" id="erro-quadratico-gradiente">
+      <header class="narrative-head">
+        <p class="eyebrow">POR QUE ESSA FUNÇÃO DE CUSTO?</p>
+        <h2>Por que a ADALINE combina erro quadrático e gradiente descendente?</h2>
+        <p>A saída linear da ADALINE, combinada com o erro quadrático, cria uma superfície de custo suave e contínua. Em uma dimensão ela tem formato de parábola; com vários pesos, forma um paraboloide parecido com uma bacia.</p>
+      </header>
+
+      <div class="adaline-gradient-intro">
+        <article class="adaline-gradient-reading">
+          <h3>A “bacia” mostra qual combinação de pesos erra menos</h3>
+          <p>Cada posição sobre a curva representa um possível valor para o peso. A altura representa o custo <span class="mono">E</span>: posições mais altas produzem erros maiores; o ponto mais baixo representa o menor erro.</p>
+          <p>Como a curva é suave, podemos calcular sua inclinação em qualquer ponto. Essa inclinação é o <b>gradiente</b>. Ele aponta para o sentido de maior crescimento do custo.</p>
+          <p>A ADALINE subtrai o gradiente dos parâmetros e, assim, caminha no sentido contrário: em direção ao fundo da bacia.</p>
+          <div class="equation">parâmetro novo = parâmetro atual − η × gradiente de E</div>
+        </article>
+
+        <article class="adaline-gradient-visual">
+          <h3>Descendo a superfície de erro</h3>
+          <p>Visualização de uma seção da superfície usando apenas um peso.</p>
+          <svg viewBox="0 0 500 330" role="img" aria-label="Parábola do erro quadrático com passos de gradiente em direção ao menor custo">
+            <defs><marker id="gradientArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#4e46e5"/></marker></defs>
+            <path class="gradient-axis" d="M55 270H465M75 290V35"/>
+            <path class="gradient-curve" d="M85 55C145 160 170 245 265 260C355 245 385 160 445 55"/>
+            <path class="gradient-step" d="M405 112L355 182"/>
+            <path class="gradient-step" d="M350 187L306 231"/>
+            <path class="gradient-step" d="M300 235L268 255"/>
+            <circle class="gradient-point" cx="408" cy="108" r="10"/>
+            <circle class="gradient-point" cx="352" cy="184" r="10"/>
+            <circle class="gradient-point" cx="302" cy="233" r="10"/>
+            <circle class="gradient-minimum" cx="265" cy="260" r="11"/>
+            <text class="gradient-formula" x="92" y="65">J(w) = ½ Σe²</text>
+            <text class="gradient-label" x="370" y="92">início</text>
+            <text class="gradient-label" x="219" y="305">peso w</text>
+            <text class="gradient-label" x="18" y="65" transform="rotate(-90 18 65)">custo J</text>
+            <text class="gradient-label" x="278" y="279">menor custo</text>
+          </svg>
+        </article>
+      </div>
+
+      <div class="adaline-gradient-reasons">
+        <article><b>1. Continuidade e derivabilidade</b><p>A saída linear e o erro quadrático formam uma função de custo contínua e derivável. Isso permite calcular exatamente como uma pequena alteração em cada peso modifica o custo.</p></article>
+        <article><b>2. Mede o tamanho do erro</b><p>O Perceptron observa a classe prevista. A ADALINE utiliza a distância contínua <span class="mono">e = d − u</span>. Erros grandes geram gradientes maiores; erros pequenos produzem ajustes mais suaves.</p></article>
+        <article><b>3. Indica a direção do ajuste</b><p>O gradiente aponta para a subida mais rápida de <span class="mono">E</span>. A descida do gradiente usa o sinal contrário, <span class="mono">−η∇E</span>, para mover pesos e bias em direção a um custo menor.</p></article>
+        <article><b>4. Problema convexo</b><p>Para uma ADALINE linear com custo quadrático, a superfície é convexa: não existem mínimos locais ruins. Com uma taxa de aprendizado adequada, a Regra Delta/LMS converge para o mínimo global ou se aproxima dele.</p></article>
+      </div>
+
+      <aside class="note"><b>Condição importante:</b> a convexidade evita mínimos locais ruins, mas não permite escolher qualquer taxa de aprendizado. Se <span class="mono">η</span> for muito grande, o treinamento pode ultrapassar o fundo da bacia, oscilar ou divergir.</aside>
+
+      <div class="adaline-code-invitation"><b>Veja essa ideia funcionando no código.</b><span>O exemplo abaixo calcula E, deriva seus gradientes, atualiza os parâmetros e confere se o novo custo diminuiu.</span><a href="#adaline-code-title">Ir para o exemplo JavaScript ↓</a></div>
+    </section>
+
+    <section class="adaline-worked-example">
+      <header class="narrative-head"><p class="eyebrow">02 · EXEMPLO COMPLETO</p><h2>Uma atualização da ADALINE, conta por conta.</h2><p>Na comparação anterior usamos alvos 0/1 para repetir o exemplo do Perceptron. Agora aplicamos a mesma Regra Delta com a notação bipolar histórica da ADALINE: <span class="mono">x = [1, 0]</span>, <span class="mono">d = −1</span>, <span class="mono">w₁ = 0,40</span>, <span class="mono">w₂ = −0,20</span>, <span class="mono">b = −0,10</span> e <span class="mono">η = 0,20</span>.</p></header>
+      <aside class="desired-output-explanation">
+        <div class="desired-symbol">d</div>
+        <div><h4>Por que agora d = −1?</h4><p>Porque este exemplo usa a <b>codificação bipolar</b>. Nela, as duas classes são representadas por <span class="mono">−1</span> e <span class="mono">+1</span>, em vez de <span class="mono">0</span> e <span class="mono">1</span>. A amostra <span class="mono">x = [1, 0]</span> pertence à classe negativa; por isso sua resposta desejada é <span class="mono">d = −1</span>.</p><p>O significado de <span class="mono">d</span> não mudou: continua sendo a resposta correta. Mudou apenas o número escolhido para representar a classe.</p></div>
+        <div class="desired-example"><span>Codificação binária</span><strong>classes 0 e 1</strong><i>ou</i><span>Codificação bipolar</span><strong>classes −1 e +1</strong></div>
+      </aside>
+      <div class="adaline-example-grid">
+        <article><b>1 · Saída linear</b><div class="math-expression"><strong>u = (0,40 × 1) + (−0,20 × 0) − 0,10<br>u = 0,30</strong></div></article>
+        <article><b>2 · Erro e custo</b><div class="math-expression"><strong>e = d − u = −1 − 0,30 = −1,30<br>E = ½(−1,30)² = 0,845</strong></div></article>
+        <article><b>3 · Gradiente de E e correções</b><div class="math-expression"><strong>∂E/∂w₁ = −e × x₁ = −(−1,30) × 1 = 1,30<br>Δw₁ = −η(∂E/∂w₁) = −0,20 × 1,30 = −0,26<br>Δw₂ = −0,20 × 0 = 0<br>Δb = −0,20 × 1,30 = −0,26</strong></div></article>
+        <article><b>4 · Novos parâmetros</b><div class="math-expression"><strong>w₁′ = 0,40 − 0,26 = 0,14<br>w₂′ = −0,20<br>b′ = −0,10 − 0,26 = −0,36</strong></div></article>
+      </div>
+      <aside class="note"><b>Conferência usando E:</b> com os novos parâmetros, <span class="mono">u′ = −0,22</span>, <span class="mono">e′ = −1 − (−0,22) = −0,78</span> e <span class="mono">E′ = ½(−0,78)² = 0,3042</span>. Como o custo caiu de <span class="mono">E = 0,845</span> para <span class="mono">E′ = 0,3042</span>, a atualização realmente aproximou a saída linear do alvo <span class="mono">d = −1</span>.</aside>
+    </section>
+
+    <section class="algorithm-section" aria-labelledby="adaline-code-title">
+      <header>
+        <p class="eyebrow">03 · CÓDIGO DIDÁTICO</p>
+        <h2 id="adaline-code-title">Uma ADALINE simples em JavaScript</h2>
+        <p>O exemplo aprende a porta AND com alvos bipolares. Cada etapa foi colocada em uma função separada para mostrar de onde vêm <span class="mono">u</span>, <span class="mono">e</span>, <span class="mono">E</span>, os gradientes e a Regra Delta.</p>
+        <div class="algorithm-flow"><span>calcularPotencial()</span><span>calcularErro()</span><span>calcularCusto()</span><span>calcularGradientes()</span><span>atualizarParametros()</span><span>treinarEpoca()</span></div>
+      </header>
+
+      <div class="code-window">
+        <div class="code-window-bar"><span>adaline-simples.js</span><i>exemplo bipolar comentado</i></div>
+        <pre><code class="language-javascript">// ============================================================
+// 1. DADOS DE TREINAMENTO
+// ============================================================
+
+// Cada linha possui [x1, x2, d].
+// d é a saída desejada da amostra.
+// Na codificação bipolar, as classes são -1 e +1.
+var dados = [
+  [-1, -1, -1],
+  [-1,  1, -1],
+  [ 1, -1, -1],
+  [ 1,  1,  1]
+];
+
+// Pesos iniciais de x1 e x2.
+var pesos = [0.10, -0.10];
+
+// Bias inicial e taxa de aprendizado.
+var bias = 0;
+var taxa = 0.10;
+
+
+// ============================================================
+// 2. FORWARD: CALCULAR A SAÍDA LINEAR u
+// ============================================================
+
+function calcularPotencial(entradas, pesosAtuais, biasAtual) {
+  var u = biasAtual;
+
+  // Faz a somatória: u = soma(xi * wi) + bias.
+  for (var i = 0; i &lt; entradas.length; i++) {
+    u = u + entradas[i] * pesosAtuais[i];
+  }
+
+  return u;
+}
+
+
+// ============================================================
+// 3. ERRO LINEAR: e = d - u
+// ============================================================
+
+function calcularErro(saidaDesejada, potencial) {
+  var e = saidaDesejada - potencial;
+  return e;
+}
+
+
+// ============================================================
+// 4. ERRO QUADRÁTICO: E = 1/2 * e²
+// ============================================================
+
+function calcularCusto(erro) {
+  var E = 0.5 * erro * erro;
+  return E;
+}
+
+
+// ============================================================
+// 5. GRADIENTES DO CUSTO E
+// ============================================================
+
+function calcularGradientes(erro, entradas) {
+  var gradientesPesos = [];
+
+  // Como E = 1/2 * e², sua derivada em relação ao peso é:
+  // dE/dwi = -e * xi
+  for (var i = 0; i &lt; entradas.length; i++) {
+    gradientesPesos[i] = -erro * entradas[i];
+  }
+
+  // Para o bias: dE/db = -e.
+  var gradienteBias = -erro;
+
+  // Retorna [gradientes dos pesos, gradiente do bias].
+  return [gradientesPesos, gradienteBias];
+}
+
+
+// ============================================================
+// 6. DESCIDA DO GRADIENTE
+// ============================================================
+
+function atualizarParametros(
+  pesosAtuais,
+  biasAtual,
+  gradientes,
+  taxaAtual
+) {
+  var gradientesPesos = gradientes[0];
+  var gradienteBias = gradientes[1];
+
+  // wi_novo = wi_atual - taxa * dE/dwi
+  for (var i = 0; i &lt; pesosAtuais.length; i++) {
+    pesosAtuais[i] = pesosAtuais[i]
+      - taxaAtual * gradientesPesos[i];
+  }
+
+  // bias_novo = bias_atual - taxa * dE/db
+  biasAtual = biasAtual - taxaAtual * gradienteBias;
+
+  return biasAtual;
+}
+
+
+// ============================================================
+// 7. TREINAR UMA AMOSTRA
+// ============================================================
+
+function treinarAmostra(amostra) {
+  var entradas = [amostra[0], amostra[1]];
+  var d = amostra[2];
+
+  // Forward: calcula a saída linear da ADALINE.
+  var u = calcularPotencial(entradas, pesos, bias);
+
+  // Compara a saída desejada d com a saída calculada u.
+  var e = calcularErro(d, u);
+
+  // Mede o custo antes da atualização.
+  var EAntes = calcularCusto(e);
+
+  // Calcula as derivadas de E.
+  var gradientes = calcularGradientes(e, entradas);
+
+  // Atualiza os pesos e recebe o novo bias.
+  bias = atualizarParametros(
+    pesos,
+    bias,
+    gradientes,
+    taxa
+  );
+
+  // Recalcula o custo para verificar se ele diminuiu.
+  var uDepois = calcularPotencial(entradas, pesos, bias);
+  var eDepois = calcularErro(d, uDepois);
+  var EDepois = calcularCusto(eDepois);
+
+  console.log('Custo antes:', EAntes);
+  console.log('Custo depois:', EDepois);
+}
+
+
+// ============================================================
+// 8. TREINAR UMA ÉPOCA COMPLETA
+// ============================================================
+
+function treinarEpoca() {
+  for (var linha = 0; linha &lt; dados.length; linha++) {
+    treinarAmostra(dados[linha]);
+  }
+}
+
+
+// Repete a tabela AND durante 20 épocas.
+for (var epoca = 0; epoca &lt; 20; epoca++) {
+  treinarEpoca();
+}
+
+
+// ============================================================
+// 9. USAR O LIMIAR SOMENTE PARA CLASSIFICAR
+// ============================================================
+
+function classificar(entradas) {
+  var u = calcularPotencial(entradas, pesos, bias);
+
+  if (u >= 0) {
+    return 1;
+  }
+
+  return -1;
+}
+
+// Testa as quatro entradas depois do treinamento.
+for (var linha = 0; linha &lt; dados.length; linha++) {
+  var entrada = [dados[linha][0], dados[linha][1]];
+  var resposta = classificar(entrada);
+  console.log(entrada, resposta);
+}</code></pre>
+      </div>
+
+      <aside class="note"><b>Onde E é utilizado no código?</b> A função <span class="mono">calcularCusto()</span> mede o valor de <span class="mono">E</span>. A função <span class="mono">calcularGradientes()</span> usa a derivada desse custo, <span class="mono">∂E/∂wᵢ = −exᵢ</span>. Por fim, <span class="mono">atualizarParametros()</span> realiza a descida do gradiente. O limiar aparece somente em <span class="mono">classificar()</span>, depois do treinamento.</aside>
+    </section>
+
+    <section class="deep-closing"><p class="eyebrow">PRÓXIMO CAPÍTULO</p><h2>Uma ADALINE cria uma fronteira. Uma MADALINE combina várias.</h2><p>Agora avance para a arquitetura formada por múltiplas unidades ADALINE.</p><a class="button" href="./madaline.html">Estudar MADALINE →</a></section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://isl.stanford.edu/~widrow/papers/j199030years.pdf" target="_blank" rel="noopener">Widrow e Lehr — ADALINE, MADALINE e LMS</a> · <a href="https://embarcados.com.br/rede-perceptron-de-uma-unica-camada/" target="_blank" rel="noopener">Embarcados — Rede Perceptron</a> · <a href="https://felipetulio.com.br/aprendizado-supervisionado-redes-neurais-artificiais/" target="_blank" rel="noopener">Felipe Túlio — Redes neurais artificiais</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/image-lightbox.js"></script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

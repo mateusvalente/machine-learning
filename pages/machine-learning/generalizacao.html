@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Underfitting, Overfitting e Generalização | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <style>
+    .generalization-page{padding-top:18px}.generalization-hero{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center;padding:58px 52px;background:linear-gradient(135deg,#ececff,#f8f8ff 58%,#e4f8f3);border-radius:23px}.generalization-hero h1{margin:0 0 18px;font-size:clamp(43px,5vw,68px);line-height:1.04;letter-spacing:-3px}.generalization-hero .lead{max-width:720px}.generalization-hero .button{margin-top:20px}.generalization-hero-cards{display:grid;gap:13px}.generalization-hero-cards article{padding:22px;background:#fff;border:1px solid var(--line);border-left:6px solid #e06c37;border-radius:13px}.generalization-hero-cards article:last-child{border-left-color:#4e46e5}.generalization-hero-cards b,.generalization-hero-cards span{display:block}.generalization-hero-cards b{font-size:22px}.generalization-hero-cards span{margin-top:6px;color:var(--muted)}.generalization-definition,.fit-section,.learning-curves-section,.diagnosis-section,.correction-section{margin-top:78px}.generalization-definition{display:grid;grid-template-columns:1fr 1fr;gap:18px}.generalization-reading,.dataset-split{padding:30px;background:#fff;border:1px solid var(--line);border-radius:15px}.generalization-reading h2,.dataset-split h2{margin:0 0 11px;font-size:30px}.generalization-reading p,.dataset-split>p{color:var(--muted)}.generalization-reading aside{margin-top:18px;padding:17px;background:#e7f8f3;border-left:4px solid #19a987;border-radius:0 9px 9px 0}.split-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:20px}.split-flow article{padding:17px 13px;background:#f5f6fc;border-radius:9px;text-align:center}.split-flow b,.split-flow span{display:block}.split-flow b{color:var(--indigo);font-size:17px}.split-flow span{margin-top:5px;color:var(--muted);font-size:14px}.fit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.fit-card{padding:23px;background:#fff;border:1px solid var(--line);border-top:6px solid #e06c37;border-radius:14px}.fit-card.good{border-top-color:#159b80}.fit-card.overfit{border-top-color:#4e46e5}.fit-card h3{margin:0 0 5px;font-size:24px}.fit-card>.fit-summary{min-height:61px;margin:0 0 14px;color:var(--muted)}.fit-chart{display:block;width:100%;height:auto;background:#fafbff;border:1px solid #e5e8f0;border-radius:10px}.fit-axis{fill:none;stroke:#6d778d;stroke-width:2}.fit-point{fill:#172033;stroke:#fff;stroke-width:3}.fit-line-under{fill:none;stroke:#e06c37;stroke-width:5}.fit-line-good{fill:none;stroke:#159b80;stroke-width:5}.fit-line-over{fill:none;stroke:#4e46e5;stroke-width:4}.fit-diagnosis{display:grid;gap:7px;margin-top:16px}.fit-diagnosis span{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;background:#f5f6fb;border-radius:7px;color:#4c566d}.fit-diagnosis b{color:var(--ink)}.error-high{color:#c5502d!important}.error-low{color:#15836f!important}.learning-curves-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);gap:18px}.learning-curve-card,.curve-reading{padding:25px;background:#fff;border:1px solid var(--line);border-radius:14px}.learning-curve-card svg{display:block;width:100%;height:auto}.curve-grid{fill:none;stroke:#e3e6ef;stroke-width:1}.curve-axis{fill:none;stroke:#566077;stroke-width:2}.curve-training{fill:none;stroke:#4e46e5;stroke-width:5}.curve-validation{fill:none;stroke:#e06c37;stroke-width:5}.curve-stop{stroke:#159b80;stroke-width:3;stroke-dasharray:8 6}.curve-dot{fill:#159b80;stroke:#fff;stroke-width:4}.curve-text{fill:#59647b;font:700 14px Manrope}.curve-title{fill:#172033;font:800 16px Manrope}.curve-reading h3{margin:0 0 9px;font-size:23px}.curve-reading ol{margin:16px 0 0;padding-left:24px}.curve-reading li{margin:11px 0;color:#535e75}.curve-reading .curve-legend{display:grid;gap:9px;margin-top:20px}.curve-legend span{display:flex;align-items:center;gap:9px;font-weight:700}.curve-legend i{display:inline-block;width:32px;height:5px;border-radius:4px;background:#4e46e5}.curve-legend span:nth-child(2) i{background:#e06c37}.diagnosis-table{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px}.diagnosis-table table{width:100%;border-collapse:collapse;font-size:17px}.diagnosis-table th,.diagnosis-table td{padding:18px;text-align:left;border-bottom:1px solid var(--line)}.diagnosis-table th{background:#ecebff;color:var(--indigo)}.diagnosis-table tr:last-child td{border-bottom:0}.diagnosis-table td:first-child{font-weight:800}.diagnosis-table .good-row td:first-child{color:#15836f}.diagnosis-table .under-row td:first-child{color:#b9552a}.diagnosis-table .over-row td:first-child{color:#4e46e5}.correction-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}.correction-card{padding:28px;background:#fff;border:1px solid var(--line);border-radius:14px}.correction-card:first-child{border-top:6px solid #e06c37}.correction-card:last-child{border-top:6px solid #4e46e5}.correction-card h3{margin:0 0 8px;font-size:25px}.correction-card>p{color:var(--muted)}.correction-card h4{margin:20px 0 9px;font-size:18px}.correction-card ul{display:grid;gap:9px;margin:0;padding-left:22px;color:#535e75}.generalization-checklist{margin-top:24px;padding:29px;background:#272e47;border-radius:15px;color:#fff}.generalization-checklist h3{margin:0 0 16px;color:#9cebdc;font-size:25px}.generalization-checklist ol{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0;padding:0;list-style:none;counter-reset:general-step}.generalization-checklist li{counter-increment:general-step;padding:17px;background:#353d59;border-radius:9px}.generalization-checklist li:before{content:counter(general-step);display:grid;place-items:center;width:30px;height:30px;margin-bottom:9px;border-radius:50%;background:#7567f7;font-weight:900}.generalization-warning{margin-top:20px;padding:21px;background:#fff4e9;border-left:5px solid #e06c37;border-radius:0 10px 10px 0;color:#535e75}.generalization-closing{margin-top:72px}@media(max-width:1000px){.generalization-hero,.generalization-definition,.learning-curves-layout{grid-template-columns:1fr}.fit-grid{grid-template-columns:1fr}.fit-card>.fit-summary{min-height:0}.generalization-checklist ol{grid-template-columns:1fr 1fr}}@media(max-width:760px){.generalization-hero{padding:37px 23px}.generalization-hero h1{font-size:42px}.split-flow,.correction-grid,.generalization-checklist ol{grid-template-columns:1fr}.generalization-reading,.dataset-split,.learning-curve-card,.curve-reading,.correction-card{padding:21px}.diagnosis-table table{font-size:15px}.diagnosis-table th,.diagnosis-table td{padding:13px}}
+  </style>
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+
+  <main class="generalization-page">
+    <section class="generalization-hero">
+      <div><p class="eyebrow">TEORIA · GENERALIZAÇÃO</p><h1>Aprender não é apenas acertar o treino.</h1><p class="lead">Um bom modelo encontra um padrão que funciona também em dados que nunca viu. Subajuste e sobreajuste são dois modos diferentes de falhar nesse objetivo.</p><a class="button" href="#tres-situacoes">Comparar os três comportamentos ↓</a></div>
+      <div class="generalization-hero-cards">
+        <article><b>Underfitting · Subajuste</b><span>O modelo ainda não conseguiu representar nem mesmo o padrão dos dados de treinamento.</span></article>
+        <article><b>Overfitting · Sobreajuste</b><span>O modelo se adaptou demais ao treino e perdeu desempenho diante de exemplos novos.</span></article>
+      </div>
+    </section>
+
+    <section class="generalization-definition">
+      <article class="generalization-reading"><p class="eyebrow">O OBJETIVO REAL</p><h2>O que é generalizar?</h2><p><b>Generalização</b> é a capacidade de aplicar o padrão aprendido a exemplos novos, que não participaram do treinamento.</p><p>Acertar os exemplos conhecidos é importante, mas não basta. Um modelo útil precisa manter um bom desempenho quando recebe dados de validação, teste ou do mundo real.</p><aside><b>Ideia central:</b> queremos aprender o padrão presente nos dados, não memorizar cada amostra individualmente.</aside></article>
+      <article class="dataset-split"><p class="eyebrow">SEPARAÇÃO DOS DADOS</p><h2>Treino, validação e teste têm funções diferentes.</h2><p>Separar os dados permite medir o aprendizado sem mostrar todas as respostas ao modelo durante o desenvolvimento.</p><div class="split-flow"><article><b>Treino</b><span>Ajusta pesos e bias.</span></article><article><b>Validação</b><span>Escolhe arquitetura, épocas e hiperparâmetros.</span></article><article><b>Teste</b><span>Faz a avaliação final em dados intocados.</span></article></div></article>
+    </section>
+
+    <section class="fit-section" id="tres-situacoes">
+      <header class="narrative-head"><p class="eyebrow">TRÊS RESULTADOS POSSÍVEIS</p><h2>O mesmo conjunto de dados pode produzir modelos muito diferentes.</h2><p>Os pontos são exemplos observados. A linha representa o padrão aprendido pelo modelo.</p></header>
+
+      <div class="fit-grid">
+        <article class="fit-card underfit">
+          <h3>Underfitting · Subajuste</h3>
+          <p class="fit-summary">O modelo é simples demais ou ainda não treinou o suficiente. Ele não representa adequadamente nem os dados conhecidos.</p>
+          <svg class="fit-chart" viewBox="0 0 360 220" role="img" aria-label="Modelo simples demais não acompanhando o padrão dos pontos">
+            <path class="fit-axis" d="M38 180H338M45 190V25"/><path class="fit-line-under" d="M52 137L330 103"/>
+            <g><circle class="fit-point" cx="62" cy="151" r="7"/><circle class="fit-point" cx="91" cy="119" r="7"/><circle class="fit-point" cx="123" cy="78" r="7"/><circle class="fit-point" cx="154" cy="57" r="7"/><circle class="fit-point" cx="188" cy="91" r="7"/><circle class="fit-point" cx="220" cy="139" r="7"/><circle class="fit-point" cx="254" cy="152" r="7"/><circle class="fit-point" cx="287" cy="112" r="7"/><circle class="fit-point" cx="320" cy="61" r="7"/></g>
+          </svg>
+          <div class="fit-diagnosis"><span>Erro no treino <b class="error-high">alto</b></span><span>Erro em dados novos <b class="error-high">alto</b></span><span>Capacidade <b>insuficiente</b></span></div>
+        </article>
+
+        <article class="fit-card good">
+          <h3>Ajuste adequado</h3>
+          <p class="fit-summary">O modelo captura a tendência principal sem tentar seguir cada pequena variação ou ruído das amostras.</p>
+          <svg class="fit-chart" viewBox="0 0 360 220" role="img" aria-label="Modelo acompanhando adequadamente o padrão dos pontos">
+            <path class="fit-axis" d="M38 180H338M45 190V25"/><path class="fit-line-good" d="M52 155C95 135 111 62 153 60C199 58 202 151 251 151C294 151 305 78 331 56"/>
+            <g><circle class="fit-point" cx="62" cy="151" r="7"/><circle class="fit-point" cx="91" cy="119" r="7"/><circle class="fit-point" cx="123" cy="78" r="7"/><circle class="fit-point" cx="154" cy="57" r="7"/><circle class="fit-point" cx="188" cy="91" r="7"/><circle class="fit-point" cx="220" cy="139" r="7"/><circle class="fit-point" cx="254" cy="152" r="7"/><circle class="fit-point" cx="287" cy="112" r="7"/><circle class="fit-point" cx="320" cy="61" r="7"/></g>
+          </svg>
+          <div class="fit-diagnosis"><span>Erro no treino <b class="error-low">baixo</b></span><span>Erro em dados novos <b class="error-low">baixo</b></span><span>Generalização <b>adequada</b></span></div>
+        </article>
+
+        <article class="fit-card overfit">
+          <h3>Overfitting · Sobreajuste</h3>
+          <p class="fit-summary">O modelo é flexível demais e tenta reproduzir cada exemplo, inclusive ruídos e particularidades que não se repetem.</p>
+          <svg class="fit-chart" viewBox="0 0 360 220" role="img" aria-label="Modelo excessivamente complexo passando por todos os pontos">
+            <path class="fit-axis" d="M38 180H338M45 190V25"/><path class="fit-line-over" d="M52 166C62 145 66 145 76 153C92 165 85 112 99 115C115 118 107 69 123 78C137 86 139 52 154 57C174 64 168 108 188 91C206 75 202 141 220 139C236 137 239 167 254 152C270 136 270 101 287 112C302 122 302 52 320 61C329 65 330 49 334 42"/>
+            <g><circle class="fit-point" cx="62" cy="151" r="7"/><circle class="fit-point" cx="91" cy="119" r="7"/><circle class="fit-point" cx="123" cy="78" r="7"/><circle class="fit-point" cx="154" cy="57" r="7"/><circle class="fit-point" cx="188" cy="91" r="7"/><circle class="fit-point" cx="220" cy="139" r="7"/><circle class="fit-point" cx="254" cy="152" r="7"/><circle class="fit-point" cx="287" cy="112" r="7"/><circle class="fit-point" cx="320" cy="61" r="7"/></g>
+          </svg>
+          <div class="fit-diagnosis"><span>Erro no treino <b class="error-low">muito baixo</b></span><span>Erro em dados novos <b class="error-high">alto</b></span><span>Generalização <b>ruim</b></span></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="learning-curves-section">
+      <header class="narrative-head"><p class="eyebrow">ERRO × ÉPOCAS</p><h2>As curvas de aprendizado ajudam a encontrar o momento de parar.</h2><p>Compare sempre o desempenho nos dados usados para treinar com o desempenho em dados separados para validação.</p></header>
+      <div class="learning-curves-layout">
+        <article class="learning-curve-card">
+          <svg viewBox="0 0 760 380" role="img" aria-label="Curvas de erro de treinamento e validação mostrando o início do sobreajuste">
+            <g class="curve-grid"><path d="M80 50H710M80 115H710M80 180H710M80 245H710M80 310H710"/><path d="M80 50V310M237 50V310M395 50V310M552 50V310M710 50V310"/></g>
+            <path class="curve-axis" d="M80 35V310H725"/>
+            <path class="curve-training" d="M80 69C150 126 210 178 286 221C390 269 516 288 710 297"/>
+            <path class="curve-validation" d="M80 83C165 137 246 213 354 245C418 259 474 247 530 222C598 192 653 158 710 135"/>
+            <path class="curve-stop" d="M395 48V310"/><circle class="curve-dot" cx="395" cy="252" r="9"/>
+            <g class="curve-text"><text x="50" y="55">1,0</text><text x="44" y="120">0,75</text><text x="50" y="185">0,5</text><text x="44" y="250">0,25</text><text x="59" y="315">0</text><text x="76" y="336">0</text><text x="226" y="336">25</text><text x="385" y="336">50</text><text x="542" y="336">75</text><text x="696" y="336">100</text><text x="350" y="369">épocas</text><text x="18" y="188" transform="rotate(-90 18 188)">erro</text><text x="408" y="72">ponto de parada</text></g>
+            <text class="curve-title" x="580" y="292">treino</text><text class="curve-title" x="585" y="158">validação</text>
+          </svg>
+        </article>
+        <article class="curve-reading"><h3>Como ler o gráfico?</h3><ol><li>No início, os erros de treino e validação são altos: há <b>subajuste</b>.</li><li>Com o aprendizado, as duas curvas diminuem e o modelo melhora.</li><li>O menor erro de validação indica um bom candidato para interromper o treinamento.</li><li>Depois desse ponto, o erro de treino continua caindo, mas o de validação sobe: começou o <b>sobreajuste</b>.</li></ol><div class="curve-legend"><span><i></i>Erro de treinamento</span><span><i></i>Erro de validação</span></div></article>
+      </div>
+    </section>
+
+    <section class="diagnosis-section">
+      <header class="narrative-head"><p class="eyebrow">DIAGNÓSTICO RÁPIDO</p><h2>Observe os dois erros em conjunto.</h2></header>
+      <div class="diagnosis-table"><table><thead><tr><th>Situação</th><th>Erro de treino</th><th>Erro de validação/teste</th><th>Leitura</th></tr></thead><tbody><tr class="under-row"><td>Underfitting</td><td>Alto</td><td>Alto</td><td>O modelo não aprendeu suficientemente o padrão.</td></tr><tr class="good-row"><td>Ajuste adequado</td><td>Baixo</td><td>Baixo e próximo do treino</td><td>O padrão aprendido funciona em dados novos.</td></tr><tr class="over-row"><td>Overfitting</td><td>Muito baixo</td><td>Alto ou aumentando</td><td>O modelo se especializou demais nos exemplos de treino.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="correction-section">
+      <header class="narrative-head"><p class="eyebrow">COMO CORRIGIR?</p><h2>Subajuste e sobreajuste pedem ações opostas.</h2></header>
+      <div class="correction-grid">
+        <article class="correction-card"><h3>Quando há underfitting</h3><p>Precisamos dar ao modelo condições para representar melhor o padrão.</p><h4>Causas frequentes</h4><ul><li>Arquitetura simples ou pequena demais.</li><li>Poucas épocas de treinamento.</li><li>Entradas pouco informativas.</li><li>Regularização excessivamente forte.</li><li>Taxa de aprendizado ou otimização inadequadas.</li></ul><h4>Ações possíveis</h4><ul><li>Aumentar a capacidade do modelo.</li><li>Treinar por mais épocas.</li><li>Criar ou selecionar características mais informativas.</li><li>Reduzir a regularização quando ela estiver limitando o aprendizado.</li><li>Revisar taxa de aprendizado, dados e processo de otimização.</li></ul></article>
+        <article class="correction-card"><h3>Quando há overfitting</h3><p>Precisamos reduzir a memorização e favorecer padrões que se repetem fora do treino.</p><h4>Causas frequentes</h4><ul><li>Modelo complexo demais para a quantidade de dados.</li><li>Poucas amostras ou dados pouco representativos.</li><li>Treinamento prolongado além do ponto ideal.</li><li>Ruído, rótulos incorretos ou vazamento de dados.</li></ul><h4>Ações possíveis</h4><ul><li>Coletar mais dados ou usar aumento de dados.</li><li>Aplicar regularização L1/L2 ou dropout.</li><li>Reduzir camadas, neurônios ou parâmetros.</li><li>Usar parada antecipada baseada na validação.</li><li>Revisar a separação dos conjuntos e eliminar vazamentos.</li></ul></article>
+      </div>
+
+      <div class="generalization-checklist"><h3>Procedimento recomendado</h3><ol><li>Separe treino, validação e teste antes de começar.</li><li>Treine usando somente o conjunto de treino.</li><li>Escolha arquitetura e épocas observando a validação.</li><li>Use o teste apenas uma vez na avaliação final.</li></ol></div>
+      <aside class="generalization-warning"><b>Cuidado:</b> se você observar repetidamente o resultado do teste e mudar o modelo com base nele, o teste deixa de ser realmente desconhecido. Na prática, ele passa a funcionar como outro conjunto de validação e a avaliação final fica otimista.</aside>
+    </section>
+
+    <section class="deep-closing generalization-closing"><p class="eyebrow">IDEIA PARA LEVAR</p><h2>O melhor modelo não é o que mais memoriza o treino.</h2><p>É aquele que encontra um equilíbrio entre capacidade e simplicidade, mantendo um erro baixo também diante de exemplos novos.</p><a class="button" href="../redes-neurais/laboratorios.html">Aplicar os conceitos nos laboratórios →</a></section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://developers.google.com/machine-learning/crash-course/overfitting/overfitting" target="_blank" rel="noopener">Google Machine Learning — Overfitting</a> · <a href="https://developers.google.com/machine-learning/crash-course/overfitting/interpreting-loss-curves" target="_blank" rel="noopener">Google Machine Learning — Curvas de perda</a> · <a href="https://scikit-learn.org/stable/auto_examples/model_selection/plot_underfitting_overfitting.html" target="_blank" rel="noopener">Scikit-learn — Underfitting × Overfitting</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

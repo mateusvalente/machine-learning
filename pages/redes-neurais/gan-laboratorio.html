@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório GAN · Dígitos | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/advanced-neural.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="advanced-lab-page">
+    <section class="advanced-lab-hero gan"><div><p class="eyebrow">LABORATÓRIO · MINI GAN</p><h1>Veja um dígito se formar durante o jogo adversário.</h1><p class="lead">Escolha um dígito. O Gerador transforma três números de ruído em 49 pixels; o Discriminador tenta separar os exemplos reais das imagens falsas.</p></div><div><div class="lab-architecture"><span>z₁,z₂,z₃<small>ruído</small></span><i>→</i><span class="box">Gerador<small>49 pixels</small></span><i>→</i><span class="box">Discriminador<small>real?</small></span></div><div class="scope-note"><strong>Escopo didático:</strong> a imagem é reduzida para 7 × 7 e cada rede possui uma única camada. Isso permite mostrar a Regra da Cadeia completa. GANs de imagens reais usam redes profundas e muitos exemplos.</div></div></section>
+
+    <section class="lab-layout">
+      <aside class="lab-controls"><h2>Jogo adversário</h2><p>Trocar o dígito reinicia as duas redes.</p><div class="control-group"><label>DÍGITO A APRENDER<select id="ganDigit"><option>0</option><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></label><div class="control-output">Grade: <strong>7 × 7 = 49 pixels</strong><br>Latente: <strong>3 valores</strong><br>ηᴅ = 0,08 · ηɢ = 0,80</div></div><div class="control-group"><button class="button" id="ganTrainOne">Treinar 1 rodada</button><button class="button" id="ganTrainMany">Treinar 500 rodadas</button><button class="button outline" id="ganNewNoise">Sortear outro ruído</button><button class="button outline" id="ganReset">Reiniciar redes</button></div><div class="control-group"><div class="control-output" id="ganReading">Carregando os exemplos visuais…</div></div></aside>
+
+      <div class="lab-main">
+        <div class="metric-grid"><article><span>RODADAS</span><strong id="ganRound">0</strong></article><article><span>LOSS D</span><strong id="ganDLoss">—</strong></article><article><span>LOSS G</span><strong id="ganGLoss">—</strong></article><article><span>SEMELHANÇA</span><strong id="ganSimilarity">—</strong></article></div>
+        <article class="lab-card gan-network-card">
+          <div class="card-top"><div><h2>A rede neural adversária</h2><p>Acompanhe o forward do ruído até a decisão e o caminho inverso do gradiente usado para ensinar o Gerador.</p></div><span class="status-pill" id="ganNetworkPhase">Forward inicial</span></div>
+          <canvas id="ganNetworkCanvas" width="1120" height="610" aria-label="Diagrama da rede neural GAN com Gerador e Discriminador"></canvas>
+          <div class="gan-network-legend"><span><i class="positive"></i>peso positivo</span><span><i class="negative"></i>peso negativo</span><span><i class="gradient"></i>gradiente voltando</span><span><i class="frozen"></i>D congelado ao treinar G</span></div>
+          <div class="gan-network-reading" id="ganNetworkReading">A rede será desenhada assim que os exemplos forem carregados.</div>
+          <div class="gan-method-grid">
+            <article><b>1 · gerar(z)</b><span>Calcula 49 somas ponderadas e aplica Sigmoid para formar os pixels falsos.</span></article>
+            <article><b>2 · discriminar(x)</b><span>Soma os 49 pixels ponderados e aplica Sigmoid para estimar a chance de ser real.</span></article>
+            <article><b>3 · treinar D</b><span>D compara real com alvo 1 e falso com alvo 0; somente seus pesos são ajustados.</span></article>
+            <article><b>4 · treinar G</b><span>D fica congelado. O erro volta por D e corrige os pesos do Gerador.</span></article>
+          </div>
+        </article>
+        <article class="lab-card"><div class="card-top"><div><h2>Exemplos usados como referência real</h2><p>Os dez recortes vieram da imagem indicada. O dígito escolhido gera pequenas variações de posição durante o treino.</p></div><span class="status-pill" id="ganStatus">Preparando imagens</span></div><div class="digit-gallery" id="ganGallery"></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>O jogo desta rodada</h2><p>D recebe um real com alvo 1 e um falso com alvo 0. Depois G tenta fazer o falso receber alvo 1.</p></div></div><div class="game-board"><article class="game-network"><h3>Gerador G</h3><canvas id="ganFakeCanvas" width="350" height="350"></canvas><code id="ganFakeScore">D(G(z)) = —</code></article><div class="game-versus">VS</div><article class="game-network"><h3>Discriminador D</h3><canvas id="ganRealCanvas" width="350" height="350"></canvas><code id="ganRealScore">D(xreal) = —</code></article></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>A imagem se formando</h2><p>As quatro grades usam o mesmo vetor z para tornar a evolução comparável.</p></div></div><div class="digit-stage-grid"><div class="digit-stage"><canvas id="ganStage0" width="210" height="210"></canvas><b>rodada 0</b></div><div class="digit-stage"><canvas id="ganStage10" width="210" height="210"></canvas><b>rodada 50</b></div><div class="digit-stage"><canvas id="ganStage50" width="210" height="210"></canvas><b>rodada 500</b></div><div class="digit-stage"><canvas id="ganStageNow" width="210" height="210"></canvas><b>agora</b></div></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Última rodada, passo a passo</h2><p>Saídas, perdas, gradientes e atualização de um pixel representativo.</p></div></div><div class="math-panel" id="ganMath"></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>A perda média é comparada à semelhança entre a imagem gerada e o protótipo real.</p></div></div><canvas id="ganHistory" width="960" height="360"></canvas><div class="legend-row"><span><i></i>loss normalizada</span><span><i></i>semelhança</span></div></article>
+        <article class="source-image-note"><img class="zoomable" src="../../assets/images/digitos-manuscritos-referencia.jpg" alt="Folha de números manuscritos usada como referência"><div><h2>Preparação dos dados</h2><p>A folha original foi dividida em dez imagens quadradas. No laboratório, cada imagem é reduzida para 7 × 7 intensidades e deslocada levemente para criar exemplos reais simples.</p></div></article>
+      </div>
+    </section>
+
+    <section class="didactic-code"><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>Treinamento alternado da mini GAN</h2><p>As funções do Gerador e do Discriminador ficam separadas para evidenciar qual rede é atualizada em cada fase.</p><div class="code-flow"><span>gerar()</span><span>discriminar()</span><span>treinarDiscriminador()</span><span>treinarGerador()</span></div><pre><code>// Fase 1: D aprende que real = 1 e falso = 0.
+function treinarDiscriminador(real, falso) {
+  var dReal = discriminar(real);
+  var dFalso = discriminar(falso);
+  for (var i = 0; i &lt; 49; i++) {
+    var gradiente = ((dReal - 1) * real[i] + dFalso * falso[i]) / 2;
+    pesosD[i] = pesosD[i] - taxaD * gradiente;
+  }
+}
+
+// Fase 2: G tenta fazer D(G(z)) chegar a 1.
+function treinarGerador(z) {
+  var falso = gerar(z);
+  var dFalso = discriminar(falso);
+  for (var i = 0; i &lt; 49; i++) {
+    var gradientePixel = (dFalso - 1) * pesosD[i];
+    var gradienteAtivacao = gradientePixel * falso[i] * (1 - falso[i]);
+    for (var j = 0; j &lt; 3; j++) {
+      pesosG[i][j] = pesosG[i][j] - taxaG * gradienteAtivacao * z[j];
+    }
+  }
+}</code></pre></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://arxiv.org/abs/1406.2661" target="_blank" rel="noopener">Goodfellow et al. · GANs</a> · <a href="https://yann.lecun.org/exdb/mnist/index.html" target="_blank" rel="noopener">MNIST</a> · <a href="https://img.magnific.com/vetores-premium/conjunto-vetorial-de-numeros-escritos-a-mao-numeros-desenhados-a-mao_79152-2609.jpg" target="_blank" rel="noopener">Imagem de referência indicada</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/digit-data.js"></script><script src="../../js/labs/gan-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/image-lightbox.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

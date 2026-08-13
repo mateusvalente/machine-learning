@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Vector Quantization · LVQ | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/lvq.css">
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="lvq-page">
+    <section class="lvq-hero">
+      <div><p class="eyebrow">APRENDIZAGEM SUPERVISIONADA · LVQ</p><h1>Classificar usando poucos protótipos inteligentes.</h1><p class="lead">Learning Vector Quantization é uma família de classificadores supervisionados criada por Teuvo Kohonen. Cada protótipo representa uma classe e aprende a ocupar uma região útil do espaço.</p><a class="button" href="#lvq1">Entender o LVQ1 ↓</a></div>
+      <div class="lvq-hero-visual"><div class="lvq-data-cloud class-a"><i></i><i></i><i></i><i></i><b>A</b></div><span>competição<br>pela menor distância</span><div class="lvq-data-cloud class-b"><i></i><i></i><i></i><i></i><b>B</b></div></div>
+    </section>
+
+    <section class="lvq-section"><header class="lvq-section-head"><p class="eyebrow">01 · IDEIA CENTRAL</p><h2>O protótipo mais próximo decide a classe.</h2><p>Um protótipo, também chamado vetor de referência ou codebook, possui as mesmas dimensões da entrada e recebe permanentemente um rótulo.</p></header>
+      <div class="lvq-concept-flow"><article><b>x</b><span>Nova amostra</span><code>[x₁, x₂, …, xₙ]</code></article><i>→</i><article><b>dⱼ</b><span>Distância a cada protótipo</span><code>‖x − mⱼ‖</code></article><i>→</i><article><b>m*</b><span>Protótipo vencedor</span><code>arg min dⱼ</code></article><i>→</i><article><b>ŷ</b><span>Classe prevista</span><code>classe(m*)</code></article></div>
+      <div class="lvq-vs-knn"><article><p class="eyebrow">k-NN</p><h3>Compara com os exemplos guardados</h3><div class="knn-memory"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>Na forma clássica, mantém o conjunto de treinamento e procura vizinhos durante a predição.</p></article><strong>×</strong><article><p class="eyebrow">LVQ</p><h3>Compara com poucos representantes aprendidos</h3><div class="lvq-memory"><i>A₁</i><i>A₂</i><i>B₁</i><i>B₂</i></div><p>Resume regiões das classes em protótipos, reduzindo comparações na inferência.</p></article></div>
+      <aside class="lvq-note"><strong>Não é uma cópia compactada exata dos dados.</strong> Os protótipos se movem durante o treinamento. Eles são representantes aprendidos para produzir boas fronteiras pela regra do vizinho mais próximo.</aside>
+    </section>
+
+    <section class="lvq-section" id="lvq1"><header class="lvq-section-head"><p class="eyebrow">02 · LVQ1</p><h2>Um exemplo, um vencedor e um ajuste.</h2></header>
+      <div class="lvq1-steps"><article><span>1</span><h3>Receber x e sua classe y</h3><p>O treinamento é supervisionado: o rótulo correto acompanha cada amostra.</p><code>(x, y)</code></article><article><span>2</span><h3>Encontrar o vencedor m*</h3><p>Calculamos todas as distâncias e escolhemos o protótipo mais próximo.</p><code>m* = arg minⱼ ‖x − mⱼ‖</code></article><article><span>3</span><h3>Comparar os rótulos</h3><p>Verificamos se a classe do vencedor é igual à classe verdadeira da amostra.</p><code>classe(m*) ?= y</code></article><article><span>4</span><h3>Atrair ou repelir</h3><p>Somente o vencedor é atualizado. A direção depende de ele ter acertado ou errado.</p><code>m* ← m* ± α(x − m*)</code></article></div>
+      <div class="lvq-update-grid"><article class="attraction"><div class="prototype-motion"><b>m*</b><i>→</i><span>x</span></div><h3>Classe correta: atração</h3><p>O vencedor aproxima-se da amostra e passa a representar melhor aquela região.</p><div class="lvq-formula"><small>VARIÁVEIS</small><code>m*<sub>novo</sub> = m*<sub>atual</sub> + α(x − m*<sub>atual</sub>)</code><small>INTERPRETAÇÃO</small><code>posição atual + taxa × direção até x</code></div></article><article class="repulsion"><div class="prototype-motion"><b>m*</b><i>←</i><span>x</span></div><h3>Classe incorreta: repulsão</h3><p>O vencedor afasta-se da amostra para reduzir a região que estava classificando incorretamente.</p><div class="lvq-formula"><small>VARIÁVEIS</small><code>m*<sub>novo</sub> = m*<sub>atual</sub> − α(x − m*<sub>atual</sub>)</code><small>INTERPRETAÇÃO</small><code>posição atual − taxa × direção até x</code></div></article></div>
+      <div class="lvq-numeric-example"><div><p class="eyebrow">EXEMPLO DE ATRAÇÃO</p><h3>m = [2; 3], x = [4; 4] e α = 0,10</h3></div><div><code>x − m = [4−2; 4−3] = [2; 1]</code><code>α(x − m) = 0,10 × [2; 1] = [0,20; 0,10]</code><code>m<sub>novo</sub> = [2; 3] + [0,20; 0,10] = <strong>[2,20; 3,10]</strong></code></div></div>
+    </section>
+
+    <section class="lvq-section"><header class="lvq-section-head"><p class="eyebrow">03 · LVQ2 E LVQ2.1</p><h2>Do vencedor isolado ao ajuste da fronteira.</h2><p>As variantes da família LVQ foram propostas para melhorar a posição dos protótipos próximos às regiões de decisão.</p></header>
+      <div class="lvq-variant-comparison"><article><span>LVQ1</span><h3>Atualiza um protótipo</h3><p>O vencedor é atraído ou repelido em qualquer região do espaço.</p><code>1 vencedor → 1 atualização</code></article><article><span>LVQ2</span><h3>Usa vencedor e segundo colocado</h3><p>Na formulação original, o vencedor deve ser da classe errada, o segundo da classe correta e x deve estar na janela.</p><code>errado mais próximo + correto em segundo</code></article><article><span>LVQ2.1</span><h3>Permite inverter a ordem</h3><p>Entre os dois mais próximos, um deve ter a classe correta e o outro a errada. Qualquer um pode ser o primeiro.</p><code>correto ↔ x ↔ incorreto</code></article></div>
+      <div class="lvq21-rule"><div><p class="eyebrow">AJUSTE DUPLO</p><h3>Quando x está perto da fronteira</h3><p>O protótipo correto é atraído e o protótipo incorreto é repelido simultaneamente.</p></div><div class="lvq21-formulas"><code>m⁺<sub>novo</sub> = m⁺ + α(x − m⁺)</code><code>m⁻<sub>novo</sub> = m⁻ − α(x − m⁻)</code></div></div>
+      <div class="lvq-window-explanation"><div><h3>O que é a janela?</h3><p>Se d⁺ é a distância ao protótipo correto e d⁻ a distância ao incorreto, a amostra está na janela quando as duas distâncias são suficientemente parecidas:</p><div class="lvq-window-formula">min(d⁺/d⁻, d⁻/d⁺) &gt; s<br><small>s = (1 − largura da janela) / (1 + largura da janela)</small></div></div><div class="window-diagram"><span class="wrong-prototype">m⁻</span><i></i><b>x</b><i></i><span class="correct-prototype">m⁺</span><small>região de dúvida próxima à fronteira</small></div></div>
+      <aside class="lvq-warning"><strong>Importante:</strong> “dois protótipos mais próximos” não é a única condição. Para ocorrer o ajuste do LVQ2.1, eles precisam representar classes diferentes, exatamente um deles deve ter o rótulo correto e a amostra precisa passar pelo teste da janela.</aside>
+    </section>
+
+    <section class="lvq-section"><header class="lvq-section-head"><p class="eyebrow">04 · TREINAMENTO COMPLETO</p><h2>Inicializar, competir, adaptar e reduzir a taxa.</h2></header>
+      <div class="lvq-training-timeline"><article><b>1</b><h3>Inicialização</h3><p>Escolha protótipos por classe, preferencialmente próximos de exemplos representativos.</p></article><i>→</i><article><b>2</b><h3>Competição</h3><p>Apresente uma amostra e calcule as distâncias.</p></article><i>→</i><article><b>3</b><h3>Adaptação</h3><p>Aplique a regra do LVQ1 ou LVQ2.1.</p></article><i>→</i><article><b>4</b><h3>Épocas</h3><p>Repita e reduza α gradualmente para estabilizar os protótipos.</p></article></div>
+      <div class="lvq-learning-rate"><div><h3>Taxa de aprendizado decrescente</h3><p>No início, os protótipos se movem mais. Depois, os passos diminuem para que a fronteira se estabilize.</p></div><code>α(t) = α₀ × (1 − t/T)</code></div>
+    </section>
+
+    <section class="lvq-section"><header class="lvq-section-head"><p class="eyebrow">05 · VANTAGENS, USOS E LIMITES</p><h2>Uma classificação compacta e interpretável.</h2></header>
+      <div class="lvq-use-grid"><article><span>⚡</span><h3>Predição rápida</h3><p>Compara o novo exemplo com poucos protótipos em vez de consultar todo o conjunto de treino.</p></article><article><span>▣</span><h3>Compressão supervisionada</h3><p>Resume regiões rotuladas em vetores de referência, preservando informação útil para classificar.</p></article><article><span>◉</span><h3>Padrões visuais</h3><p>Protótipos podem representar características de classes em imagens e sinais.</p></article><article><span>♫</span><h3>Padrões de áudio</h3><p>Vetores extraídos do som podem ser associados a protótipos de fonemas, eventos ou locutores.</p></article></div>
+      <div class="lvq-pros-cons"><article><h3>Vantagens</h3><ul><li>Inferência simples e rápida.</li><li>Protótipos podem ser inspecionados.</li><li>Fronteiras não lineares com vários protótipos.</li><li>Não precisa armazenar todas as amostras.</li></ul></article><article><h3>Cuidados</h3><ul><li>Sensível à escala das características.</li><li>Inicialização e quantidade de protótipos importam.</li><li>Taxa alta pode causar oscilações.</li><li>LVQ2.1 atualiza apenas exemplos na janela.</li></ul></article></div>
+    </section>
+
+    <section class="lvq-closing"><p class="eyebrow">DO CONCEITO À PRÁTICA</p><h2>Veja os protótipos sendo atraídos e repelidos.</h2><p>Compare LVQ1 e LVQ2.1 no mesmo dataset, acompanhe as contas e teste novos pontos.</p><a class="button" href="./lvq-laboratorio.html">Abrir laboratório LVQ →</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aalto.fi/en/publications/learning-vector-quantization/" target="_blank" rel="noopener">Kohonen · Learning Vector Quantization</a> · <a href="https://www.jmlr.org/papers/volume8/biehl07a/biehl07a.pdf" target="_blank" rel="noopener">Biehl, Ghosh e Hammer · LVQ Algorithms</a> · <a href="https://ntrl.ntis.gov/NTRL/dashboard/searchResults/titleDetail/PB96173885.xhtml" target="_blank" rel="noopener">Kohonen et al. · LVQ PAK</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

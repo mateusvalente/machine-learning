@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Árvore de Decisão · Dados Tabulares Mistos | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/decision-tree.css">
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="tree-page">
+    <section class="tree-hero">
+      <div>
+        <p class="eyebrow">APRENDIZAGEM SUPERVISIONADA · ÁRVORE DE DECISÃO</p>
+        <h1>Transforme uma tabela mista em perguntas “se/então”.</h1>
+        <p class="lead">A árvore procura divisões que deixam as classes mais puras. Nesta página, números contínuos, contagens discretas e categorias em texto são tratados diretamente por um algoritmo implementado do zero.</p>
+      </div>
+      <div class="tree-hero-diagram" aria-label="Exemplo de árvore de decisão">
+        <div class="hero-node root">visitas ≤ 2,5?</div>
+        <div class="hero-branches"><span>sim</span><span>não</span></div>
+        <div class="hero-children"><div>plano = Premium?</div><div class="leaf yes">Compra: Sim</div></div>
+        <div class="hero-caption">Cada caminho termina em uma previsão.</div>
+      </div>
+    </section>
+
+    <section class="tree-section">
+      <header class="tree-heading"><p class="eyebrow">01 · DADOS TABULARES MISTOS</p><h2>A coluna determina o tipo de pergunta.</h2><p>Não é necessário transformar toda categoria textual em um número arbitrário. O algoritmo identifica o tipo da característica e gera candidatos de divisão adequados.</p></header>
+      <div class="mixed-type-grid">
+        <article><span class="type continuous">CONTÍNUA</span><h3>idade</h3><p>Pode assumir valores numa escala. A árvore ordena os valores e testa limiares entre vizinhos.</p><code>idade ≤ 38,5?</code></article>
+        <article><span class="type discrete">DISCRETA</span><h3>visitas</h3><p>É uma contagem inteira, mas continua sendo ordenável. Os candidatos também são limiares.</p><code>visitas ≤ 2,5?</code></article>
+        <article><span class="type category">CATEGORIA</span><h3>plano e região</h3><p>O texto é comparado diretamente. Nesta implementação didática, cada categoria é testada contra as demais.</p><code>plano = "Premium"?</code></article>
+      </div>
+      <div class="table-scroll tree-example-table"><table><thead><tr><th>idade</th><th>visitas</th><th>plano</th><th>região</th><th>compra</th></tr></thead><tbody><tr><td>22</td><td>1</td><td>Básico</td><td>Norte</td><td>Não</td></tr><tr><td>29</td><td>2</td><td>Premium</td><td>Norte</td><td>Sim</td></tr><tr><td>44</td><td>4</td><td>Intermediário</td><td>Sul</td><td>Sim</td></tr></tbody></table></div>
+      <aside class="tree-note"><strong>Por que não usar Básico = 1, Intermediário = 2 e Premium = 3?</strong> Essa conversão criaria uma ordem e distâncias que talvez não existam. A comparação textual preserva o significado nominal: igual ou diferente. Se a categoria possuir uma ordem real, ela pode ser declarada ordinal e tratada de outra maneira.</aside>
+    </section>
+
+    <section class="tree-section gini-theory">
+      <header class="tree-heading"><p class="eyebrow">02 · IMPUREZA DE GINI</p><h2>Uma divisão é boa quando separa as classes.</h2><p>Gini vale 0 quando todas as amostras do grupo pertencem à mesma classe. Quanto mais misturado estiver o grupo, maior será sua impureza.</p></header>
+      <div class="gini-flow">
+        <article><b>1 · Gini do nó</b><code>Gini(S) = 1 − Σ pₖ²</code><p>Para 6 “Sim” e 6 “Não”:<br><strong>1 − (6/12)² − (6/12)² = 0,50</strong></p></article>
+        <i>→</i>
+        <article><b>2 · Gini da divisão</b><code>Gini_div = (nₑ/n)Gini(E) + (n𝒹/n)Gini(D)</code><p>Os filhos são ponderados pela quantidade de exemplos que recebem.</p></article>
+        <i>→</i>
+        <article><b>3 · Ganho</b><code>ganho = Gini_pai − Gini_div</code><p>O algoritmo escolhe o candidato com o <strong>maior ganho</strong>.</p></article>
+      </div>
+    </section>
+
+    <section class="tree-lab" id="laboratorio-arvore">
+      <header class="tree-heading"><p class="eyebrow">03 · LABORATÓRIO INTERATIVO</p><h2>Edite a tabela e construa a árvore divisão por divisão.</h2><p>As quatro características formam X; a coluna “compra” é o alvo y. Depois de qualquer alteração, treine novamente para recalcular todos os candidatos.</p></header>
+
+      <div class="tree-lab-layout">
+        <aside class="tree-controls">
+          <h3>Configuração</h3>
+          <label>PROFUNDIDADE MÁXIMA<select id="treeMaxDepth"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label>
+          <label>MÍNIMO DE AMOSTRAS POR NÓ<select id="treeMinSamples"><option selected>2</option><option>3</option><option>4</option></select></label>
+          <button class="button" id="treeTrainStep">Treinar 1 divisão</button>
+          <button class="button" id="treeTrainAll">Treinar até concluir</button>
+          <button class="button outline" id="treeRestartSteps">Voltar ao nó inicial</button>
+          <button class="button outline" id="treeRestoreData">Restaurar dados</button>
+          <div class="tree-control-reading" id="treeControlReading">A árvore ainda não foi construída.</div>
+        </aside>
+
+        <div class="tree-lab-main">
+          <div class="tree-metrics">
+            <article><span>DIVISÕES VISÍVEIS</span><strong id="treeVisibleSplits">0</strong></article>
+            <article><span>DIVISÕES TOTAIS</span><strong id="treeTotalSplits">0</strong></article>
+            <article><span>PROFUNDIDADE</span><strong id="treeDepthMetric">0</strong></article>
+            <article><span>ACURÁCIA NO TREINO</span><strong id="treeAccuracy">—</strong></article>
+          </div>
+
+          <article class="tree-card data-editor-card">
+            <div class="tree-card-top"><div><h3>Dados de treinamento editáveis</h3><p>Use ponto ou vírgula nos números. Plano e região aceitam texto sem qualquer codificação numérica.</p></div><button class="button outline" id="treeAddRow"><i class="fa-solid fa-plus" aria-hidden="true"></i> Adicionar linha</button></div>
+            <div class="table-scroll"><table class="editable-data-table"><thead><tr><th>idade<br><small>contínua</small></th><th>visitas<br><small>discreta</small></th><th>plano<br><small>categoria</small></th><th>região<br><small>categoria</small></th><th>compra<br><small>alvo y</small></th><th></th></tr></thead><tbody id="treeDataBody"></tbody></table></div>
+            <div class="tree-validation" id="treeValidation">Os dados serão verificados antes do treinamento.</div>
+          </article>
+
+          <article class="tree-card tree-canvas-card">
+            <div class="tree-card-top"><div><h3>Construção visual da árvore</h3><p>Nós azuis são perguntas; nós verdes e vermelhos são previsões. Ramos ainda não abertos aparecem tracejados.</p></div><span class="tree-status" id="treeStatus">Pronta para treinar</span></div>
+            <div class="tree-canvas-scroll"><canvas id="treeCanvas" width="1240" height="680" aria-label="Árvore de decisão construída pelo laboratório"></canvas></div>
+            <div class="tree-legend"><span><i class="question"></i>pergunta</span><span><i class="yes"></i>classe Sim</span><span><i class="no"></i>classe Não</span><span><i class="waiting"></i>ramo ainda fechado</span></div>
+          </article>
+
+          <article class="tree-card">
+            <div class="tree-card-top"><div><h3>Gini da divisão atual, passo a passo</h3><p>Veja de onde vêm os números usados para escolher a pergunta.</p></div><span class="tree-status" id="treeStepStatus">Nó inicial</span></div>
+            <div class="gini-calculation" id="treeGiniCalculation"></div>
+          </article>
+
+          <article class="tree-card">
+            <div class="tree-card-top"><div><h3>Candidatos avaliados neste nó</h3><p>A linha destacada possui o maior ganho de Gini e será usada pela árvore.</p></div></div>
+            <div class="table-scroll"><table class="candidate-table"><thead><tr><th>Característica</th><th>Pergunta</th><th>Filho “sim”</th><th>Filho “não”</th><th>Gini ponderado</th><th>Ganho</th></tr></thead><tbody id="treeCandidateBody"></tbody></table></div>
+          </article>
+
+          <article class="tree-card">
+            <div class="tree-card-top"><div><h3>Erro × resposta durante a construção</h3><p>Cada ponto representa a árvore após abrir mais uma divisão. A linha vermelha é o erro de classificação; a verde é a acurácia.</p></div></div>
+            <canvas class="tree-history" id="treeHistory" width="1000" height="360"></canvas>
+            <div class="tree-chart-legend"><span><i class="error"></i>erro</span><span><i class="accuracy"></i>acurácia</span></div>
+          </article>
+
+          <article class="tree-card prediction-card">
+            <div class="tree-card-top"><div><h3>Classifique um novo exemplo</h3><p>Acompanhe as perguntas percorridas da raiz até a folha.</p></div></div>
+            <div class="prediction-form"><label>IDADE<input id="treePredictAge" type="number" value="33"></label><label>VISITAS<input id="treePredictVisits" type="number" value="4"></label><label>PLANO<input id="treePredictPlan" value="Premium"></label><label>REGIÃO<input id="treePredictRegion" value="Sul"></label><button class="button" id="treePredict">Classificar</button></div>
+            <div class="prediction-result" id="treePredictionResult">Treine a árvore para liberar a classificação.</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="tree-code-section">
+      <p class="eyebrow">04 · ALGORITMO EM JAVASCRIPT</p>
+      <h2>Funções pequenas e separadas.</h2>
+      <p>O laboratório usa arrays simples. Cada função possui uma responsabilidade: medir a impureza, criar candidatos, escolher a divisão e construir os filhos.</p>
+      <div class="code-function-list"><span>calcularGini()</span><span>criarCandidatos()</span><span>melhorDivisao()</span><span>construirNo()</span><span>classificar()</span></div>
+      <pre><code>// Mede a mistura das classes dentro de um grupo.
+function calcularGini(linhas) {
+  var sim = contarClasse(linhas, 'Sim');
+  var nao = linhas.length - sim;
+  var pSim = sim / linhas.length;
+  var pNao = nao / linhas.length;
+  return 1 - pSim * pSim - pNao * pNao;
+}
+
+// Número: testa pontos médios. Texto: testa igualdade direta.
+function separar(linhas, candidato) {
+  if (candidato.tipo === 'numero') {
+    return dividirPorLimite(linhas, candidato.coluna, candidato.valor);
+  }
+  return dividirPorCategoria(linhas, candidato.coluna, candidato.valor);
+}
+
+// Constrói recursivamente até atingir pureza ou um limite de parada.
+function construirNo(linhas, profundidade) {
+  if (calcularGini(linhas) === 0 || profundidade === profundidadeMaxima) {
+    return criarFolha(linhas);
+  }
+  var melhor = melhorDivisao(linhas);
+  return criarPergunta(melhor, construirNo(melhor.esquerda, profundidade + 1),
+    construirNo(melhor.direita, profundidade + 1));
+}</code></pre>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/tree.html" target="_blank" rel="noopener">scikit-learn · Decision Trees</a> · Breiman, Friedman, Olshen e Stone · <em>Classification and Regression Trees</em></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/decision-tree-lab.js"></script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

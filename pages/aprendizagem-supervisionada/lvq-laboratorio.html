@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratório LVQ1 e LVQ2.1 | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/lvq.css">
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="lvq-lab-page">
+    <header class="lvq-lab-hero"><div><p class="eyebrow">LABORATÓRIO · LEARNING VECTOR QUANTIZATION</p><h1>Observe a competição moldar as fronteiras.</h1><p class="lead">Pontos rotulados ensinam quatro protótipos. O vencedor aproxima-se quando acerta e afasta-se quando erra; no LVQ2.1, dois protótipos corrigem juntos uma fronteira.</p></div><div class="lvq-lab-hero-rule"><code>vencedor correto → atrair</code><code>vencedor incorreto → repelir</code><code>janela LVQ2.1 → ajuste duplo</code></div></header>
+
+    <section class="lvq-lab-layout">
+      <aside class="lvq-lab-controls">
+        <h2>Treinamento</h2><p>Use o mesmo dataset para comparar os algoritmos.</p>
+        <div class="lvq-control-group"><label>ALGORITMO<select id="lvqAlgorithm"><option value="lvq1">LVQ1 · um vencedor</option><option value="lvq21">LVQ2.1 · ajuste de fronteira</option></select></label><label>TAXA INICIAL α<input id="lvqLearningRate" type="number" min="0.01" max="0.5" step="0.01" value="0.04"></label><label>LARGURA DA JANELA<input id="lvqWindow" type="number" min="0.05" max="0.8" step="0.05" value="0.30"></label></div>
+        <div class="lvq-control-group"><button class="button full-button" id="lvqNextSample" type="button">Treinar próxima amostra</button><button class="button full-button" id="lvqTrainEpoch" type="button">Treinar 1 época</button><button class="button outline full-button" id="lvqTrainHundred" type="button">Treinar 100 épocas</button><button class="button outline full-button" id="lvqReset" type="button">Reiniciar protótipos</button></div>
+        <div class="lvq-control-group"><h3>Testar um novo ponto</h3><div class="lvq-test-inputs"><label>x₁<input id="lvqTestX1" type="number" min="-4" max="4" step="0.1" value="0"></label><label>x₂<input id="lvqTestX2" type="number" min="-4" max="4" step="0.1" value="0"></label></div><button class="button full-button" id="lvqTestButton" type="button">Testar ponto</button><div class="lvq-test-result" id="lvqTestResult">Digite as coordenadas e teste.</div></div>
+      </aside>
+
+      <div class="lvq-lab-results">
+        <section class="lvq-lab-metrics"><article><span>ÉPOCAS</span><strong id="lvqEpochMetric">0</strong></article><article><span>ATUALIZAÇÕES</span><strong id="lvqUpdateMetric">0</strong></article><article><span>ERRO DE CLASSIFICAÇÃO</span><strong id="lvqErrorMetric">—</strong></article><article><span>COMPACTAÇÃO</span><strong id="lvqCompressionMetric">—</strong></article></section>
+
+        <article class="lvq-lab-card"><div class="card-top"><div><h2 id="lvqPlaneTitle">Fronteiras do LVQ1</h2><p>As cores de fundo mostram a classe do protótipo mais próximo.</p></div><span class="status" id="lvqStatus">Modelo novo</span></div><canvas id="lvqCanvas" width="920" height="650" aria-label="Plano de classificação com dados e protótipos LVQ"></canvas><div class="lvq-canvas-legend"><span><i class="lvq-point-a"></i>amostras A</span><span><i class="lvq-point-b"></i>amostras B</span><span><i class="lvq-prototype-symbol"></i>protótipos</span><span><i class="lvq-boundary-symbol"></i>fronteira</span></div></article>
+
+        <article class="lvq-lab-card lvq-step-card"><div class="card-top"><div><h2>Última etapa matemática</h2><p>Distâncias, decisão, condição da janela e atualização.</p></div></div><div id="lvqMathSteps" class="lvq-math-steps"><p>Treine uma amostra para visualizar as contas.</p></div></article>
+
+        <article class="lvq-lab-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>O erro diminui quando mais amostras recebem a classe correta.</p></div></div><canvas id="lvqHistoryCanvas" width="920" height="340" aria-label="Gráfico de erro e acurácia por época"></canvas><div class="lvq-history-legend"><span><i class="lvq-error-line"></i>erro</span><span><i class="lvq-accuracy-line"></i>acurácia</span></div></article>
+
+        <article class="lvq-lab-card"><div class="card-top"><div><h2>Protótipos aprendidos</h2><p>A tabela mostra os poucos vetores usados para classificar todo o plano.</p></div></div><div class="lvq-table-wrap"><table id="lvqPrototypeTable" class="lvq-prototype-table"></table></div></article>
+      </div>
+    </section>
+
+    <section class="algorithm-section" aria-labelledby="lvq-code-title"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2 id="lvq-code-title">LVQ1 e LVQ2.1 em JavaScript</h2><p>O exemplo usa arrays, laços e funções separadas. A versão da página aplica exatamente as mesmas regras.</p><div class="algorithm-flow"><span>distancia()</span><span>doisMaisProximos()</span><span>treinarLVQ1()</span><span>estaNaJanela()</span><span>treinarLVQ21()</span></div></header><div class="code-window"><div class="code-window-bar"><span>lvq.js</span><i>aprendizagem competitiva supervisionada</i></div>
+<pre><code>// Um protótipo é [x1, x2, classe].
+var prototipos = [
+  [-2,  2, 0],
+  [-1, -2, 0],
+  [ 2,  2, 1],
+  [ 1, -2, 1]
+];
+
+// Calcula a distância euclidiana entre dois vetores 2D.
+function distancia(x, prototipo) {
+  var dx1 = x[0] - prototipo[0];
+  var dx2 = x[1] - prototipo[1];
+  return Math.sqrt(dx1 * dx1 + dx2 * dx2);
+}
+
+// Move um protótipo para perto (+1) ou para longe (-1) da amostra.
+function mover(prototipo, x, taxa, direcao) {
+  prototipo[0] = prototipo[0] + direcao * taxa * (x[0] - prototipo[0]);
+  prototipo[1] = prototipo[1] + direcao * taxa * (x[1] - prototipo[1]);
+}
+
+// Encontra os índices dos dois protótipos mais próximos.
+function doisMaisProximos(x) {
+  var primeiro = -1;
+  var segundo = -1;
+
+  for (var i = 0; i &lt; prototipos.length; i++) {
+    if (primeiro === -1 || distancia(x, prototipos[i]) &lt; distancia(x, prototipos[primeiro])) {
+      segundo = primeiro;
+      primeiro = i;
+    } else if (segundo === -1 || distancia(x, prototipos[i]) &lt; distancia(x, prototipos[segundo])) {
+      segundo = i;
+    }
+  }
+  return [primeiro, segundo];
+}
+
+// LVQ1 altera somente o protótipo vencedor.
+function treinarLVQ1(x, classeCorreta, taxa) {
+  var proximos = doisMaisProximos(x);
+  var vencedor = prototipos[proximos[0]];
+
+  if (vencedor[2] === classeCorreta) {
+    mover(vencedor, x, taxa, +1); // atrair
+  } else {
+    mover(vencedor, x, taxa, -1); // repelir
+  }
+}
+
+// Testa se as duas distâncias são parecidas o suficiente.
+function estaNaJanela(d1, d2, largura) {
+  var limite = (1 - largura) / (1 + largura);
+  var razao1 = d1 / d2;
+  var razao2 = d2 / d1;
+  return Math.min(razao1, razao2) &gt; limite;
+}
+
+// LVQ2.1 ajusta um protótipo correto e um incorreto perto da fronteira.
+function treinarLVQ21(x, classeCorreta, taxa, largura) {
+  var proximos = doisMaisProximos(x);
+  var p1 = prototipos[proximos[0]];
+  var p2 = prototipos[proximos[1]];
+  var classesDiferentes = p1[2] !== p2[2];
+  var umCorreto = (p1[2] === classeCorreta) !== (p2[2] === classeCorreta);
+
+  if (classesDiferentes &amp;&amp; umCorreto &amp;&amp; estaNaJanela(distancia(x, p1), distancia(x, p2), largura)) {
+    if (p1[2] === classeCorreta) {
+      mover(p1, x, taxa, +1);
+      mover(p2, x, taxa, -1);
+    } else {
+      mover(p1, x, taxa, -1);
+      mover(p2, x, taxa, +1);
+    }
+  }
+}</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aalto.fi/en/publications/learning-vector-quantization/" target="_blank" rel="noopener">Kohonen · Learning Vector Quantization</a> · <a href="https://www.jmlr.org/papers/volume8/biehl07a/biehl07a.pdf" target="_blank" rel="noopener">Biehl, Ghosh e Hammer · LVQ1 e LVQ2.1</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/lvq-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body></html>

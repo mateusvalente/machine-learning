@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório Transformer | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/advanced-neural.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="advanced-lab-page">
+    <section class="advanced-lab-hero"><div><p class="eyebrow">LABORATÓRIO · MINI TRANSFORMER</p><h1>Treine atenção causal para prever a próxima palavra.</h1><p class="lead">Um modelo reduzido transforma tokens em embeddings de três dimensões, calcula uma cabeça de Self-Attention e treina uma saída Softmax sobre um corpus pequeno.</p></div><div><div class="lab-architecture"><span>tokens<small>frase</small></span><i>→</i><span class="box">E + posição<small>vetores</small></span><i>→</i><span>Q K V<small>atenção</small></span><i>→</i><span class="box">Softmax<small>próximo token</small></span></div><div class="scope-note"><strong>Escopo didático:</strong> usamos uma cabeça, embeddings fixos e WQ = WK = WV = I. O treinamento ajusta a camada de saída. Transformers reais treinam essas matrizes, usam várias cabeças e muitas camadas.</div></div></section>
+
+    <section class="lab-layout">
+      <aside class="lab-controls"><h2>Corpus e treino</h2><p>Uma linha representa uma sequência de treinamento.</p><div class="control-group"><label>TEXTO DE TREINAMENTO<textarea id="transformerCorpus">Redes neurais artificiais são modelos de inteligência artificial inspirados no cérebro humano. Elas usam nós interconectados, chamados de neurônios artificiais, organizados em camadas, para processar dados, reconhecer padrões e aprender com a experiência de forma adaptativa.</textarea></label><button class="button outline" id="transformerPrepare">Preparar corpus</button></div><div class="control-group"><button class="button" id="transformerTrainOne">Treinar 1 época</button><button class="button" id="transformerTrainFifty">Treinar 50 épocas</button><button class="button outline" id="transformerReset">Reiniciar pesos</button></div><div class="control-group"><h3>Prever tokens</h3><label>PROMPT<input id="transformerPrompt" value="redes neurais artificiais são"></label><label>QUANTIDADE<select id="transformerTokenCount"><option>1</option><option selected>3</option><option>5</option></select></label><button class="button" id="transformerPredict">Gerar continuação</button><div class="control-output" id="transformerPrediction">Treine a saída e faça uma previsão.</div></div></aside>
+
+      <div class="lab-main">
+        <div class="metric-grid"><article><span>ÉPOCAS</span><strong id="transformerEpoch">0</strong></article><article><span>LOSS MÉDIA</span><strong id="transformerLoss">—</strong></article><article><span>PERPLEXIDADE</span><strong id="transformerPerplexity">—</strong></article><article><span>VOCABULÁRIO</span><strong id="transformerVocab">0</strong></article></div>
+        <article class="lab-card"><div class="card-top"><div><h2>Exemplos criados do texto</h2><p>Cada prefixo deve prever a palavra seguinte. Clique em uma linha para inspecionar sua atenção.</p></div><span class="status-pill" id="transformerStatus">Corpus preparado</span></div><div class="comparison-wrap"><table class="result-table" id="transformerPairs"></table></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Embeddings + posição</h2><p>Cada token recebe três valores de embedding e três valores posicionais.</p></div></div><div class="comparison-wrap"><table class="embedding-table" id="transformerEmbeddings"></table></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Matriz de Self-Attention causal</h2><p>Cada linha é uma consulta. As células mais escuras possuem maior peso αᵢⱼ; o triângulo futuro permanece mascarado.</p></div></div><div class="attention-grid" id="transformerAttention"></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Distribuição do próximo token</h2><p>A saída Softmax compara todos os tokens do vocabulário.</p></div></div><div class="probability-bars" id="transformerProbabilities"></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Treinamento selecionado, passo a passo</h2><p>Da frase até a atualização de um peso da camada de saída.</p></div></div><div class="math-panel" id="transformerMath"></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>A curva vermelha mostra a loss normalizada; a verde mostra a acurácia de próximo token.</p></div></div><canvas id="transformerHistory" width="960" height="360"></canvas><div class="legend-row"><span><i></i>loss normalizada</span><span><i></i>acurácia</span></div></article>
+      </div>
+    </section>
+
+    <section class="didactic-code"><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>Uma cabeça de atenção em JavaScript</h2><p>O exemplo usa arrays e laços simples. As funções separam produto escalar, Softmax, atenção e previsão.</p><div class="code-flow"><span>produtoEscalar()</span><span>softmax()</span><span>atencao()</span><span>prever()</span><span>ajustarSaida()</span></div><pre><code>// Calcula a semelhança entre dois vetores.
+function produtoEscalar(a, b) {
+  var soma = 0;
+  for (var i = 0; i &lt; a.length; i++) soma = soma + a[i] * b[i];
+  return soma;
+}
+
+// Converte escores em pesos positivos cuja soma vale 1.
+function softmax(valores) {
+  var resultado = [];
+  var soma = 0;
+  for (var i = 0; i &lt; valores.length; i++) {
+    resultado[i] = Math.exp(valores[i]);
+    soma = soma + resultado[i];
+  }
+  for (i = 0; i &lt; resultado.length; i++) resultado[i] = resultado[i] / soma;
+  return resultado;
+}
+
+// A consulta é o último token; as chaves e valores são todo o prefixo.
+function atencao(vetores) {
+  var consulta = vetores[vetores.length - 1];
+  var escores = [];
+  for (var j = 0; j &lt; vetores.length; j++) {
+    escores[j] = produtoEscalar(consulta, vetores[j]) / Math.sqrt(3);
+  }
+  var pesos = softmax(escores);
+  var contexto = [0, 0, 0];
+  for (j = 0; j &lt; vetores.length; j++) {
+    for (var d = 0; d &lt; 3; d++) contexto[d] = contexto[d] + pesos[j] * vetores[j][d];
+  }
+  return [contexto, pesos];
+}</code></pre></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fonte:</strong> <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al. · Attention Is All You Need</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/transformer-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

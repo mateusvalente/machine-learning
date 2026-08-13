@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Separação de grupos | Perceptron Lab</title><link rel="stylesheet" href="../../css/styles.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main>
+    <header class="lab-intro"><div><p class="eyebrow">LABORATÓRIO DE FRONTEIRAS</p><h1>Onde uma reta não consegue chegar.</h1><p>Monte grupos A e B, treine uma rede e veja como a fronteira de decisão muda entre um Perceptron e uma MLP.</p></div></header>
+    <section class="separator-layout">
+      <aside class="side-panel">
+        <h2>Configure o experimento</h2><p>Os eixos x₁ e x₂ aceitam valores entre −1 e 1.</p>
+        <div class="control-group"><label>CENÁRIO<select id="preset"><option value="nonlinear">Não linearmente separável</option><option value="linear">Linearmente separável</option></select></label><button class="button outline" id="loadPreset">Carregar cenário</button></div>
+        <div class="control-group"><label>ARQUITETURA<select id="model"><option value="perceptron">Perceptron · 1 camada</option><option value="mlp" selected>MLP · camada oculta</option></select></label><label>ATIVAÇÃO DA CAMADA OCULTA<select id="activation"><option value="sigmoid">Sigmoid</option><option value="tanh">Tanh</option><option value="relu">ReLU</option><option value="step">Step (somente perceptron)</option></select></label></div>
+        <figure class="reference-figure"><img src="../../assets/images/linear-vs-nonlinear.png" alt="Comparação visual entre uma fronteira linear reta e uma fronteira não linear curva"><figcaption>Referência: reta para o caso linear e curva tracejada para o não linear.</figcaption></figure>
+        <div class="control-group"><label>NOVO PONTO</label><div class="point-inputs"><label>x₁<input id="newX" type="number" value="0" min="-1" max="1" step="0.1"></label><label>x₂<input id="newY" type="number" value="0" min="-1" max="1" step="0.1"></label></div><div class="point-buttons"><button class="button class-a" id="addA">Adicionar A</button><button class="button class-b" id="addB">Adicionar B</button></div><button class="button outline" id="removePoint" style="width:100%;margin-top:9px">Remover último ponto</button><button class="button outline" id="clearPoints" style="width:100%;margin-top:9px">Limpar pontos</button></div>
+        <div class="control-group"><label>TAXA DE APRENDIZADO η<input id="lr" type="number" value="0.15" min="0.01" max="1" step="0.01"></label><button class="button" id="trainOne" style="width:100%;margin-bottom:8px">Treinar 1 época</button><button class="button outline" id="trainAuto" style="width:100%;margin-bottom:8px">Treinar até parar</button><button class="button outline" id="resetNet" style="width:100%">Reiniciar rede</button></div>
+      </aside>
+      <div>
+        <article class="separator-card"><div class="card-top"><div><h2 id="chartTitle">Fronteira de decisão: Perceptron</h2><p class="canvas-note" style="text-align:left;margin:3px 0 0">Clique no gráfico para adicionar um ponto à classe selecionada.</p></div><span class="status" id="chartStatus">Pronto</span></div><canvas id="plane" width="720" height="530"></canvas><div class="separator-legend"><span><i class="dot" style="background:#4e46e5"></i>Classe A</span><span><i class="dot" style="background:#ed6a78"></i>Classe B</span><span><i class="dot" style="background:#36405c"></i>Fronteira de decisão</span></div><div class="sep-metrics"><div class="stat"><span>Épocas</span><b id="epochs">0</b></div><div class="stat"><span>Acertos</span><b id="accuracy">—</b></div><div class="stat"><span>Erro médio</span><b id="loss">—</b></div></div></article>
+        <article class="network-visual-card"><div class="card-top"><div><h2 id="networkTitle">Neurônios da MLP · 2 → 4 → 1</h2><p id="networkSubtitle">O primeiro ponto do conjunto percorre a rede abaixo.</p></div></div><canvas id="mlpNetworkCanvas" width="720" height="430" aria-label="Visualização dos neurônios usados na separação"></canvas><div class="network-readout" id="networkReadout">Os valores serão recalculados durante o treinamento.</div><div class="neuron-methods"><div><b>1 · Potencial</b><span>u = Σ(wᵢxᵢ) + b</span></div><div><b>2 · Ativação</b><span>a = g(u)</span></div><div><b>3 · Forward</b><span>x₁, x₂ → h → ŷ</span></div><div><b>4 · Erro</b><span>compara y com ŷ</span></div><div><b>5 · Backprop</b><span>calcula os gradientes</span></div><div><b>6 · Atualização</b><span>w ← w − η∇w</span></div></div></article>
+        <article class="math-steps-card"><div class="card-top"><div><h2>Passo a passo matemático</h2><p>Última amostra usada no treinamento.</p></div></div><div id="separationMathSteps" class="math-steps"><p>Treine uma época para visualizar as contas.</p></div></article>
+        <article class="training-history-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>Veja o erro médio diminuir enquanto a taxa de acerto aumenta.</p></div></div><canvas id="trainingChart" width="720" height="300" aria-label="Gráfico do erro médio e da taxa de acerto por época"></canvas><div class="history-legend"><span><i class="error-line"></i>Erro médio</span><span><i class="accuracy-line"></i>Taxa de acerto</span></div></article>
+        <article class="explanation-card"><h2 id="explanationTitle">Uma função de ativação não curva uma reta</h2><p id="explanation">Em um perceptron de camada única, qualquer ativação é aplicada depois da mesma soma linear. Ela muda a forma da saída, mas a fronteira continua sendo uma reta. Para separar este cenário, selecione <strong>MLP · camada oculta</strong> e uma ativação diferenciável.</p></article>
+      </div>
+    </section>
+    <section class="algorithm-section" aria-labelledby="separation-code-title"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2 id="separation-code-title">Separação linear em JavaScript</h2><p>O exemplo abaixo treina um Perceptron com pontos A e B e também devolve a equação da reta aprendida.</p><div class="algorithm-flow"><span>normalizarClasse()</span><span>potencial()</span><span>ativacaoStep()</span><span>classificar()</span><span>ajustarPesos()</span><span>obterFronteira()</span></div></header><div class="code-window"><div class="code-window-bar"><span>separacao-linear.js</span><i>exemplo simplificado</i></div><pre><code>// Pontos com duas coordenadas e uma classe conhecida.
+const pontos = [
+  { x: [-0.8, 0.6], classe: "B" },
+  { x: [-0.4, 0.2], classe: "B" },
+  { x: [0.3, 0.5], classe: "A" },
+  { x: [0.7, -0.2], classe: "A" }
+];
+
+// Converte os nomes A e B nos alvos numéricos usados no treino.
+function normalizarClasse(classe) {
+  return classe === "A" ? 1 : 0;
+}
+
+// Calcula o potencial de ativação u para um ponto do plano.
+function calcularPotencial(entradas, modelo) {
+  return modelo.w1 * entradas[0] + modelo.w2 * entradas[1] + modelo.bias;
+}
+
+// O degrau escolhe o lado da fronteira em que o ponto está.
+function ativacaoStep(u) {
+  return u >= 0 ? 1 : 0;
+}
+
+// Produz a resposta ŷ sem modificar o modelo.
+function classificar(entradas, modelo) {
+  const u = calcularPotencial(entradas, modelo);
+  return { u, yChapeu: ativacaoStep(u) };
+}
+
+// Aplica a regra de aprendizagem em somente um ponto.
+function ajustarPesos(ponto, modelo, taxa) {
+  const y = normalizarClasse(ponto.classe);
+  const { yChapeu } = classificar(ponto.x, modelo);
+  const erro = y - yChapeu;
+
+  modelo.w1 += taxa * erro * ponto.x[0];
+  modelo.w2 += taxa * erro * ponto.x[1];
+  modelo.bias += taxa * erro;
+  return erro;
+}
+
+// Uma época apresenta todos os pontos uma vez.
+function treinarEpoca(pontos, modelo, taxa) {
+  return pontos.reduce(
+    (erros, ponto) => erros + Math.abs(ajustarPesos(ponto, modelo, taxa)),
+    0
+  );
+}
+
+// Repete épocas até não haver erros ou o limite ser atingido.
+function treinar(pontos, limiteEpocas, taxa) {
+  const modelo = { w1: 0.2, w2: -0.1, bias: 0 };
+
+  for (let epoca = 1; epoca &lt;= limiteEpocas; epoca++) {
+    const erros = treinarEpoca(pontos, modelo, taxa);
+    if (erros === 0) break;
+  }
+
+  return modelo;
+}
+
+// Converte u = 0 na forma x₂ = inclinação·x₁ + intercepto.
+function obterFronteira(modelo) {
+  return {
+    inclinacao: -modelo.w1 / modelo.w2,
+    intercepto: -modelo.bias / modelo.w2
+  };
+}
+
+const modelo = treinar(pontos, 100, 0.15);
+console.log(modelo, obterFronteira(modelo));
+
+// Limitação importante:
+// se A e B não forem separáveis por uma reta, esse treino não converge.
+// Nesse caso usamos uma MLP, como no laboratório XOR.</code></pre></div></section>
+  </main><footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://embarcados.com.br/rede-perceptron-de-uma-unica-camada/" target="_blank" rel="noopener">Embarcados — Rede Perceptron</a> · <a href="https://felipetulio.com.br/aprendizado-supervisionado-redes-neurais-artificiais/" target="_blank" rel="noopener">Felipe Túlio — Redes neurais artificiais</a> · <a href="https://developers.google.com/machine-learning/crash-course/neural-networks/activation-functions" target="_blank" rel="noopener">Google ML — Funções de ativação</a> · <a href="https://www.ncbi.nlm.nih.gov/books/NBK441977/" target="_blank" rel="noopener">NCBI — Neuroanatomia dos neurônios</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/training-history-chart.js"></script><script src="../../js/labs/mlp-network-view.js"></script><script>
+    // ================================================================
+    // 1. ESTADO DO EXPERIMENTO E ACESSO À INTERFACE
+    // ================================================================
+    const $ = selector => document.querySelector(selector);
+    const ctx = $('#plane').getContext('2d');
+    const historyChart = new TrainingHistoryChart($('#trainingChart'));
+    const networkView = new MLPNetworkView($('#mlpNetworkCanvas'));
+
+    let points = [];
+    let epochs = 0;
+    let loss = 0;
+    let auto = null;
+    let selected = 'A';
+    let lastMathStep = null;
+
+    // p representa o Perceptron (uma única fronteira reta).
+    // net representa a MLP: 4 neurônios ocultos e 1 neurônio de saída.
+    let p;
+    let net;
+    const nonlinear=[[-.78,.66,'A'],[-.56,.42,'A'],[-.4,.73,'A'],[.48,.55,'A'],[.7,.25,'A'],[.56,-.55,'A'],[.75,-.28,'A'],[-.66,-.62,'A'],[-.45,-.35,'A'],[-.68,.05,'B'],[-.4,.08,'B'],[-.15,.33,'B'],[.02,-.58,'B'],[.24,-.39,'B'],[.28,-.76,'B'],[.03,.08,'B'],[.38,-.05,'B']];
+    const linear=[[-.7,.64,'B'],[-.48,.38,'B'],[-.25,.17,'B'],[-.58,-.08,'B'],[.18,-.52,'B'],[.42,-.67,'B'],[.62,-.43,'B'],[-.05,.56,'A'],[.2,.76,'A'],[.37,.45,'A'],[.55,.2,'A'],[.76,.39,'A'],[.12,.14,'A']];
+    // ================================================================
+    // 2. INICIALIZAÇÃO DOS PESOS
+    // ================================================================
+    const rand = () => Math.random() * 1.2 - 0.6;
+    const sigmoid = value => 1 / (1 + Math.exp(-Math.max(-30, Math.min(30, value))));
+
+    function init() {
+      p = { w1: rand(), w2: rand(), b: rand() };
+      net = {
+        h: Array.from({ length: 4 }, () => ({ w1: rand(), w2: rand(), b: rand() })),
+        o: { w: [rand(), rand(), rand(), rand()], b: rand() }
+      };
+      epochs = 0;
+      loss = 0;
+      lastMathStep = null;
+      historyChart.reset();
+      recordTrainingHistory();
+      render();
+    }
+
+    // ================================================================
+    // 3. FUNÇÕES DE ATIVAÇÃO E SUAS DERIVADAS
+    //    A derivada é usada exclusivamente no backpropagation da MLP.
+    // ================================================================
+    function activation(value) {
+      const type = $('#activation').value;
+      if (type === 'tanh') return Math.tanh(value);
+      if (type === 'relu') return Math.max(0, value);
+      return sigmoid(value); // Sigmoid é o padrão para a camada oculta.
+    }
+
+    function activationDerivative(preActivation, activatedValue) {
+      const type = $('#activation').value;
+      if (type === 'tanh') return 1 - activatedValue * activatedValue;
+      if (type === 'relu') return preActivation > 0 ? 1 : 0;
+      return activatedValue * (1 - activatedValue); // derivada da Sigmoid
+    }
+
+    // ================================================================
+    // 4. PROPAGAÇÃO PARA FRENTE (FORWARD PASS)
+    // ================================================================
+    function predPerceptron(x1, x2) {
+      return p.w1 * x1 + p.w2 * x2 + p.b >= 0 ? 1 : 0;
+    }
+
+    function forwardMLP(x1, x2) {
+      const hidden = net.h.map(neuron => {
+        const u = neuron.w1 * x1 + neuron.w2 * x2 + neuron.b;
+        return { u, a: activation(u) };
+      });
+      const u = net.o.b + hidden.reduce((sum, neuron, index) => sum + net.o.w[index] * neuron.a, 0);
+      return { hidden, u, out: sigmoid(u) }; // saída binária sempre em [0, 1]
+    }
+
+    function predict(x1, x2) {
+      return $('#model').value === 'perceptron'
+        ? predPerceptron(x1, x2)
+        : (forwardMLP(x1, x2).out >= 0.5 ? 1 : 0);
+    }
+
+    function currentMeanError() {
+      if (!points.length) return 0;
+      return points.reduce((total, [x1, x2, group]) => {
+        const target = group === 'A' ? 1 : 0;
+        if ($('#model').value === 'perceptron') return total + Math.abs(target - predPerceptron(x1, x2));
+        const difference = target - forwardMLP(x1, x2).out;
+        return total + difference * difference;
+      }, 0) / points.length;
+    }
+
+    function recordTrainingHistory() {
+      const hits = points.filter(([x1, x2, group]) => predict(x1, x2) === (group === 'A' ? 1 : 0)).length;
+      historyChart.add(epochs, currentMeanError(), points.length ? hits / points.length : 0);
+    }
+    // ================================================================
+    // 5. TREINAMENTO DO PERCEPTRON
+    //    Regra: w ← w + η · erro · entrada
+    // ================================================================
+    function trainPerceptronSample(x1, x2, target, learningRate) {
+      const before = { ...p };
+      const u = p.w1 * x1 + p.w2 * x2 + p.b;
+      const output = u >= 0 ? 1 : 0;
+      const error = target - output;
+      p.w1 += learningRate * error * x1;
+      p.w2 += learningRate * error * x2;
+      p.b += learningRate * error;
+      lastMathStep = { type: 'perceptron', x1, x2, target, learningRate, u, output, error, before, after: { ...p } };
+      return Math.abs(error);
+    }
+
+    // ================================================================
+    // 6. BACKPROPAGATION DA MLP
+    //    1) Forward pass; 2) gradiente na saída; 3) gradiente oculto;
+    //    4) atualização de todos os pesos pela descida do gradiente.
+    // ================================================================
+    function trainMLPSample(x1, x2, target, learningRate) {
+      const forward = forwardMLP(x1, x2);
+      const outputError = forward.out - target;
+      const deltaOutput = outputError * forward.out * (1 - forward.out);
+      const before = { outputW0: net.o.w[0], hiddenW00: net.h[0].w1 };
+
+      // Os deltas ocultos devem usar os pesos de saída ANTES da atualização.
+      const deltaHidden = forward.hidden.map((neuron, index) =>
+        deltaOutput * net.o.w[index] * activationDerivative(neuron.u, neuron.a)
+      );
+
+      net.o.w.forEach((weight, index) => {
+        net.o.w[index] = weight - learningRate * deltaOutput * forward.hidden[index].a;
+      });
+      net.o.b -= learningRate * deltaOutput;
+
+      net.h.forEach((neuron, index) => {
+        neuron.w1 -= learningRate * deltaHidden[index] * x1;
+        neuron.w2 -= learningRate * deltaHidden[index] * x2;
+        neuron.b -= learningRate * deltaHidden[index];
+      });
+
+      lastMathStep = { type: 'mlp', x1, x2, target, learningRate, forward, outputError, deltaOutput, deltaHidden, before, after: { outputW0: net.o.w[0], hiddenW00: net.h[0].w1 } };
+
+      return outputError * outputError;
+    }
+
+    // Uma época apresenta todos os pontos uma vez para a arquitetura escolhida.
+    function trainEpoch() {
+      if (!points.length) return;
+      if ($('#model').value === 'mlp' && $('#activation').value === 'step') {
+        $('#chartStatus').textContent = 'Step não deriva';
+        $('#chartStatus').className = 'status fail';
+        return;
+      }
+
+      const learningRate = Number($('#lr').value) || 0.15;
+      loss = points.reduce((sum, [x1, x2, group]) => {
+        const target = group === 'A' ? 1 : 0;
+        const sampleLoss = $('#model').value === 'perceptron'
+          ? trainPerceptronSample(x1, x2, target, learningRate)
+          : trainMLPSample(x1, x2, target, learningRate);
+        return sum + sampleLoss;
+      }, 0) / points.length;
+      epochs++;
+      recordTrainingHistory();
+      render();
+    }
+    // ================================================================
+    // 7. CONTROLE DE TREINAMENTO E VISUALIZAÇÃO
+    // ================================================================
+    function autoTrain(){if(auto){clearInterval(auto);auto=null;$('#trainAuto').textContent='Treinar até parar';return}let n=0;auto=setInterval(()=>{trainEpoch();n++;const hits=points.filter(([x,y,c])=>predict(x,y)===(c==='A'?1:0)).length;if(n>=1000||hits===points.length){clearInterval(auto);auto=null;$('#trainAuto').textContent='Treinar até parar'}},18);$('#trainAuto').textContent='Pausar'}
+    function render(){draw();renderNetwork();renderMathSteps();const hits=points.filter(([x,y,c])=>predict(x,y)===(c==='A'?1:0)).length,mlp=$('#model').value==='mlp',step=$('#activation').value==='step';$('#epochs').textContent=epochs;$('#accuracy').textContent=points.length?`${hits}/${points.length}`:'—';$('#loss').textContent=epochs?loss.toFixed(3):'—';$('#chartTitle').textContent=`Fronteira de decisão: ${mlp?'MLP com camada oculta':'Perceptron de uma camada'}`;const separable=$('#preset').value==='linear';$('#chartStatus').textContent=points.length?(hits===points.length?'Separado ✓':`${points.length-hits} ponto(s) fora`):'Adicione pontos';$('#chartStatus').className='status '+(hits===points.length&&points.length?'success':step&&mlp?'fail':'');$('#explanationTitle').textContent=mlp?'Camada oculta: uma fronteira não linear':'Uma função de ativação não curva uma reta';$('#explanation').innerHTML=mlp?`A MLP combina quatro transformações não lineares e, por isso, pode desenhar regiões curvas para envolver os grupos. <strong>${$('#activation').value}</strong> controla a forma dessas transformações durante o aprendizado.`:`Em um perceptron de camada única, qualquer ativação é aplicada depois da mesma soma linear. Ela muda a forma da saída, mas a fronteira continua sendo uma reta. ${separable?'Este conjunto foi montado para que uma reta baste.':'Para separar este cenário, selecione <strong>MLP · camada oculta</strong> e uma ativação diferenciável.'}`}
+    function renderNetwork() {
+      const sample = points[0] || [0, 0, '—'];
+      const [x1, x2, group] = sample;
+      const target = group === 'A' ? 1 : group === 'B' ? 0 : '—';
+
+      if ($('#model').value === 'perceptron') {
+        const u = p.w1 * x1 + p.w2 * x2 + p.b;
+        const prediction = u >= 0 ? 1 : 0;
+        networkView.draw({ inputs: [x1, x2], hidden: [], outputs: [prediction], outputLabels: ['ŷ'], inputOutputWeights: [[p.w1, p.w2]], outputActivation: 'Step(u)' });
+        $('#networkTitle').textContent = 'Perceptron · 2 → 1';
+        $('#networkSubtitle').textContent = 'Sem camada oculta: uma única reta divide o plano.';
+        $('#networkReadout').innerHTML = `Ponto ${group} (${x1.toFixed(2)}, ${x2.toFixed(2)}) · u=${u.toFixed(3)} · ŷ=${prediction} · alvo=${target}`;
+        return;
+      }
+
+      const forward = forwardMLP(x1, x2);
+      const prediction = forward.out >= 0.5 ? 1 : 0;
+      networkView.draw({
+        inputs: [x1, x2],
+        hidden: forward.hidden.map(neuron => ({ u: neuron.u, a: neuron.a })),
+        outputs: [forward.out],
+        outputLabels: ['P(A)'],
+        inputHiddenWeights: net.h.map(neuron => [neuron.w1, neuron.w2]),
+        hiddenOutputWeights: [net.o.w],
+        hiddenActivation: $('#activation').value,
+        outputActivation: 'Sigmoid → ŷ'
+      });
+      $('#networkTitle').textContent = 'Neurônios da MLP · 2 → 4 → 1';
+      $('#networkSubtitle').textContent = 'O primeiro ponto do conjunto percorre a rede abaixo.';
+      $('#networkReadout').innerHTML = `Ponto ${group} (${x1.toFixed(2)}, ${x2.toFixed(2)}) · h₁: u=${forward.hidden[0].u.toFixed(3)}, a=${forward.hidden[0].a.toFixed(3)} · P(A)=${forward.out.toFixed(3)} · ŷ=${prediction} · alvo=${target}`;
+    }
+
+    function renderMathSteps() {
+      const container = $('#separationMathSteps');
+      if (!lastMathStep) {
+        container.innerHTML = '<p>Treine uma época para visualizar as contas.</p>';
+        return;
+      }
+      const step = lastMathStep;
+      if (step.type === 'perceptron') {
+        const dw1 = step.learningRate * step.error * step.x1;
+        const dw2 = step.learningRate * step.error * step.x2;
+        const db = step.learningRate * step.error;
+        container.innerHTML = `<div><b>1 · Potencial</b><span>u = ${step.before.w1.toFixed(3)}·${step.x1} + ${step.before.w2.toFixed(3)}·${step.x2} + ${step.before.b.toFixed(3)} = ${step.u.toFixed(3)}</span></div><div><b>2 · Ativação</b><span>ŷ = Step(${step.u.toFixed(3)}) = ${step.output}</span></div><div><b>3 · Erro</b><span>e = y − ŷ = ${step.target} − ${step.output} = ${step.error}</span></div><div><b>4 · Δw₁</b><span>${step.learningRate}·${step.error}·${step.x1} = ${dw1.toFixed(3)}</span></div><div><b>5 · Δw₂ e Δb</b><span>Δw₂=${dw2.toFixed(3)} · Δb=${db.toFixed(3)}</span></div><div><b>6 · Novos parâmetros</b><span>w₁=${step.after.w1.toFixed(3)} · w₂=${step.after.w2.toFixed(3)} · b=${step.after.b.toFixed(3)}</span></div>`;
+        return;
+      }
+      const h = step.forward.hidden[0];
+      container.innerHTML = `<div><b>1 · Potencial h₁</b><span>u₁ = w₁x₁ + w₂x₂ + b = ${h.u.toFixed(4)}</span></div><div><b>2 · Ativação h₁</b><span>a₁ = g(u₁) = ${h.a.toFixed(4)}</span></div><div><b>3 · Saída</b><span>uₒ=${step.forward.u.toFixed(4)} → ŷ=${step.forward.out.toFixed(4)}</span></div><div><b>4 · Erro e δo</b><span>ŷ−y=${step.outputError.toFixed(4)} · δo=${step.deltaOutput.toFixed(4)}</span></div><div><b>5 · Delta oculto</b><span>δh₁ = δo·v₁·g′(u₁) = ${step.deltaHidden[0].toFixed(4)}</span></div><div><b>6 · Pesos atualizados</b><span>v₁: ${step.before.outputW0.toFixed(4)} → ${step.after.outputW0.toFixed(4)} · w₁₁: ${step.before.hiddenW00.toFixed(4)} → ${step.after.hiddenW00.toFixed(4)}</span></div>`;
+    }
+
+    // Desenha a curva em que a probabilidade da MLP é exatamente 0,5.
+    // Ela é a fronteira real aprendida pela rede — o equivalente não linear
+    // da reta w₁x₁ + w₂x₂ + b = 0 do Perceptron.
+    function drawNonLinearBoundary(mapX, mapY) {
+      const cells = 65;
+      const step = 2 / cells;
+      const score = (x, y) => forwardMLP(x, y).out - 0.5;
+      const crosses = (a, b) => (a < 0 && b >= 0) || (a >= 0 && b < 0);
+      const interpolate = (a, b, valueA, valueB) => {
+        const ratio = valueA / (valueA - valueB);
+        return [a[0] + ratio * (b[0] - a[0]), a[1] + ratio * (b[1] - a[1])];
+      };
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.strokeStyle = '#172033';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([7, 5]);
+
+      // Marching squares: cada quadradinho do plano é testado para localizar
+      // onde a saída atravessa 0,5; os segmentos formam uma curva contínua.
+      for (let column = 0; column < cells; column++) {
+        for (let row = 0; row < cells; row++) {
+          const x0 = -1 + column * step, x1 = x0 + step;
+          const y0 = -1 + row * step, y1 = y0 + step;
+          const corners = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+          const values = corners.map(([x, y]) => score(x, y));
+          const intersections = [];
+
+          [[0, 1], [1, 2], [2, 3], [3, 0]].forEach(([start, end]) => {
+            if (crosses(values[start], values[end])) {
+              intersections.push(interpolate(corners[start], corners[end], values[start], values[end]));
+            }
+          });
+
+          for (let i = 0; i + 1 < intersections.length; i += 2) {
+            ctx.moveTo(mapX(intersections[i][0]), mapY(intersections[i][1]));
+            ctx.lineTo(mapX(intersections[i + 1][0]), mapY(intersections[i + 1][1]));
+          }
+        }
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw(){const c=ctx.canvas,W=c.width,H=c.height,m=48,mapX=x=>m+(x+1)*(W-2*m)/2,mapY=y=>H-m-(y+1)*(H-2*m)/2,unX=x=>(x-m)*2/(W-2*m)-1,unY=y=>(H-m-y)*2/(H-2*m)-1;ctx.clearRect(0,0,W,H);if($('#model').value==='mlp'&&points.length){for(let px=m;px<W-m;px+=12)for(let py=m;py<H-m;py+=12){ctx.fillStyle=predict(unX(px),unY(py))?'rgba(78,70,229,.10)':'rgba(237,106,120,.10)';ctx.fillRect(px,py,12,12)}drawNonLinearBoundary(mapX,mapY)}ctx.strokeStyle='#dfe4ef';ctx.lineWidth=1;for(let v=-1;v<=1;v+=.5){ctx.beginPath();ctx.moveTo(mapX(v),mapY(-1));ctx.lineTo(mapX(v),mapY(1));ctx.moveTo(mapX(-1),mapY(v));ctx.lineTo(mapX(1),mapY(v));ctx.stroke()}ctx.strokeStyle='#36405c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mapX(-1),mapY(0));ctx.lineTo(mapX(1),mapY(0));ctx.moveTo(mapX(0),mapY(-1));ctx.lineTo(mapX(0),mapY(1));ctx.stroke();ctx.fillStyle='#36405c';ctx.font='600 15px Manrope';ctx.fillText('x₁',mapX(.96),mapY(-.08));ctx.fillText('x₂',mapX(.05),mapY(.92));if($('#model').value==='perceptron'){ctx.beginPath();if(Math.abs(p.w2)>.001){ctx.moveTo(mapX(-1),mapY((-p.w1*(-1)-p.b)/p.w2));ctx.lineTo(mapX(1),mapY((-p.w1-p.b)/p.w2))}ctx.strokeStyle='#111827';ctx.lineWidth=3;ctx.stroke()}points.forEach(([x,y,c])=>{ctx.beginPath();ctx.arc(mapX(x),mapY(y),15,0,Math.PI*2);ctx.fillStyle=c==='A'?'#e9e8ff':'#ffeaec';ctx.fill();ctx.strokeStyle=c==='A'?'#4e46e5':'#ed6a78';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#172033';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='700 14px Manrope';ctx.fillText(c,mapX(x),mapY(y)+1)});ctx.textAlign='left';c.onclick=e=>{const r=c.getBoundingClientRect(),x=Math.max(-1,Math.min(1,unX((e.clientX-r.left)*W/r.width))),y=Math.max(-1,Math.min(1,unY((e.clientY-r.top)*H/r.height)));points.push([+x.toFixed(2),+y.toFixed(2),selected]);init()}}
+    // Acrescenta valores de −1 a 1 nos eixos x₁ e x₂ do laboratório.
+    const drawPlaneWithoutNumbers = draw;
+    draw = function drawPlaneWithNumbers() {
+      drawPlaneWithoutNumbers();
+      const canvas = ctx.canvas;
+      const margin = 48;
+      const mapX = value => margin + (value + 1) * (canvas.width - 2 * margin) / 2;
+      const mapY = value => canvas.height - margin - (value + 1) * (canvas.height - 2 * margin) / 2;
+      ctx.save();
+      ctx.font = '600 14px Manrope';
+      ctx.fillStyle = '#36405c';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 4;
+      for (let value = -1; value <= 1.001; value += 0.5) {
+        const label = Number.isInteger(value) ? String(value) : value.toFixed(1).replace('.', ',');
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.strokeText(label, mapX(value), mapY(0) + 8);
+        ctx.fillText(label, mapX(value), mapY(0) + 8);
+        if (Math.abs(value) > 0.001) {
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+          ctx.strokeText(label, mapX(0) - 8, mapY(value));
+          ctx.fillText(label, mapX(0) - 8, mapY(value));
+        }
+      }
+      ctx.restore();
+    };
+
+    // ================================================================
+    // 8. DADOS DE ENTRADA E EVENTOS DO USUÁRIO
+    // ================================================================
+    function load(){points=($('#preset').value==='linear'?linear:nonlinear).map(x=>[...x]);init()}function add(c){const x=Math.max(-1,Math.min(1,Number($('#newX').value))),y=Math.max(-1,Math.min(1,Number($('#newY').value)));points.push([x,y,c]);selected=c;init()}
+    $('#loadPreset').onclick=load;$('#addA').onclick=()=>add('A');$('#addB').onclick=()=>add('B');$('#removePoint').onclick=()=>{points.pop();init()};$('#clearPoints').onclick=()=>{points=[];init()};$('#trainOne').onclick=trainEpoch;$('#trainAuto').onclick=autoTrain;$('#resetNet').onclick=init;$('#model').onchange=init;$('#activation').onchange=init;$('#preset').onchange=load;load();
+  </script><script src="../../js/image-lightbox.js"></script><script src="../../js/didactic-code-examples.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body></html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GANs · Redes Adversárias Generativas | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/advanced-neural.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="advanced-page">
+    <section class="advanced-hero gan"><div><p class="eyebrow">REDES NEURAIS · GANS</p><h1>Duas redes melhoram enquanto disputam o mesmo jogo.</h1><p class="lead">O Gerador transforma ruído em amostras falsas. O Discriminador recebe exemplos reais e gerados e estima a probabilidade de cada um ser verdadeiro. O sinal do adversário ensina o Gerador.</p><div class="advanced-hero-actions"><a class="button" href="./gan-laboratorio.html">Gerar dígitos no laboratório →</a><a class="button outline" href="#matematica-gan">Ver as perdas ↓</a></div></div><div class="advanced-hero-visual"><div class="architecture-row"><span>z<small>ruído</small></span><i>→</i><span class="square">G(z)<small>Gerador</small></span><i>→</i><span class="square">D(x)<small>Discriminador</small></span></div><div class="advanced-hero-note">O Gerador nunca recebe diretamente a frase “desenhe assim” na GAN clássica. Ele melhora porque o gradiente do Discriminador revela como aumentar a chance de uma amostra falsa parecer real.</div></div>
+    </section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">01 · OS DOIS JOGADORES</p><h2>Falsificador e investigador.</h2></header><div class="concept-grid">
+      <article class="concept-card"><span class="step-badge">G</span><h3>Gerador</h3><p>Recebe um vetor aleatório z e produz uma amostra G(z). Seus parâmetros controlam a aparência da saída.</p><code class="formula-light">z → G(z) = x̂</code></article>
+      <article class="concept-card"><span class="step-badge">D</span><h3>Discriminador</h3><p>Recebe uma amostra x e retorna um valor entre 0 e 1: sua estimativa de que x veio dos dados reais.</p><code class="formula-light">D(x) = P(real | x)</code></article>
+      <article class="concept-card"><span class="step-badge">↔</span><h3>Jogo adversário</h3><p>D quer acertar reais e falsos; G quer elevar D(G(z)). Em um equilíbrio ideal, D não distingue as distribuições.</p><code class="formula-light">pgerador ≈ pdados ⇒ D(x) ≈ 0,5</code></article>
+    </div></section>
+
+    <section class="lesson-section" id="matematica-gan"><header class="lesson-head"><p class="eyebrow">02 · A MATEMÁTICA DO JOGO</p><h2>Duas perdas, dois objetivos.</h2><p>A formulação original é minimax. Na prática, a perda não saturante do Gerador é frequentemente usada por fornecer gradientes mais fortes no início.</p></header><div class="math-walkthrough">
+      <article class="math-step"><span>D</span><div><h3>Perda do Discriminador</h3><p>Quer D(xreal) próximo de 1 e D(G(z)) próximo de 0.</p><code class="formula">Lᴅ = −[log D(xreal) + log(1 − D(G(z)))] / 2</code></div></article>
+      <article class="math-step"><span>G</span><div><h3>Perda não saturante do Gerador</h3><p>O rótulo desejado pelo Gerador é “real”: ele tenta fazer D(G(z)) chegar a 1.</p><code class="formula">Lɢ = −log D(G(z))</code></div></article>
+      <article class="math-step"><span>∇</span><div><h3>Gradiente do Discriminador</h3><p>Com saída Sigmoid e entropia cruzada, o gradiente do logit simplifica para previsão menos alvo.</p><code class="formula">∂L/∂a = D(x) − y</code></div></article>
+      <article class="math-step"><span>←</span><div><h3>Gradiente que chega ao Gerador</h3><p>A Regra da Cadeia atravessa D e a saída de G.</p><code class="formula">∂Lɢ/∂θɢ = ∂Lɢ/∂D · ∂D/∂G · ∂G/∂θɢ</code></div></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">03 · EXEMPLO NUMÉRICO</p><h2>Uma rodada com dois palpites.</h2></header><div class="concept-grid">
+      <article class="concept-card"><h3>Amostra real</h3><p>O Discriminador atribui 80% de chance de ser real.</p><code class="formula-light">D(xreal)=0,80<br>−ln(0,80)=0,223</code></article>
+      <article class="concept-card"><h3>Amostra falsa</h3><p>Ele atribui 25% de chance de ser real à imagem gerada.</p><code class="formula-light">D(G(z))=0,25<br>−ln(1−0,25)=0,288</code></article>
+      <article class="concept-card"><h3>Perdas</h3><p>D está relativamente bem; G ainda recebe uma penalidade grande.</p><code class="formula-light">Lᴅ=(0,223+0,288)/2=0,256<br>Lɢ=−ln(0,25)=1,386</code></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">04 · ALGORITMO PASSO A PASSO</p><h2>Treinamento alternado.</h2></header><div class="concept-grid four">
+      <article class="concept-card"><span class="step-badge">1</span><h3>Amostra real</h3><p>Escolha x do dataset e associe o alvo y = 1.</p><code class="formula-light">xreal, y=1</code></article>
+      <article class="concept-card"><span class="step-badge">2</span><h3>Amostra falsa</h3><p>Sorteie z e produza xfake = G(z), com alvo y = 0 para D.</p><code class="formula-light">z → G(z), y=0</code></article>
+      <article class="concept-card"><span class="step-badge">3</span><h3>Atualize D</h3><p>Minimize Lᴅ mantendo os pesos de G congelados.</p><code class="formula-light">θᴅ ← θᴅ − ηᴅ∇Lᴅ</code></article>
+      <article class="concept-card"><span class="step-badge">4</span><h3>Atualize G</h3><p>Produza outro falso e minimize Lɢ mantendo D congelado.</p><code class="formula-light">θɢ ← θɢ − ηɢ∇Lɢ</code></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">05 · DÍGITOS E MNIST</p><h2>O “Hello World” da geração de imagens.</h2><p>O MNIST reúne imagens 28 × 28 em tons de cinza. Uma GAN real aprende a distribuição de muitos estilos de escrita, não copia simplesmente uma imagem.</p></header><div class="math-walkthrough"><article class="math-step"><span>z</span><div><h3>Ruído latente</h3><p>Valores aleatórios representam diferentes possibilidades de escrita.</p><code class="formula">z ∈ ℝᵈ</code></div></article><article class="math-step"><span>G</span><div><h3>784 intensidades</h3><p>O Gerador converte z em 28 × 28 pixels, normalmente limitados a [0,1] ou [−1,1].</p><code class="formula">G(z) ∈ [0,1]²⁸ˣ²⁸</code></div></article><article class="math-step"><span>D</span><div><h3>Probabilidade de realidade</h3><p>O Discriminador reduz os pixels a uma única probabilidade.</p><code class="formula">D(G(z)) ∈ (0,1)</code></div></article></div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">06 · RESULTADOS E RISCOS</p><h2>Gerar é poderoso, mas o jogo pode ser instável.</h2></header><div class="comparison-wrap"><table><thead><tr><th>Fenômeno</th><th>O que acontece</th><th>Sinal observado</th></tr></thead><tbody><tr><td>Equilíbrio útil</td><td>G aproxima a distribuição real e D fica incerto.</td><td>D(real) e D(fake) tendem a valores próximos.</td></tr><tr><td>Mode collapse</td><td>G produz poucas variedades que conseguem enganar D.</td><td>Muitas imagens quase iguais.</td></tr><tr><td>D forte demais</td><td>D rejeita tudo e o gradiente de G pode ficar pouco informativo.</td><td>D(real)≈1 e D(fake)≈0 por muito tempo.</td></tr><tr><td>Oscilação</td><td>Os jogadores perseguem estratégias que mudam continuamente.</td><td>Perdas não convergem de forma monotônica.</td></tr></tbody></table></div><div class="application-grid" style="margin-top:16px"><article><span>▧</span><h3>Síntese de imagens</h3><p>Criação de amostras visuais e variações de dados.</p></article><article><span>↗</span><h3>Super-resolução</h3><p>Recuperação de detalhes plausíveis em imagens ampliadas.</p></article><article><span>◐</span><h3>Tradução visual</h3><p>Transformação entre domínios e estilos.</p></article><article><span>!</span><h3>Uso responsável</h3><p>Deepfakes exigem consentimento, procedência e mecanismos contra fraude.</p></article></div></section>
+
+    <section class="module-cta"><h2>Acompanhe um dígito sair do ruído.</h2><p>O mini laboratório usa imagens locais, uma grade 7 × 7 e redes lineares pequenas para tornar todos os gradientes visíveis.</p><a class="button" href="./gan-laboratorio.html">Abrir mini GAN →</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://arxiv.org/abs/1406.2661" target="_blank" rel="noopener">Goodfellow et al. · Generative Adversarial Networks</a> · <a href="https://yann.lecun.org/exdb/mnist/index.html" target="_blank" rel="noopener">LeCun, Cortes e Burges · MNIST</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

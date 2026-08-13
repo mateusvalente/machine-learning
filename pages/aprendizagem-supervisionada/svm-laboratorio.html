@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório SVM Linear | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/svm.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="svm-lab-page">
+    <section class="svm-lab-hero"><div><p class="eyebrow">LABORATÓRIO · SVM LINEAR</p><h1>Treine a margem, não apenas a classificação.</h1><p class="lead">Duas características descrevem cada amostra. Observe a reta u=0, os limites u=−1 e u=+1 e os pontos que ainda geram perda hinge.</p></div><div class="svm-lab-hero-rule"><code>u = w₁x₁ + w₂x₂ + b</code><code>m = y × u</code><code>L = máx(0, 1 − m)</code><code>m ≤ 1 → ajustar</code></div></section>
+
+    <section class="svm-lab-layout">
+      <aside class="svm-controls">
+        <h2>Treinamento</h2><p>O dataset é fixo para facilitar a leitura das contas.</p>
+        <div class="svm-control-group"><label>TAXA η<input id="svmLearningRate" type="number" min="0.001" max="0.3" step="0.005" value="0.05"></label><label>PENALIDADE C<input id="svmC" type="number" min="0.1" max="5" step="0.1" value="1"></label><label>REGULARIZAÇÃO λ<input id="svmLambda" type="number" min="0" max="0.5" step="0.005" value="0.02"></label></div>
+        <div class="svm-control-group"><button class="button" id="svmNext" type="button">Treinar próxima amostra</button><button class="button" id="svmEpoch" type="button">Treinar 1 época</button><button class="button outline" id="svmTrain" type="button">Treinar 50 épocas</button><button class="button outline" id="svmReset" type="button">Reiniciar</button></div>
+        <div class="svm-control-group"><h3>Testar novo ponto</h3><div class="svm-test-grid"><label>x₁<input id="svmTestX1" type="number" min="-4" max="4" step="0.1" value="0.5"></label><label>x₂<input id="svmTestX2" type="number" min="-3" max="3" step="0.1" value="0"></label></div><button class="button" id="svmTest" type="button">Classificar ponto</button><div class="svm-test-result" id="svmTestResult">Digite as coordenadas e faça o teste.</div></div>
+      </aside>
+
+      <div class="svm-results">
+        <section class="svm-metrics"><article><span>ÉPOCAS</span><strong id="svmEpochMetric">0</strong></article><article><span>ACURÁCIA</span><strong id="svmAccuracyMetric">50%</strong></article><article><span>PERDA MÉDIA</span><strong id="svmLossMetric">1,000</strong></article><article><span>LARGURA DA MARGEM</span><strong id="svmWidthMetric">—</strong></article><article><span>VETORES DE SUPORTE</span><strong id="svmSupportMetric">10</strong></article></section>
+
+        <article class="svm-lab-card"><div class="svm-card-head"><div><h2>Plano de decisão</h2><p>Os círculos e quadrados verdes estão sobre a margem ou dentro dela.</p></div><span class="svm-status" id="svmStatus">Modelo inicial</span></div><canvas id="svmCanvas" width="960" height="650" aria-label="Plano cartesiano com fronteira, margens e dados da SVM"></canvas><div class="svm-legend"><span><i></i>classe −1</span><span><i class="class-positive"></i>classe +1</span><span><i class="support-ring"></i>vetor de suporte</span><span><i class="decision-line"></i>u=0</span><span><i class="margin-line"></i>u=±1</span></div></article>
+
+        <article class="svm-lab-card"><div class="svm-card-head"><div><h2>Matemática da última amostra</h2><p>Os valores anteriores são usados para calcular a correção mostrada.</p></div></div><div class="svm-math" id="svmMath"><article class="full"><b>Comece o treinamento</b><p>Clique em “Treinar próxima amostra” para acompanhar uma atualização completa.</p></article></div></article>
+
+        <article class="svm-lab-card"><div class="svm-card-head"><div><h2>Perda × resposta</h2><p>A perda hinge deve cair enquanto a acurácia se aproxima de 100%.</p></div></div><canvas id="svmHistoryCanvas" width="960" height="350" aria-label="Gráfico de perda média e acurácia por época"></canvas><div class="svm-legend"><span><i style="background:#e35c6e"></i>perda hinge</span><span><i style="background:#19a987"></i>acurácia</span></div></article>
+
+        <article class="svm-lab-card"><div class="svm-card-head"><div><h2>Estado de todas as amostras</h2><p>A linha verde indica margem funcional m≤1,05. A pequena tolerância visual mantém destacados os pontos praticamente sobre u=±1.</p></div></div><div class="svm-table-wrap"><table class="svm-lab-table" id="svmDataTable"></table></div></article>
+
+        <aside class="svm-warning"><strong>Aproximação didática:</strong> este laboratório minimiza regularização + perda hinge por descida de gradiente amostra a amostra. Ele permite visualizar as contas, mas não reproduz exatamente o solucionador de programação quadrática usado pelo <code>SVC</code> clássico. No canvas usamos m≤1,05 como tolerância visual para destacar amostras sobre a margem ou praticamente encostadas nela.</aside>
+      </div>
+    </section>
+
+    <section class="svm-code-section"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>SVM linear em JavaScript simples</h2><p>O exemplo usa somente arrays, variáveis, funções e laços. Cada função representa uma etapa matemática do laboratório.</p><div class="svm-code-flow"><span>potencial()</span><span>prever()</span><span>perdaHinge()</span><span>treinarAmostra()</span><span>treinarEpoca()</span></div></header><div class="svm-code-window"><div class="svm-code-bar"><span>svm-linear.js</span><i>margem suave com perda hinge</i></div>
+<pre><code>// Cada amostra contém [x1, x2, y].
+// As classes da SVM binária são -1 e +1.
+var dados = [
+  [-3.0, -1.0, -1],
+  [-2.0,  1.0, -1],
+  [ 1.0, -0.4, +1],
+  [ 2.5,  0.8, +1]
+];
+
+var pesos = [0, 0];
+var bias = 0;
+
+// Calcula u = w1*x1 + w2*x2 + b.
+function potencial(amostra) {
+  return pesos[0] * amostra[0]
+       + pesos[1] * amostra[1]
+       + bias;
+}
+
+// O sinal de u determina a classe prevista.
+function prever(amostra) {
+  if (potencial(amostra) >= 0) {
+    return +1;
+  }
+  return -1;
+}
+
+// Calcula L = max(0, 1 - y*u).
+function perdaHinge(amostra) {
+  var margem = amostra[2] * potencial(amostra);
+  return Math.max(0, 1 - margem);
+}
+
+// Faz uma atualização pela margem suave.
+function treinarAmostra(amostra, taxa, C, lambda) {
+  var x1 = amostra[0];
+  var x2 = amostra[1];
+  var y = amostra[2];
+  var margem = y * potencial(amostra);
+
+  // A regularização reduz um pouco os pesos.
+  pesos[0] = (1 - taxa * lambda) * pesos[0];
+  pesos[1] = (1 - taxa * lambda) * pesos[1];
+
+  // Se m &lt; 1, a amostra viola a margem e corrige o modelo.
+  if (margem &lt; 1) {
+    pesos[0] = pesos[0] + taxa * C * y * x1;
+    pesos[1] = pesos[1] + taxa * C * y * x2;
+    bias = bias + taxa * C * y;
+  }
+}
+
+// Uma época apresenta todas as amostras uma vez.
+function treinarEpoca(taxa, C, lambda) {
+  for (var i = 0; i &lt; dados.length; i++) {
+    treinarAmostra(dados[i], taxa, C, lambda);
+  }
+}</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/svm.html" target="_blank" rel="noopener">scikit-learn · Support Vector Machines</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.hinge_loss.html" target="_blank" rel="noopener">scikit-learn · Hinge loss</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html" target="_blank" rel="noopener">scikit-learn · SGDClassifier</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/svm-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratório de Regressão Linear | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/regression-lab.css">
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+
+  <main class="regression-lab-page">
+    <header class="regression-hero">
+      <div>
+        <p class="eyebrow">LABORATÓRIO 07 · REGRESSÃO LINEAR MÚLTIPLA</p>
+        <h1>De duas características a um valor previsto.</h1>
+        <p class="lead">Vamos estimar o consumo de combustível de um carro usando duas entradas: potência do motor e peso do veículo.</p>
+      </div>
+      <div class="regression-hero-equation">
+        <span>duas entradas</span>
+        <strong>ŷ = b + w₁x₁ + w₂x₂</strong>
+        <small>uma saída contínua</small>
+      </div>
+    </header>
+
+    <section class="regression-context" aria-labelledby="regression-context-title">
+      <header>
+        <p class="eyebrow">O PROBLEMA</p>
+        <h2 id="regression-context-title">O que entra e o que queremos descobrir?</h2>
+      </header>
+      <div class="regression-variable-grid">
+        <article><span>x₁</span><div><h3>Potência do motor</h3><p>Medida em cavalos-vapor (cv). Motores mais potentes podem exigir mais combustível.</p><code>exemplo: 180 cv</code></div></article>
+        <article><span>x₂</span><div><h3>Peso do veículo</h3><p>Medido em quilogramas (kg). Um carro mais pesado exige mais energia para se movimentar.</p><code>exemplo: 1.500 kg</code></div></article>
+        <article class="output-variable"><span>y</span><div><h3>Consumo de combustível</h3><p>É a resposta esperada, medida em litros consumidos a cada 100 quilômetros.</p><code>exemplo: 8,7 L/100 km</code></div></article>
+      </div>
+      <p class="regression-clarification"><strong>Por que não usamos apenas potência e consumo?</strong> Nesse caso teríamos uma entrada e uma saída. Para estudar uma rede com <strong>duas entradas</strong>, acrescentamos o peso do veículo como segunda característica e mantemos o consumo como única saída.</p>
+      <div class="linear-activation-note"><div><span>Σ</span><strong>u = b + w₁x₁ + w₂x₂</strong></div><i>→</i><div><span>g(u)</span><strong>g(u) = u</strong></div><i>→</i><div><span>ŷ</span><strong>saída contínua</strong></div><p><strong>Onde está a função de ativação?</strong> A regressão usa a função linear, também chamada identidade. Ela não transforma o potencial: <span class="mono">ŷ = g(u) = u</span>. Por isso a saída pode assumir valores como 7,35 ou 9,82, em vez de apenas 0 ou 1.</p></div>
+    </section>
+
+    <section class="regression-normalization" aria-labelledby="normalization-title">
+      <div>
+        <p class="eyebrow">ANTES DE TREINAR</p>
+        <h2 id="normalization-title">Colocando cv e kg na mesma escala</h2>
+        <p>Potência e peso usam unidades muito diferentes. Padronizamos cada entrada para que nenhuma domine o gradiente apenas porque seus números são maiores.</p>
+      </div>
+      <div class="normalization-formulas">
+        <code>x₁′ = (x₁ − média da potência) ÷ desvio da potência</code>
+        <code>x₂′ = (x₂ − média do peso) ÷ desvio do peso</code>
+      </div>
+    </section>
+
+    <section class="regression-experiment" aria-labelledby="regression-experiment-title">
+      <header class="regression-toolbar">
+        <div><p class="eyebrow">EXPERIMENTO</p><h2 id="regression-experiment-title">Treine o plano de regressão</h2><p>O modelo inicia com uma superfície horizontal e ajusta três parâmetros: w₁, w₂ e bias.</p></div>
+        <div class="regression-actions">
+          <button class="button" id="regressionTrainOne" type="button">Treinar 1 época</button>
+          <button class="button" id="regressionTrainHundred" type="button">Treinar 100 épocas</button>
+          <button class="button outline" id="regressionReset" type="button">Reiniciar</button>
+        </div>
+      </header>
+
+      <div class="regression-metrics" aria-label="Métricas da regressão">
+        <article><span>ÉPOCAS</span><strong id="regressionEpoch">0</strong></article>
+        <article><span>ERRO QUADRÁTICO MÉDIO</span><strong id="regressionMse">—</strong></article>
+        <article><span>RAIZ DO ERRO · RMSE</span><strong id="regressionRmse">—</strong></article>
+        <article><span>COEFICIENTE R²</span><strong id="regressionR2">—</strong></article>
+      </div>
+
+      <div class="regression-visuals">
+        <article class="regression-card regression-plane-card">
+          <div class="card-top"><div><h2>Duas entradas formam um plano</h2><p>Os pontos são carros do dataset. As linhas verticais representam os resíduos entre consumo real e previsto.</p></div><span class="status" id="regressionStatus">Modelo novo</span></div>
+          <canvas id="regressionPlane" width="1120" height="650" aria-label="Plano tridimensional da regressão com potência, peso e consumo"></canvas>
+          <div class="regression-legend"><span><i class="actual-point"></i>consumo real</span><span><i class="prediction-plane"></i>plano previsto</span><span><i class="residual-line"></i>resíduo</span></div>
+        </article>
+
+        <article class="regression-card regression-equation-card">
+          <p class="eyebrow">MODELO ATUAL</p>
+          <h2>A equação que a regressão aprendeu</h2>
+          <div id="normalizedEquation" class="live-regression-equation"></div>
+          <p>Durante o treinamento usamos as entradas padronizadas. Abaixo, a mesma equação é convertida novamente para cv e kg:</p>
+          <div id="originalEquation" class="live-regression-equation practical"></div>
+          <div class="coefficient-reading" id="coefficientReading"></div>
+        </article>
+      </div>
+
+      <article class="regression-card regression-error-card">
+        <div class="card-top"><div><h2>Erro × épocas</h2><p>O eixo x mostra o treinamento; o eixo y mostra E = ½ × média(e²).</p></div></div>
+        <canvas id="regressionErrorChart" width="1120" height="390" aria-label="Gráfico numerado do erro quadrático por época"></canvas>
+      </article>
+    </section>
+
+    <section class="regression-math" aria-labelledby="regression-math-title">
+      <header><p class="eyebrow">CONTAS DO TREINAMENTO</p><h2 id="regression-math-title">Uma época, passo a passo</h2><p>O gradiente usa a soma dos erros de todos os carros. Depois divide pelo número de amostras e atualiza os três parâmetros ao mesmo tempo.</p></header>
+      <div id="regressionMathSteps" class="regression-math-grid"></div>
+      <p class="regression-gradient-note"><strong>O que é a descida do gradiente?</strong> As derivadas dizem para qual lado o erro aumenta. Por isso, a atualização usa o sinal de menos: caminhamos na direção contrária para reduzir o erro.</p>
+    </section>
+
+    <section class="regression-prediction-example" aria-labelledby="prediction-example-title">
+      <div><p class="eyebrow">USANDO O MODELO</p><h2 id="prediction-example-title">Quanto consumiria um carro novo?</h2><p>Aplicamos a equação atual a um veículo que não aparece no dataset: <strong>200 cv</strong> e <strong>1.500 kg</strong>.</p></div>
+      <div id="newCarPrediction" class="new-car-calculation"></div>
+    </section>
+
+    <section class="regression-results" aria-labelledby="regression-table-title">
+      <header><div><p class="eyebrow">DATASET E RESULTADOS</p><h2 id="regression-table-title">O erro de cada carro</h2></div><p><strong>e = y − ŷ</strong> mantém a direção do erro. Já <strong>½e²</strong> elimina o sinal, penaliza erros grandes e participa da função de custo.</p></header>
+      <div class="regression-table-wrap">
+        <table id="regressionResultsTable" class="regression-results-table"></table>
+      </div>
+    </section>
+
+    <section class="algorithm-section" aria-labelledby="regression-code-title">
+      <header>
+        <p class="eyebrow">CÓDIGO DIDÁTICO</p>
+        <h2 id="regression-code-title">Regressão linear múltipla em JavaScript</h2>
+        <p>O exemplo usa arrays, matrizes e laços simples. Cada função representa uma fase matemática do treinamento.</p>
+        <div class="algorithm-flow"><span>prever()</span><span>calcularCusto()</span><span>calcularGradientes()</span><span>atualizarParametros()</span><span>treinarEpoca()</span></div>
+      </header>
+      <div class="code-window">
+        <div class="code-window-bar"><span>regressao-linear.js</span><i>duas entradas e uma saída</i></div>
+<pre><code>// Cada linha contém [potência padronizada, peso padronizado, consumo real].
+var dados = [
+  [-1.54, -1.35, 5.9],
+  [-1.23,  0.13, 7.0],
+  [-0.92, -1.05, 6.6]
+  // ...demais carros
+];
+
+var w1 = 0;
+var w2 = 0;
+var bias = 0;
+var taxa = 0.08;
+
+// Forward: combina as duas entradas e devolve um número contínuo.
+function prever(x1, x2) {
+  return bias + w1 * x1 + w2 * x2;
+}
+
+// Custo: calcula E = 1/(2N) × somatório dos erros ao quadrado.
+function calcularCusto() {
+  var soma = 0;
+
+  for (var i = 0; i &lt; dados.length; i++) {
+    var previsao = prever(dados[i][0], dados[i][1]);
+    var erro = previsao - dados[i][2];
+    soma = soma + erro * erro;
+  }
+
+  return soma / (2 * dados.length);
+}
+
+// Calcula as três derivadas usando todas as amostras.
+function calcularGradientes() {
+  var somaW1 = 0;
+  var somaW2 = 0;
+  var somaBias = 0;
+
+  for (var i = 0; i &lt; dados.length; i++) {
+    var x1 = dados[i][0];
+    var x2 = dados[i][1];
+    var y = dados[i][2];
+    var erro = prever(x1, x2) - y;
+
+    somaW1 = somaW1 + erro * x1;
+    somaW2 = somaW2 + erro * x2;
+    somaBias = somaBias + erro;
+  }
+
+  return [
+    somaW1 / dados.length,
+    somaW2 / dados.length,
+    somaBias / dados.length
+  ];
+}
+
+// Descida do gradiente: parâmetro novo = atual − taxa × derivada.
+function atualizarParametros(gradientes) {
+  w1 = w1 - taxa * gradientes[0];
+  w2 = w2 - taxa * gradientes[1];
+  bias = bias - taxa * gradientes[2];
+}
+
+// Uma época percorre o dataset uma vez e faz uma atualização em lote.
+function treinarEpoca() {
+  var gradientes = calcularGradientes();
+  atualizarParametros(gradientes);
+}
+
+for (var epoca = 0; epoca &lt; 100; epoca++) {
+  treinarEpoca();
+}
+
+console.log('Custo final:', calcularCusto());</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-sources"><strong>Fontes:</strong> <a href="https://developers.google.com/machine-learning/crash-course/linear-regression" target="_blank" rel="noopener">Google Machine Learning · Regressão linear</a> · <a href="https://scikit-learn.org/stable/modules/linear_model.html#ordinary-least-squares" target="_blank" rel="noopener">scikit-learn · Ordinary Least Squares</a></div>
+    <p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p>
+  </footer>
+
+  <script src="../../js/labs/linear-regression-lab.js"></script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

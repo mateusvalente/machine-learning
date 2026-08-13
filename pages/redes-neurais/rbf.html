@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rede Neural de Base Radial · RBF | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/rbf.css">
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+
+  <main class="rbf-page">
+    <section class="rbf-hero">
+      <div>
+        <p class="eyebrow">REDES NEURAIS · RNBR / RBF</p>
+        <h1>Aprender pela proximidade a centros de referência.</h1>
+        <p class="lead">Uma Rede Neural de Base Radial transforma distâncias em ativações locais e combina essas respostas para resolver classificação e regressão.</p>
+        <a class="button" href="#como-funciona">Entender as três camadas ↓</a>
+      </div>
+      <div class="rbf-hero-visual" aria-label="Arquitetura de uma rede RBF">
+        <div class="rbf-input-column"><span>x₁</span><span>x₂</span></div>
+        <i>→</i>
+        <div class="rbf-center-column"><span>φ₁<br><small>centro c₁</small></span><span>φ₂<br><small>centro c₂</small></span><span>φ₃<br><small>centro c₃</small></span></div>
+        <i>→</i>
+        <div class="rbf-output-node">ŷ<small>linear</small></div>
+      </div>
+    </section>
+
+    <section class="rbf-section" id="como-funciona">
+      <header class="rbf-section-head"><p class="eyebrow">01 · ARQUITETURA FEEDFORWARD</p><h2>Entrada, camada oculta radial e saída.</h2><p>A informação segue somente para a frente. A particularidade está nos neurônios ocultos: eles não calculam apenas uma soma ponderada; medem a distância entre a entrada e um centro.</p></header>
+      <div class="rbf-layer-grid">
+        <article><span>1</span><h3>Camada de entrada</h3><p>Recebe o vetor de características <strong>x = [x₁, x₂, …, xₙ]</strong> e o encaminha para todos os neurônios radiais.</p><code>x = [temperatura, pressão]</code></article>
+        <article><span>2</span><h3>Camada oculta RBF</h3><p>Cada neurônio guarda um centro <strong>cⱼ</strong>, mede <strong>‖x − cⱼ‖</strong> e transforma a distância com uma função radial.</p><code>φⱼ(x) = exp(−γ‖x − cⱼ‖²)</code></article>
+        <article><span>3</span><h3>Camada de saída</h3><p>Combina linearmente as ativações locais. Uma saída pode estimar um número; várias saídas podem representar classes.</p><code>ŷ = b + Σvⱼφⱼ(x)</code></article>
+      </div>
+    </section>
+
+    <section class="rbf-section rbf-gaussian-section">
+      <header class="rbf-section-head"><p class="eyebrow">02 · FUNÇÃO GAUSSIANA</p><h2>Perto do centro, resposta alta. Longe, resposta baixa.</h2></header>
+      <div class="rbf-formula-breakdown">
+        <div class="rbf-main-formula">φⱼ(x) = exp(−γ ‖x − cⱼ‖²)</div>
+        <div class="rbf-symbol-grid">
+          <article><b>x</b><span>Vetor da amostra apresentada à rede.</span></article>
+          <article><b>cⱼ</b><span>Centro ou protótipo guardado pelo neurônio j.</span></article>
+          <article><b>‖x − cⱼ‖²</b><span>Distância euclidiana ao quadrado entre entrada e centro.</span></article>
+          <article><b>γ</b><span>Controla a largura da região de influência.</span></article>
+          <article><b>φⱼ(x)</b><span>Ativação do neurônio, sempre entre 0 e 1.</span></article>
+        </div>
+        <aside><strong>Outra notação comum:</strong> φⱼ(x) = exp(−‖x − cⱼ‖² ÷ 2σⱼ²). As formas são equivalentes quando <span class="mono">γ = 1/(2σⱼ²)</span>. Um γ maior produz uma Gaussiana mais estreita; um σ maior produz uma Gaussiana mais larga.</aside>
+      </div>
+      <div class="rbf-distance-examples">
+        <article><div class="distance-dot near"></div><h3>x = c</h3><code>distância² = 0<br>φ(x) = e⁰ = 1</code><p>Ativação máxima.</p></article>
+        <article><div class="distance-dot middle"></div><h3>x próximo de c</h3><code>distância² pequena<br>0 &lt; φ(x) &lt; 1</code><p>O neurônio ainda responde.</p></article>
+        <article><div class="distance-dot far"></div><h3>x longe de c</h3><code>distância² grande<br>φ(x) ≈ 0</code><p>Influência quase nula.</p></article>
+      </div>
+    </section>
+
+    <section class="rbf-section rbf-live-demo" aria-labelledby="rbf-demo-title">
+      <header class="rbf-section-head"><p class="eyebrow">03 · DEMONSTRAÇÃO VISUAL</p><h2 id="rbf-demo-title">Mova a entrada e veja quais centros respondem.</h2><p>Clique no plano ou use os controles. O círculo pontilhado mostra a região aproximada de influência de cada neurônio.</p></header>
+      <div class="rbf-demo-layout">
+        <aside class="rbf-demo-controls">
+          <label>ENTRADA x₁ <output id="rbfX1Output">2,0</output><input id="rbfX1" type="range" min="-4" max="4" step="0.1" value="2"></label>
+          <label>ENTRADA x₂ <output id="rbfX2Output">1,5</output><input id="rbfX2" type="range" min="-4" max="4" step="0.1" value="1.5"></label>
+          <label>LARGURA γ <output id="rbfGammaOutput">0,60</output><input id="rbfGamma" type="range" min="0.1" max="2" step="0.05" value="0.6"></label>
+          <button class="button outline" id="rbfResetDemo" type="button">Voltar ao exemplo inicial</button>
+          <div class="rbf-width-reading" id="rbfWidthReading"></div>
+        </aside>
+        <div class="rbf-demo-content">
+          <article class="rbf-canvas-card"><canvas id="rbfCanvas" width="920" height="610" aria-label="Plano com três centros radiais e uma entrada móvel"></canvas><div class="rbf-demo-legend"><span><i class="rbf-input-marker"></i>entrada x</span><span><i class="rbf-center-marker"></i>centro cⱼ</span><span><i class="rbf-radius-marker"></i>região de influência</span></div></article>
+          <div id="rbfActivationCards" class="rbf-activation-cards"></div>
+          <article class="rbf-output-calculation"><h3>Combinação linear da saída</h3><p>Para a demonstração, usamos pesos fixos <span class="mono">v = [1,20; −0,70; 0,90]</span> e bias <span class="mono">b = 0,15</span>.</p><div id="rbfOutputMath"></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="rbf-section">
+      <header class="rbf-section-head"><p class="eyebrow">04 · COMO A RBF APRENDE</p><h2>O treinamento pode ser dividido em etapas.</h2><p>Esse processo em duas fases é uma estratégia frequente, não a única forma possível de treinar uma RBF.</p></header>
+      <div class="rbf-training-flow">
+        <article><span>1</span><h3>Escolher os centros</h3><p>Os vetores cⱼ podem vir de amostras representativas ou de um agrupamento como k-means.</p><code>dados → grupos → centros</code></article>
+        <i>→</i>
+        <article><span>2</span><h3>Definir as larguras</h3><p>σ ou γ determina quanto espaço cada neurônio cobre. Regiões estreitas são locais; regiões largas se sobrepõem mais.</p><code>γⱼ = 1/(2σⱼ²)</code></article>
+        <i>→</i>
+        <article><span>3</span><h3>Montar a matriz Φ</h3><p>Calculamos a ativação de cada centro para cada amostra. Cada linha representa uma entrada.</p><code>Φᵢⱼ = φⱼ(xᵢ)</code></article>
+        <i>→</i>
+        <article><span>4</span><h3>Ajustar a saída</h3><p>Com a camada radial definida, os pesos de saída formam um problema linear, resolvido por mínimos quadrados ou gradiente.</p><code>ŷ = Φv + b</code></article>
+      </div>
+      <div class="rbf-matrix-example"><div><p class="eyebrow">MATRIZ DE ATIVAÇÕES</p><h3>Cada centro cria uma nova característica.</h3><p>A camada oculta transforma a entrada original em medidas de proximidade.</p></div><code>Φ = [ φ₁(x₁)  φ₂(x₁)  φ₃(x₁) ]<br>&nbsp;&nbsp;&nbsp;&nbsp;[ φ₁(x₂)  φ₂(x₂)  φ₃(x₂) ]<br>&nbsp;&nbsp;&nbsp;&nbsp;[ &nbsp;&nbsp;⋮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⋮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;⋮&nbsp;&nbsp;&nbsp; ]</code></div>
+    </section>
+
+    <section class="rbf-section">
+      <header class="rbf-section-head"><p class="eyebrow">05 · RBF × MLP</p><h2>Duas maneiras diferentes de construir não linearidade.</h2></header>
+      <div class="rbf-comparison-table"><table><thead><tr><th>Aspecto</th><th>RBF</th><th>MLP</th></tr></thead><tbody>
+        <tr><td>Resposta oculta</td><td>Local: depende da distância a um centro.</td><td>Tipicamente distribuída: depende da soma ponderada e da ativação.</td></tr>
+        <tr><td>Geometria</td><td>Regiões arredondadas ao redor de protótipos.</td><td>Combina hiperplanos e transformações entre camadas.</td></tr>
+        <tr><td>Camadas ocultas</td><td>Na forma clássica, uma camada RBF.</td><td>Pode possuir uma ou várias camadas ocultas.</td></tr>
+        <tr><td>Treinamento comum</td><td>Centros/larguras e saída podem ser ajustados separadamente.</td><td>Pesos das camadas são normalmente ajustados juntos por backpropagation.</td></tr>
+        <tr><td>Interpretação</td><td>“Quanto x se parece com o centro cⱼ?”</td><td>“Quais combinações internas ajudam a produzir a saída?”</td></tr>
+      </tbody></table></div>
+      <aside class="rbf-caution"><strong>A RBF sempre treina mais rápido?</strong> Não necessariamente. Separar a escolha dos centros do ajuste linear da saída pode tornar o treinamento bastante rápido, mas o custo cresce com muitos centros e com dados de alta dimensão. A qualidade também depende da escolha dos centros e das larguras.</aside>
+    </section>
+
+    <section class="rbf-section">
+      <header class="rbf-section-head"><p class="eyebrow">06 · VANTAGENS, LIMITES E USOS</p><h2>Onde essa arquitetura costuma fazer sentido?</h2></header>
+      <div class="rbf-use-grid">
+        <article><span>≈</span><h3>Aproximação de funções</h3><p>Interpola superfícies não lineares usando a sobreposição de respostas Gaussianas locais.</p><b>Exemplo: estimar uma variável física entre medições conhecidas.</b></article>
+        <article><span>↝</span><h3>Séries temporais</h3><p>Janelas recentes podem formar o vetor de entrada para prever o próximo valor.</p><b>Exemplo: demanda, carga ou comportamento de um processo.</b></article>
+        <article><span>⚙</span><h3>Controle de sistemas</h3><p>Aproxima relações não lineares entre estados, comandos e respostas de um sistema.</p><b>Exemplo: identificação e controle de processos dinâmicos.</b></article>
+        <article><span>◎</span><h3>Classificação por regiões</h3><p>Centros podem representar protótipos de grupos e formar regiões de decisão curvas.</p><b>Exemplo: reconhecimento de padrões com agrupamentos locais.</b></article>
+      </div>
+      <div class="rbf-pros-cons"><article><h3>Vantagens</h3><ul><li>Boa aproximação de relações não lineares.</li><li>Ativações locais com interpretação geométrica.</li><li>Saída linear pode ter ajuste direto e rápido.</li><li>Útil para interpolação entre regiões conhecidas.</li></ul></article><article><h3>Cuidados</h3><ul><li>Muitos centros aumentam memória e processamento.</li><li>γ ou σ inadequados causam subajuste ou sobreajuste.</li><li>Distâncias podem perder significado em alta dimensão.</li><li>Extrapolar muito além dos centros pode ser frágil.</li></ul></article></div>
+    </section>
+
+    <section class="rbf-closing"><p class="eyebrow">IDEIA CENTRAL</p><h2>A camada oculta pergunta “quão perto?”; a saída decide “quanto isso importa?”.</h2><div class="rbf-closing-formulas"><code>distância → φⱼ(x)</code><i>+</i><code>peso → vⱼ</code><i>=</i><code>previsão → ŷ</code></div><a class="button" href="./perceptron-multicamadas.html">Comparar com a MLP →</a></section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aston.ac.uk/files/18258465/Radial_Basis_Function_Network.pdf" target="_blank" rel="noopener">Broomhead e Lowe · Radial Basis Function Networks</a> · <a href="https://doi.org/10.1016/S0893-6080(05)00054-7" target="_blank" rel="noopener">Shi, Yeung e Gao · Gaussian RBF</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/rbf-demo.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

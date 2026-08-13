@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codificação de Categorias | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/data-preparation.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="data-page">
+    <section class="data-hero encoding">
+      <div><p class="eyebrow">PREPARAÇÃO DE DADOS · CODIFICAÇÃO</p><h1>Transformar categorias sem inventar relações.</h1><p class="lead">Modelos matemáticos precisam de números, mas cada transformação comunica uma estrutura. Ordinal Encoding preserva uma ordem verdadeira; One-Hot mantém categorias nominais separadas.</p></div>
+      <div class="data-hero-flow">
+        <div><span>?</span><p><b>Existe ordem?</b><small>essa é a primeira pergunta</small></p></div>
+        <div><span>O</span><p><b>Ordinal Encoding</b><small>baixo &lt; médio &lt; alto</small></p></div>
+        <div><span>1H</span><p><b>One-Hot Encoding</b><small>uma coluna indicadora por categoria</small></p></div>
+        <div><span>M</span><p><b>Verificar o modelo</b><small>alguns aceitam categorias nativamente</small></p></div>
+      </div>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">01 · A TABELA ORIGINAL</p><h2>As colunas não possuem o mesmo significado.</h2><p>Risco tem uma sequência legítima. Plano e cidade são apenas nomes de grupos. Portanto, não devem receber automaticamente a mesma codificação.</p></header>
+      <div class="table-scroll"><table class="data-table"><thead><tr><th>cliente</th><th>idade</th><th>risco</th><th>plano</th><th>cidade</th><th>cancelou (y)</th></tr></thead><tbody>
+        <tr><td>A</td><td>24</td><td>Baixo</td><td>Básico</td><td>Uberaba</td><td>Não</td></tr>
+        <tr><td>B</td><td>51</td><td>Alto</td><td>Premium</td><td>Franca</td><td>Sim</td></tr>
+        <tr><td>C</td><td>36</td><td>Médio</td><td>Básico</td><td>Uberlândia</td><td>Não</td></tr>
+        <tr><td>D</td><td>42</td><td>Alto</td><td>Essencial</td><td>Uberaba</td><td>Sim</td></tr>
+      </tbody></table></div>
+      <div class="data-grid four" style="margin-top:14px">
+        <article class="data-card"><span class="type-badge green">NUMÉRICA</span><h3>idade</h3><p>É uma quantidade. Pode ser padronizada conforme o modelo.</p><code>24, 51, 36, 42</code></article>
+        <article class="data-card"><span class="type-badge orange">ORDINAL</span><h3>risco</h3><p>Baixo, médio e alto possuem ordem real.</p><code>baixo &lt; médio &lt; alto</code></article>
+        <article class="data-card"><span class="type-badge">NOMINAIS</span><h3>plano e cidade</h3><p>Os nomes identificam grupos, não níveis.</p><code>Uberaba ≠ “menor” que Franca</code></article>
+        <article class="data-card"><span class="type-badge green">ALVO</span><h3>cancelou</h3><p>É a resposta y de uma classificação binária.</p><code>não=0 · sim=1</code></article>
+      </div>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">02 · ORDINAL ENCODING</p><h2>Use quando a ordem faz parte do significado.</h2><p>Definimos conscientemente a sequência das categorias e substituímos cada nível por sua posição.</p></header>
+      <div class="before-after">
+        <article class="example-box"><h3>Antes</h3><div class="encoding-row"><span>Baixo</span><i>&lt;</i><span>Médio</span><i>&lt;</i><span>Alto</span></div><p>A relação de ordem já existe no domínio do problema.</p></article>
+        <i>→</i>
+        <article class="example-box"><h3>Depois</h3><div class="encoding-row"><span>Baixo = 0</span><span>Médio = 1</span><span>Alto = 2</span></div><p>A codificação preserva essa sequência para o algoritmo.</p></article>
+      </div>
+      <code class="formula-dark"><strong>codificar(risco)</strong>: Baixo → 0 · Médio → 1 · Alto → 2</code>
+      <aside class="warning-box"><strong>Atenção à distância artificial:</strong> o código também sugere que a distância de baixo para médio é igual à distância de médio para alto. Isso pode ser aceitável em um exemplo didático, mas não é garantido pela escala ordinal. Compare alternativas e valide o modelo.</aside>
+      <div class="data-grid" style="margin-top:14px">
+        <article class="data-card"><h3>Bom uso</h3><p>Escolaridade, faixa de risco, tamanho P/M/G ou satisfação em níveis ordenados.</p><code>ordem definida pelo domínio</code></article>
+        <article class="data-card"><h3>Mau uso</h3><p>Codificar cidades como Uberaba=0, Franca=1, Goiânia=2. Não existe ordem real.</p><code>cidade 2 não é maior que cidade 1</code></article>
+        <article class="data-card"><h3>Categoria desconhecida</h3><p>Dados futuros podem trazer um nível não observado. Defina uma política para “desconhecido”.</p><code>unknown_value = -1</code></article>
+      </div>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">03 · ONE-HOT ENCODING</p><h2>Use para grupos sem ordem natural.</h2><p>Cada categoria vira uma coluna binária. Assim, o código não afirma que uma cidade é maior ou mais próxima que outra.</p></header>
+      <div class="table-scroll"><table class="data-table"><thead><tr><th>cidade original</th><th>cidade_Uberaba</th><th>cidade_Franca</th><th>cidade_Uberlândia</th></tr></thead><tbody>
+        <tr><td>Uberaba</td><td class="yes">1</td><td>0</td><td>0</td></tr>
+        <tr><td>Franca</td><td>0</td><td class="yes">1</td><td>0</td></tr>
+        <tr><td>Uberlândia</td><td>0</td><td>0</td><td class="yes">1</td></tr>
+        <tr><td>Uberaba</td><td class="yes">1</td><td>0</td><td>0</td></tr>
+      </tbody></table></div>
+      <code class="formula-dark"><strong>One-Hot(Uberaba)</strong> = [1, 0, 0] &nbsp; · &nbsp; <strong>One-Hot(Franca)</strong> = [0, 1, 0]</code>
+      <aside class="rule-box"><strong>Categoria nova:</strong> ao configurar <code>handle_unknown="ignore"</code>, uma categoria não vista no treino pode ser representada por zeros nas colunas conhecidas. A política exata deve ser definida no pipeline e testada com dados futuros.</aside>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">04 · TABELA PRONTA PARA O MODELO</p><h2>Uma linha se transforma em um vetor numérico.</h2></header>
+      <div class="table-scroll"><table class="data-table"><thead><tr><th>idade</th><th>risco_ord</th><th>plano_Básico</th><th>plano_Essencial</th><th>plano_Premium</th><th>cidade_Uberaba</th><th>cidade_Franca</th><th>cidade_Uberlândia</th><th>y</th></tr></thead><tbody>
+        <tr><td>24</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>51</td><td>2</td><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>36</td><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td></tr>
+        <tr><td>42</td><td>2</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+      </tbody></table></div>
+      <p class="rule-box"><strong>Leitura da primeira linha:</strong> cliente de 24 anos, risco baixo (0), plano Básico, cidade Uberaba e alvo “não cancelou” (0). As colunas indicadoras valem 1 somente quando a categoria está presente.</p>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">05 · OUTRAS CODIFICAÇÕES</p><h2>Alternativas para situações específicas.</h2></header>
+      <div class="data-grid four">
+        <article class="data-card"><h3>Binária 0/1</h3><p>Para exatamente duas categorias, uma única coluna pode ser suficiente.</p><code>sim=1 · não=0</code></article>
+        <article class="data-card"><h3>Frequência</h3><p>Substitui a categoria por sua frequência no treino. Economiza colunas, mas diferentes grupos podem ter a mesma frequência.</p><code>Uberaba → 0,42</code></article>
+        <article class="data-card"><h3>Target Encoding</h3><p>Usa uma estatística do alvo por categoria. Deve ser ajustado apenas no treino e dentro da validação cruzada.</p><code>alto risco de vazamento</code></article>
+        <article class="data-card"><h3>Embeddings</h3><p>Redes neurais podem aprender vetores densos para categorias ou tokens, especialmente com vocabulários grandes.</p><code>categoria → [0,18, −0,42, …]</code></article>
+      </div>
+      <aside class="warning-box"><strong>Alta cardinalidade:</strong> produto, CEP ou usuário podem gerar milhares de colunas One-Hot. Agrupar valores raros, criar atributos de domínio, usar hashing, embeddings ou suporte categórico nativo pode ser mais adequado.</aside>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">06 · QUAL CODIFICAÇÃO PARA CADA MODELO?</p><h2>A escolha depende da semântica e do algoritmo.</h2></header>
+      <div class="table-scroll"><table class="data-table model-matrix"><thead><tr><th>Modelo</th><th>Nominal</th><th>Ordinal</th><th>Observação prática</th></tr></thead><tbody>
+        <tr><td>Regressão linear / logística</td><td>One-Hot</td><td>Ordinal se a ordem for real</td><td>Um código nominal 0/1/2 inventaria uma relação linear.</td></tr>
+        <tr><td>SVM</td><td>One-Hot</td><td>Ordinal consciente</td><td>Também padronize as entradas numéricas; distância e margem são sensíveis à escala.</td></tr>
+        <tr><td>k-NN / k-means / LVQ / RBF</td><td>One-Hot com cautela</td><td>Ordinal consciente</td><td>A representação muda diretamente as distâncias. Escala é essencial.</td></tr>
+        <tr><td>Perceptron / ADALINE / MLP</td><td>One-Hot ou embedding</td><td>Ordinal consciente</td><td>Escala consistente geralmente favorece o treinamento.</td></tr>
+        <tr><td>Árvore / Random Forest no scikit-learn</td><td>Codificar</td><td>Ordinal pode ser útil</td><td>One-Hot evita ordem falsa; árvores podem lidar bem sem padronização.</td></tr>
+        <tr><td>CatBoost / LightGBM / boosting com suporte categórico</td><td>Preferir suporte nativo quando configurado</td><td>Depende da implementação</td><td>Não aplique One-Hot automaticamente antes de verificar a biblioteca.</td></tr>
+        <tr><td>Naive Bayes</td><td>One-Hot ou variante categórica</td><td>Depende da variante</td><td>Escolha Bernoulli, Multinomial, Categorical ou Gaussian conforme os dados.</td></tr>
+        <tr><td>Transformer</td><td>IDs de tokens + embeddings</td><td>Embeddings / atributos</td><td>O ID do token é índice de consulta, não uma medida ordinal.</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">07 · NÃO CONFUNDA X E y</p><h2>Codificador de entrada e codificador do alvo têm funções diferentes.</h2></header>
+      <div class="data-grid">
+        <article class="data-card"><h3>OrdinalEncoder</h3><p>Transforma uma ou várias colunas categóricas de entrada X. A ordem deve ser especificada quando ela importa.</p><code>X[:, categoria] → números</code></article>
+        <article class="data-card"><h3>OneHotEncoder</h3><p>Cria colunas indicadoras para as categorias das entradas X.</p><code>X[:, cidade] → [0,1,0]</code></article>
+        <article class="data-card"><h3>LabelEncoder</h3><p>No scikit-learn, é destinado aos rótulos do alvo y, e não às colunas de entrada.</p><code>y: ["não","sim"] → [0,1]</code></article>
+      </div>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">08 · PIPELINE REPRODUZÍVEL</p><h2>Cada grupo de colunas recebe seu transformador.</h2></header>
+      <div class="pipeline-strip"><span>separar treino/teste</span><i>→</i><span>imputar</span><i>→</i><span>escalar numéricas</span><i>→</i><span>codificar categorias</span><i>→</i><span>treinar modelo</span></div>
+      <pre class="data-code"><code># Exemplo conceitual com scikit-learn
+numericas = ["idade"]
+ordinais = ["risco"]
+nominais = ["plano", "cidade"]
+
+preparo = ColumnTransformer([
+    ("num", StandardScaler(), numericas),
+    ("ord", OrdinalEncoder(
+        categories=[["Baixo", "Médio", "Alto"]]
+    ), ordinais),
+    ("nom", OneHotEncoder(
+        handle_unknown="ignore"
+    ), nominais)
+])
+
+pipeline = Pipeline([
+    ("preparo", preparo),
+    ("modelo", LogisticRegression())
+])
+
+# fit aprende transformações e modelo somente com o treino.
+pipeline.fit(X_treino, y_treino)
+
+# predict reutiliza exatamente as mesmas transformações.
+previsoes = pipeline.predict(X_teste)</code></pre>
+    </section>
+
+    <nav class="page-links"><a href="./preparacao-dados.html"><b>Visão geral →</b><span>Limpeza, ausências, escala e pipeline.</span></a><a href="./tipos-variaveis.html"><b>Tipos de variáveis →</b><span>Contínua, discreta, nominal e ordinal.</span></a><a href="../aprendizagem-supervisionada/introducao.html"><b>Modelos supervisionados →</b><span>Relacione preparação, tarefa e algoritmo.</span></a></nav>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/preprocessing.html" target="_blank" rel="noopener">scikit-learn · Preprocessing</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OrdinalEncoder.html" target="_blank" rel="noopener">OrdinalEncoder</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html" target="_blank" rel="noopener">OneHotEncoder</a> · <a href="https://scikit-learn.org/stable/modules/compose.html" target="_blank" rel="noopener">Pipelines</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

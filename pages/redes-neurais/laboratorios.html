@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Laboratórios | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="labs-hub">
+    <header class="labs-hub-hero"><p class="eyebrow">APRENDER FAZENDO</p><h1>Escolha um laboratório.</h1><p>Comece com uma única reta, acompanhe os cálculos e avance até fronteiras não lineares, classificação multiclasse, redes configuráveis, regressão e aprendizagem por protótipos.</p><div class="lab-route"><span>Perceptron</span><i>→</i><span>MLP e XOR</span><i>→</i><span>Multiclasse</span><i>→</i><span>Regressão</span><i>→</i><span>LVQ e RBF</span></div></header>
+
+    <section class="labs-catalog" aria-label="Lista de laboratórios">
+      <article><div class="lab-number">01</div><p class="eyebrow">COMECE AQUI</p><h2>Portas lógicas</h2><p>Treine AND, OR, NAND, NOR e tente XOR com um Perceptron simples.</p><ul><li>Atualização amostra por amostra</li><li>Potencial u, erro e novos pesos</li><li>Teste separado do treinamento</li></ul><a class="button" href="./perceptron.html">Abrir laboratório →</a></article>
+
+      <article><div class="lab-number">02</div><p class="eyebrow">PLANO CARTESIANO</p><h2>Separação A e B</h2><p>Adicione pontos e compare uma única fronteira linear com uma MLP.</p><ul><li>Cenários linear e não linear</li><li>Curva de decisão no canvas</li><li>Perceptron × camada oculta</li></ul><a class="button" href="./separacao.html">Explorar fronteiras →</a></article>
+
+      <article class="madaline-catalog-card"><div class="lab-number">03</div><p class="eyebrow">MÚLTIPLAS ADALINES</p><h2>MADALINE e XOR</h2><p>Combine duas fronteiras com lógica fixa e acompanhe a MADALINE Rule I.</p><ul><li>Arquitetura 2 → 2 → OR → 1</li><li>Princípio da mínima perturbação</li><li>Atualizações LMS passo a passo</li></ul><a class="button" href="./madaline.html#experimento-madaline">Treinar MADALINE →</a></article>
+
+      <article class="featured"><div class="lab-number">04</div><p class="eyebrow">DESAFIO NÃO LINEAR</p><h2>XOR com MLP</h2><p>Veja por que uma reta falha e como neurônios ocultos resolvem o problema.</p><ul><li>Arquitetura 2 → 4 → 1</li><li>Forward e backpropagation</li><li>Regiões de decisão ao vivo</li></ul><a class="button" href="./xor.html">Resolver XOR →</a></article>
+
+      <article><div class="lab-number">05</div><p class="eyebrow">MULTICLASSE</p><h2>Três grupos</h2><p>Classifique A, B e C usando três neurônios de saída e Softmax.</p><ul><li>Arquitetura 2 → 8 → 3</li><li>Probabilidades P(A), P(B), P(C)</li><li>Cenário não linear</li></ul><a class="button" href="./multiclasse.html">Separar três grupos →</a></article>
+
+      <article class="featured configurable-catalog-card"><div class="lab-number">06</div><p class="eyebrow">ARQUITETURA LIVRE</p><h2>Rede configurável</h2><p>Escolha entradas, camadas ocultas, neurônios e saídas; depois abra toda a matemática do treinamento.</p><ul><li>De 1 a 10 entradas e até 4 saídas</li><li>Canvas criado a partir da arquitetura</li><li>Backpropagation e tabela adaptativa</li></ul><a class="button" href="./rede-configuravel.html">Montar uma rede →</a></article>
+
+      <article class="regression-catalog-card"><div class="lab-number">07</div><p class="eyebrow">SAÍDA CONTÍNUA</p><h2>Regressão linear</h2><p>Estime o consumo de um veículo usando sua potência e seu peso.</p><ul><li>Arquitetura fixa: 2 entradas → 1 saída</li><li>Plano de regressão em três dimensões</li><li>Gradientes e somatórias completas</li></ul><a class="button" href="./regressao-linear.html">Estimar o consumo →</a></article>
+
+      <article class="lvq-catalog-card"><div class="lab-number">08</div><p class="eyebrow">APRENDIZAGEM COMPETITIVA</p><h2>LVQ1 e LVQ2.1</h2><p>Treine protótipos rotulados e observe atração, repulsão e ajuste de fronteiras.</p><ul><li>Comparação entre LVQ1 e LVQ2.1</li><li>Janela de decisão calculada</li><li>Teste, erro e contas passo a passo</li></ul><a class="button" href="../aprendizagem-supervisionada/lvq-laboratorio.html">Treinar protótipos →</a></article>
+
+      <article class="featured"><div class="lab-number">09</div><p class="eyebrow">REGIÕES LOCAIS</p><h2>RBF para classificação</h2><p>Combine seis regiões Gaussianas para separar um grupo central de três regiões externas.</p><ul><li>Arquitetura fixa: 2 → 6 → 1</li><li>Centros, distâncias e ativações locais</li><li>Fronteira, treinamento e teste</li></ul><a class="button" href="./rbf-classificacao.html">Classificar com RBF →</a></article>
+
+      <article><div class="lab-number">10</div><p class="eyebrow">APROXIMAÇÃO NÃO LINEAR</p><h2>RBF para regressão</h2><p>Some sete funções Gaussianas para aprender uma curva contínua a partir dos pontos.</p><ul><li>Arquitetura fixa: 1 → 7 → 1</li><li>Bases Gaussianas desenhadas separadamente</li><li>MSE, R² e contas de cada ajuste</li></ul><a class="button" href="./rbf-regressao.html">Aproximar uma curva →</a></article>
+
+      <article class="featured"><div class="lab-number">11</div><p class="eyebrow">SELF-ATTENTION</p><h2>Mini Transformer</h2><p>Treine um pequeno modelo causal para prever a próxima palavra de um corpus editável.</p><ul><li>Embeddings e posições em três dimensões</li><li>Matriz de atenção causal completa</li><li>Softmax, cross-entropy e previsão de tokens</li></ul><a class="button" href="./transformer-laboratorio.html">Prever tokens →</a></article>
+
+      <article><div class="lab-number">12</div><p class="eyebrow">JOGO ADVERSÁRIO</p><h2>GAN de dígitos</h2><p>Observe o Gerador organizar 49 pixels enquanto disputa com um Discriminador.</p><ul><li>Dígitos locais derivados da imagem indicada</li><li>Imagem nas rodadas 0, 10, 50 e atual</li><li>Perdas e Regra da Cadeia completas</li></ul><a class="button" href="./gan-laboratorio.html">Gerar um dígito →</a></article>
+
+      <article class="featured"><div class="lab-number">13</div><p class="eyebrow">VISÃO COMPUTACIONAL</p><h2>CNN de dígitos</h2><p>Desenhe uma entrada e visualize os mapas produzidos por quatro filtros.</p><ul><li>Convolução, ReLU e Max Pooling</li><li>Saída Softmax treinável</li><li>Classificação dos dígitos 0 a 9</li></ul><a class="button" href="./cnn-laboratorio.html">Classificar um desenho →</a></article>
+    </section>
+
+    <section class="labs-guidance"><div><p class="eyebrow">EM TODOS OS LABORATÓRIOS</p><h2>Observe, treine, teste e leia as contas.</h2></div><div class="labs-features"><span>Canvas interativo</span><span>Erro × resposta</span><span>Contas passo a passo</span><span>Código JavaScript comentado</span></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://embarcados.com.br/rede-perceptron-de-uma-unica-camada/" target="_blank" rel="noopener">Embarcados — Rede Perceptron</a> · <a href="https://felipetulio.com.br/aprendizado-supervisionado-redes-neurais-artificiais/" target="_blank" rel="noopener">Felipe Túlio — Redes neurais artificiais</a> · <a href="https://developers.google.com/machine-learning/crash-course/neural-networks/activation-functions" target="_blank" rel="noopener">Google ML — Funções de ativação</a> · <a href="https://www.ncbi.nlm.nih.gov/books/NBK441977/" target="_blank" rel="noopener">NCBI — Neuroanatomia dos neurônios</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body></html>

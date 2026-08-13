@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório CNN · Dígitos | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/advanced-neural.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="advanced-lab-page">
+    <section class="advanced-lab-hero cnn"><div><p class="eyebrow">LABORATÓRIO · MINI CNN</p><h1>Desenhe um dígito e abra cada etapa da classificação.</h1><p class="lead">Quatro filtros percorrem uma imagem 12 × 12. Depois de ReLU e Max Pooling, uma camada Softmax aprende a reconhecer os dez dígitos.</p></div><div><div class="lab-architecture"><span class="box">12 × 12<small>entrada</small></span><i>→</i><span class="box">4 mapas<small>conv 3 × 3</small></span><i>→</i><span class="box">4 × 5 × 5<small>pooling</small></span><i>→</i><span>10<small>Softmax</small></span></div><div class="scope-note"><strong>Escopo didático:</strong> os quatro filtros são fixos para facilitar a visualização. O treinamento ajusta a camada densa. Em uma CNN completa, o backpropagation também aprende os valores dos filtros.</div></div></section>
+
+    <section class="lab-layout">
+      <aside class="lab-controls"><h2>Treinamento</h2><p>Cada dígito possui cinco pequenas variações de posição.</p><div class="control-group"><div class="control-output">Entrada: <strong>12 × 12</strong><br>Filtros: <strong>4 de 3 × 3</strong><br>Características: <strong>100</strong><br>Saídas: <strong>10</strong></div></div><div class="control-group"><button class="button" id="cnnTrainOne">Treinar 1 época</button><button class="button" id="cnnTrainHundred">Treinar 100 épocas</button><button class="button outline" id="cnnReset">Reiniciar saída</button></div><div class="control-group"><button class="button" id="cnnClassify">Classificar desenho</button><button class="button outline" id="cnnClear">Limpar desenho</button><div class="control-output" id="cnnReading">Escolha um exemplo ou desenhe com o mouse.</div></div></aside>
+
+      <div class="lab-main">
+        <div class="metric-grid"><article><span>ÉPOCAS</span><strong id="cnnEpoch">0</strong></article><article><span>LOSS MÉDIA</span><strong id="cnnLoss">—</strong></article><article><span>ACURÁCIA</span><strong id="cnnAccuracy">—</strong></article><article><span>PREVISÃO</span><strong id="cnnPrediction">—</strong></article></div>
+        <article class="lab-card"><div class="card-top"><div><h2>Exemplos de treinamento</h2><p>Clique em um dígito para colocá-lo na entrada e visualizar suas características.</p></div><span class="status-pill" id="cnnStatus">Preparando imagens</span></div><div class="digit-gallery" id="cnnGallery"></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Entrada e probabilidades</h2><p>O desenho é convertido em 12 × 12 intensidades entre 0 e 1.</p></div></div><div class="drawing-layout"><div class="drawing-board"><canvas id="cnnDrawing" width="336" height="336"></canvas></div><div><div class="prediction-box">classe prevista<strong id="cnnBigPrediction">—</strong><span id="cnnConfidence">treine a saída</span></div><div class="probability-bars" id="cnnProbabilities" style="margin-top:18px"></div></div></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Mapas depois de Convolução + ReLU</h2><p>Branco significa ativação baixa; cores escuras indicam onde o filtro respondeu.</p></div></div><div class="filter-grid"><article class="filter-card"><canvas id="cnnMap0" width="240" height="240"></canvas><h3>Vertical</h3><code id="cnnFilter0"></code></article><article class="filter-card"><canvas id="cnnMap1" width="240" height="240"></canvas><h3>Horizontal</h3><code id="cnnFilter1"></code></article><article class="filter-card"><canvas id="cnnMap2" width="240" height="240"></canvas><h3>Diagonal ↘</h3><code id="cnnFilter2"></code></article><article class="filter-card"><canvas id="cnnMap3" width="240" height="240"></canvas><h3>Diagonal ↙</h3><code id="cnnFilter3"></code></article></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Forward e treinamento, passo a passo</h2><p>Abra um patch, a convolução, a ReLU, o pooling, a Softmax e a atualização.</p></div></div><div class="math-panel" id="cnnMath"></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>Compare a cross-entropy normalizada com a acurácia sobre os dez exemplos-base.</p></div></div><canvas id="cnnHistory" width="960" height="360"></canvas><div class="legend-row"><span><i></i>loss normalizada</span><span><i></i>acurácia</span></div></article>
+        <article class="lab-card"><div class="card-top"><div><h2>Resultado para cada dígito</h2><p>A confiança é a probabilidade Softmax da classe escolhida.</p></div></div><div class="comparison-wrap"><table class="result-table" id="cnnResults"></table></div></article>
+        <article class="source-image-note"><img class="zoomable" src="../../assets/images/digitos-manuscritos-referencia.jpg" alt="Números manuscritos usados no laboratório"><div><h2>Da imagem para o dataset</h2><p>Os dez recortes são reduzidos para 12 × 12. Deslocamentos de um pixel criam 50 exemplos simples. O MNIST completo possui 60 mil imagens de treino e 10 mil imagens de teste; este laboratório usa uma miniatura para expor todas as contas.</p></div></article>
+      </div>
+    </section>
+
+    <section class="didactic-code"><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>Convolução e Max Pooling com laços simples</h2><p>Sem bibliotecas: cada produto pode ser localizado na imagem e no filtro.</p><div class="code-flow"><span>convoluir()</span><span>relu()</span><span>maxPooling()</span><span>softmax()</span><span>treinarSaida()</span></div><pre><code>// Percorre todas as posições válidas da imagem.
+function convoluir(imagem, filtro) {
+  var mapa = [];
+  for (var linha = 0; linha &lt; 10; linha++) {
+    mapa[linha] = [];
+    for (var coluna = 0; coluna &lt; 10; coluna++) {
+      var soma = 0;
+      for (var r = 0; r &lt; 3; r++) {
+        for (var c = 0; c &lt; 3; c++) {
+          soma = soma + imagem[linha + r][coluna + c] * filtro[r][c];
+        }
+      }
+      mapa[linha][coluna] = Math.max(0, soma); // ReLU
+    }
+  }
+  return mapa;
+}
+
+// Resume cada bloco 2 × 2 mantendo a maior ativação.
+function maxPooling(mapa) {
+  var saida = [];
+  for (var linha = 0; linha &lt; 5; linha++) {
+    saida[linha] = [];
+    for (var coluna = 0; coluna &lt; 5; coluna++) {
+      var maior = mapa[linha * 2][coluna * 2];
+      for (var r = 0; r &lt; 2; r++) {
+        for (var c = 0; c &lt; 2; c++) {
+          if (mapa[linha * 2 + r][coluna * 2 + c] > maior) maior = mapa[linha * 2 + r][coluna * 2 + c];
+        }
+      }
+      saida[linha][coluna] = maior;
+    }
+  }
+  return saida;
+}</code></pre></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://yann.lecun.org/exdb/mnist/index.html" target="_blank" rel="noopener">MNIST</a> · <a href="https://yann.lecun.com/exdb/publis/pdf/lecun-98.pdf" target="_blank" rel="noopener">LeCun et al.</a> · <a href="https://img.magnific.com/vetores-premium/conjunto-vetorial-de-numeros-escritos-a-mao-numeros-desenhados-a-mao_79152-2609.jpg" target="_blank" rel="noopener">Imagem de referência indicada</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/digit-data.js"></script><script src="../../js/labs/cnn-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/image-lightbox.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

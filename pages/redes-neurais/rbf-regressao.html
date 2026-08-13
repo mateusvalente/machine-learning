@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório RBF · Regressão | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/rbf-labs.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="rbf-lab-page">
+    <header class="rbf-lab-hero regression"><div><p class="eyebrow">LABORATÓRIO RBF 02 · REGRESSÃO</p><h1>Uma curva construída pela soma de respostas locais.</h1><p class="lead">Sete funções Gaussianas cobrem diferentes regiões do eixo x. A saída linear aprende quanto cada curva-base deve contribuir para aproximar uma relação não linear.</p></div><div class="rbf-lab-hero-flow"><span>x<small>entrada</small></span><i>→</i><span>φ₁ … φ₇<small>bases locais</small></span><i>→</i><span>Σwⱼφⱼ+b<small>combinação</small></span><i>→</i><span>ŷ<small>valor contínuo</small></span></div></header>
+
+    <section class="rbf-lab-introduction"><article><span>1</span><h2>Centros distribuídos</h2><p>Sete centros cobrem o intervalo de x = −3 até x = 3.</p><code>c = [−3, −2, …, 3]</code></article><article><span>2</span><h2>Bases locais</h2><p>Cada Gaussiana responde em uma parte diferente do domínio.</p><code>φⱼ(x)=e<sup>−1,10(x−cⱼ)²</sup></code></article><article><span>3</span><h2>Soma ponderada</h2><p>Pesos positivos elevam a curva; pesos negativos reduzem a previsão naquela região.</p><code>ŷ=b+Σwⱼφⱼ(x)</code></article></section>
+
+    <section class="rbf-lab-workspace">
+      <aside class="rbf-lab-controls"><h2>Treinamento</h2><p>A arquitetura permanece fixa: <strong>1 → 7 → 1</strong>.</p><div class="rbf-control-block"><div class="fixed-parameter"><span>LARGURA GAUSSIANA</span><strong>γ = 1,10</strong></div><div class="fixed-parameter"><span>TAXA DE APRENDIZADO</span><strong>η = 0,08</strong></div></div><div class="rbf-control-block"><button class="button full-button" id="rbfRegressionTrainOne">Treinar 1 época</button><button class="button full-button" id="rbfRegressionTrainHundred">Treinar 100 épocas</button><button class="button outline full-button" id="rbfRegressionReset">Reiniciar saída</button></div><div class="rbf-control-block"><h3>Estimar um valor</h3><label>ENTRADA x<input id="rbfRegressionTestX" type="number" min="-3.5" max="3.5" step="0.1" value="1.5"></label><button class="button full-button" id="rbfRegressionTest">Calcular ŷ</button><div id="rbfRegressionTestResult" class="rbf-test-result">A rede combinará as sete Gaussianas.</div></div></aside>
+
+      <div class="rbf-lab-results">
+        <div class="rbf-lab-metrics"><article><span>ÉPOCAS</span><strong id="rbfRegressionEpoch">0</strong></article><article><span>MSE</span><strong id="rbfRegressionMse">—</strong></article><article><span>RMSE</span><strong id="rbfRegressionRmse">—</strong></article><article><span>R²</span><strong id="rbfRegressionR2">—</strong></article></div>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Aproximação não linear</h2><p>Os pontos são alvos; a linha mostra a função aprendida pela RBF.</p></div><span class="status" id="rbfRegressionStatus">Saída não treinada</span></div><canvas id="rbfRegressionCurve" width="940" height="580"></canvas><div class="rbf-lab-legend"><span><i class="rbf-target-symbol"></i>dados reais</span><span><i class="rbf-curve-symbol"></i>curva prevista</span><span><i class="rbf-center-tick"></i>centros</span></div></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>As sete funções de base</h2><p>Cada curva atinge 1 sobre seu próprio centro e diminui com a distância.</p></div></div><canvas id="rbfRegressionBases" width="940" height="390"></canvas></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Último treinamento, passo a passo</h2><p>Ativações locais, previsão, erro e atualização dos sete pesos.</p></div></div><div id="rbfRegressionMath" class="rbf-lab-math"><p>Treine uma época para abrir as contas.</p></div></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>O erro cai enquanto R² se aproxima de 1. Para compartilhar a escala vertical, o gráfico divide o MSE pelo seu valor inicial e mostra R² entre 0 e 1.</p></div></div><canvas id="rbfRegressionHistory" width="940" height="350"></canvas><div class="rbf-history-legend"><span><i></i>MSE ÷ MSE inicial</span><span><i></i>R² no intervalo 0–1</span></div></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Resultado em cada amostra</h2><p>O erro e = y − ŷ participa diretamente do ajuste linear.</p></div></div><div class="rbf-table-wrap"><table id="rbfRegressionTable" class="rbf-result-table"></table></div></article>
+      </div>
+    </section>
+
+    <section class="algorithm-section"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>RBF para regressão em JavaScript</h2><p>A única diferença essencial está na saída: não existe limiar, pois ŷ deve continuar sendo um valor numérico.</p><div class="algorithm-flow"><span>gaussiana()</span><span>forward()</span><span>calcularErro()</span><span>ajustarSaida()</span></div></header><div class="code-window"><div class="code-window-bar"><span>rbf-regressao.js</span><i>1 entrada → 7 Gaussianas → 1 saída linear</i></div><pre><code>// 1. Os sete centros cobrem diferentes regiões do eixo x.
+var centros = [-3, -2, -1, 0, 1, 2, 3];
+var pesos = [0, 0, 0, 0, 0, 0, 0];
+var bias = 0;
+var gamma = 1.10;
+
+// 2. Calcula a resposta local de uma Gaussiana.
+function gaussiana(x, centro) {
+  var distancia = x - centro;
+  return Math.exp(-gamma * distancia * distancia);
+}
+
+// 3. Soma as sete respostas ponderadas para produzir ŷ.
+function forward(x) {
+  var ativacoes = [];
+  var previsao = bias;
+  for (var j = 0; j &lt; centros.length; j++) {
+    ativacoes[j] = gaussiana(x, centros[j]);
+    previsao = previsao + pesos[j] * ativacoes[j];
+  }
+  return [previsao, ativacoes];
+}
+
+// 4. Compara o valor desejado y com a previsão contínua ŷ.
+function calcularErro(y, previsao) {
+  return y - previsao;
+}
+
+// 5. Aplica a Regra Delta somente na camada linear de saída.
+function ajustarSaida(ativacoes, erro, taxa) {
+  for (var j = 0; j &lt; pesos.length; j++) {
+    pesos[j] = pesos[j] + taxa * erro * ativacoes[j];
+  }
+  bias = bias + taxa * erro;
+}
+
+// 6. Reúne as etapas do treinamento de uma amostra.
+function treinarAmostra(x, y, taxa) {
+  var resultado = forward(x);
+  var previsao = resultado[0];
+  var ativacoes = resultado[1];
+  var erro = calcularErro(y, previsao);
+  ajustarSaida(ativacoes, erro, taxa);
+}</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aston.ac.uk/files/18258465/Radial_Basis_Function_Network.pdf" target="_blank" rel="noopener">Broomhead e Lowe · RBF Networks</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/rbf-regression-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body></html>

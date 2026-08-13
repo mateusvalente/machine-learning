@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rede Configurável e Backpropagation | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/configurable-network-lab.css">
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+
+  <main class="configurable-lab-page">
+    <header class="configurable-hero">
+      <div>
+        <p class="eyebrow">LABORATÓRIO 06 · ARQUITETURA CONFIGURÁVEL</p>
+        <h1>Monte uma rede e acompanhe o backpropagation.</h1>
+        <p class="lead">Escolha de 1 a 10 entradas, as camadas ocultas e até 4 saídas. O laboratório cria dados sintéticos, treina a rede e abre cada etapa matemática do aprendizado.</p>
+      </div>
+      <div class="architecture-preview" aria-label="Resumo visual de uma rede neural">
+        <span>entradas</span><i>→</i><span class="hidden-layer-preview">camadas<br>ocultas</span><i>→</i><span class="output-layer-preview">saídas</span>
+      </div>
+    </header>
+
+    <section class="configuration-panel" aria-labelledby="configuration-title">
+      <header>
+        <div><p class="eyebrow">1 · MONTE A ARQUITETURA</p><h2 id="configuration-title">Quantos sinais e neurônios a rede terá?</h2></div>
+        <p>Alterar a arquitetura cria uma rede nova. Os pesos começam com valores pequenos e aleatórios.</p>
+      </header>
+
+      <div class="configuration-grid">
+        <label>ENTRADAS
+          <select id="inputCount" aria-label="Número de entradas"></select>
+          <small>Características x₁ … xₙ</small>
+        </label>
+        <label>CAMADAS OCULTAS
+          <select id="hiddenLayerCount" aria-label="Número de camadas ocultas"></select>
+          <small>De 0 a 4 camadas</small>
+        </label>
+        <div id="hiddenLayerControls" class="hidden-layer-controls" aria-live="polite"></div>
+        <label>SAÍDAS
+          <select id="outputCount" aria-label="Número de saídas"></select>
+          <small>Previsões ŷ₁ … ŷₘ</small>
+        </label>
+        <label>TAXA η
+          <input id="learningRate" type="number" min="0.01" max="1" step="0.01" value="0.20">
+          <small>Tamanho de cada ajuste</small>
+        </label>
+      </div>
+
+      <div class="configuration-actions">
+        <button class="button" id="applyArchitecture" type="button">Criar rede e dataset</button>
+        <button class="button outline" id="newDataset" type="button">Gerar outros dados</button>
+        <span id="architectureText" class="architecture-text">Arquitetura: —</span>
+      </div>
+    </section>
+
+    <section class="experiment-toolbar" aria-label="Controles do treinamento">
+      <div>
+        <p class="eyebrow">2 · TREINE E COMPARE</p>
+        <h2>Forward → erro → backpropagation → ajuste</h2>
+      </div>
+      <div class="training-buttons">
+        <button class="button" id="trainOne" type="button">Treinar 1 época</button>
+        <button class="button" id="trainHundred" type="button">Treinar 100 épocas</button>
+        <button class="button outline" id="resetNetwork" type="button">Reiniciar pesos</button>
+      </div>
+    </section>
+
+    <section class="metric-strip" aria-label="Resultados gerais da rede">
+      <article><span>ÉPOCAS</span><strong id="epochMetric">0</strong></article>
+      <article><span>ERRO MÉDIO</span><strong id="lossMetric">—</strong></article>
+      <article><span>ACERTO POR SAÍDA</span><strong id="bitAccuracyMetric">—</strong></article>
+      <article><span>AMOSTRAS COMPLETAS</span><strong id="sampleAccuracyMetric">—</strong></article>
+    </section>
+
+    <section class="visual-grid">
+      <article class="config-card network-config-card">
+        <div class="card-top">
+          <div><h2>A rede que você montou</h2><p>Cada linha é um peso. Azul representa peso positivo; laranja, negativo.</p></div>
+          <span class="status" id="networkStatus">Rede nova</span>
+        </div>
+        <canvas id="configurableNetworkCanvas" width="1120" height="650" aria-label="Representação da rede neural configurada"></canvas>
+        <div class="network-legend"><span><i class="positive-weight"></i>peso positivo</span><span><i class="negative-weight"></i>peso negativo</span><span><i class="activation-node-legend"></i>ativação da amostra</span></div>
+      </article>
+
+      <article class="config-card loss-chart-card">
+        <div class="card-top">
+          <div><h2>Erro durante o treinamento</h2><p>O eixo x mostra as épocas; o eixo y mostra a entropia cruzada média.</p></div>
+        </div>
+        <canvas id="configurableLossCanvas" width="1120" height="380" aria-label="Gráfico do erro por época com eixos numerados"></canvas>
+      </article>
+    </section>
+
+    <section class="sample-inspector" aria-labelledby="sample-inspector-title">
+      <header>
+        <div><p class="eyebrow">3 · ABRA UMA AMOSTRA</p><h2 id="sample-inspector-title">Veja os números percorrendo a rede</h2></div>
+        <label>AMOSTRA EXIBIDA
+          <select id="selectedSample" aria-label="Amostra usada na explicação"></select>
+        </label>
+      </header>
+
+      <div class="forward-summary" id="forwardSummary"></div>
+
+      <div class="backprop-flow" aria-label="Etapas do backpropagation">
+        <article><b>1 · Forward</b><span>Calcula u e a em todas as camadas.</span><code>u = Σ(wx) + b</code></article>
+        <i>→</i>
+        <article><b>2 · Custo</b><span>Compara cada y com sua previsão ŷ.</span><code>E = −1/m Σ[y ln(ŷ) + (1−y)ln(1−ŷ)]</code></article>
+        <i>→</i>
+        <article><b>3 · Backpropagation</b><span>Leva os deltas da saída para as camadas anteriores.</span><code>δˡ = (Wˡ⁺¹)ᵀδˡ⁺¹ ⊙ g′(uˡ)</code></article>
+        <i>→</i>
+        <article><b>4 · Ajuste</b><span>Move pesos e bias contra o gradiente.</span><code>w ← w − ηδa</code></article>
+      </div>
+
+      <div id="mathWalkthrough" class="config-math-walkthrough" aria-live="polite"></div>
+      <p class="backprop-note"><strong>Por que isso é backpropagation?</strong> O erro nasce nas saídas. Em seguida, a regra da cadeia calcula quanto cada neurônio anterior contribuiu para esse erro. Os deltas caminham da direita para a esquerda; depois, os pesos são corrigidos.</p>
+    </section>
+
+    <section class="adaptive-results" aria-labelledby="results-table-title">
+      <header>
+        <div><p class="eyebrow">4 · RESULTADO AMOSTRA POR AMOSTRA</p><h2 id="results-table-title">Tabela adaptada à arquitetura</h2></div>
+        <p>Para cada saída aparecem o alvo <strong>y</strong>, a previsão contínua <strong>ŷ</strong> e o erro com sinal <strong>e = y − ŷ</strong>. Verde indica decisão correta; vermelho, incorreta. O custo E resume todas as saídas da amostra.</p>
+      </header>
+      <div class="adaptive-table-wrap"><table id="resultsTable" class="adaptive-results-table"></table></div>
+    </section>
+
+    <section class="dataset-explanation">
+      <div><p class="eyebrow">COMO O DATASET FAKE É CRIADO?</p><h2>Há uma regra escondida por trás dos alvos.</h2></div>
+      <p>O laboratório sorteia 16 exemplos com valores entre 0 e 1. Para cada saída, combina as entradas com coeficientes fixos e uma interação entre duas características. A mediana divide os resultados em 0 e 1, evitando um conjunto formado quase só por uma classe. A rede vê apenas as entradas e os alvos: ela precisa aproximar essa regra ajustando seus próprios pesos.</p>
+    </section>
+
+    <section class="algorithm-section" aria-labelledby="config-code-title">
+      <header>
+        <p class="eyebrow">CÓDIGO DIDÁTICO</p>
+        <h2 id="config-code-title">A essência da rede configurável em JavaScript</h2>
+        <p>O exemplo usa matrizes, arrays e laços <span class="mono">for</span>. As funções ficam separadas para deixar claro onde acontecem o forward, o backpropagation e o ajuste.</p>
+        <div class="algorithm-flow"><span>sigmoid()</span><span>criarRede()</span><span>forward()</span><span>calcularDeltas()</span><span>ajustarPesos()</span><span>treinarAmostra()</span></div>
+      </header>
+      <div class="code-window">
+        <div class="code-window-bar"><span>rede-configuravel.js</span><i>versão simples e comentada</i></div>
+<pre><code>// Quantidade de neurônios em cada camada: 3 entradas, 4 ocultos e 2 saídas.
+var tamanhos = [3, 4, 2];
+var pesos = [];
+var biases = [];
+
+// A função Sigmoid será usada nas camadas ocultas e na saída.
+function sigmoid(u) {
+  return 1 / (1 + Math.exp(-u));
+}
+
+// Sua derivada pode ser calculada com a própria ativação a.
+function derivadaSigmoid(a) {
+  return a * (1 - a);
+}
+
+// Cria uma matriz de pesos para cada par de camadas.
+function criarRede() {
+  for (var camada = 1; camada &lt; tamanhos.length; camada++) {
+    pesos[camada - 1] = [];
+    biases[camada - 1] = [];
+
+    for (var neuronio = 0; neuronio &lt; tamanhos[camada]; neuronio++) {
+      pesos[camada - 1][neuronio] = [];
+      biases[camada - 1][neuronio] = Math.random() - 0.5;
+
+      for (var entrada = 0; entrada &lt; tamanhos[camada - 1]; entrada++) {
+        pesos[camada - 1][neuronio][entrada] = Math.random() - 0.5;
+      }
+    }
+  }
+}
+
+// Calcula todas as ativações, da entrada até a saída.
+function forward(entrada) {
+  var ativacoes = [entrada];
+
+  for (var camada = 0; camada &lt; pesos.length; camada++) {
+    var proximaAtivacao = [];
+
+    for (var neuronio = 0; neuronio &lt; pesos[camada].length; neuronio++) {
+      var u = biases[camada][neuronio];
+
+      for (var anterior = 0; anterior &lt; ativacoes[camada].length; anterior++) {
+        u = u + pesos[camada][neuronio][anterior] * ativacoes[camada][anterior];
+      }
+
+      proximaAtivacao[neuronio] = sigmoid(u);
+    }
+
+    ativacoes[camada + 1] = proximaAtivacao;
+  }
+
+  return ativacoes;
+}
+
+// Calcula primeiro o delta da saída e depois volta pelas camadas ocultas.
+function calcularDeltas(ativacoes, alvo) {
+  var deltas = [];
+  var ultima = pesos.length - 1;
+  deltas[ultima] = [];
+
+  for (var saida = 0; saida &lt; alvo.length; saida++) {
+    // A divisão aparece porque o custo usa a média das saídas.
+    deltas[ultima][saida] =
+      (ativacoes[ultima + 1][saida] - alvo[saida]) / alvo.length;
+  }
+
+  for (var camada = ultima - 1; camada &gt;= 0; camada--) {
+    deltas[camada] = [];
+
+    for (var neuronio = 0; neuronio &lt; ativacoes[camada + 1].length; neuronio++) {
+      var erroQueVoltou = 0;
+
+      for (var proximo = 0; proximo &lt; deltas[camada + 1].length; proximo++) {
+        erroQueVoltou = erroQueVoltou + pesos[camada + 1][proximo][neuronio] * deltas[camada + 1][proximo];
+      }
+
+      var a = ativacoes[camada + 1][neuronio];
+      deltas[camada][neuronio] = erroQueVoltou * derivadaSigmoid(a);
+    }
+  }
+
+  return deltas;
+}
+
+// Usa cada delta para corrigir pesos e bias.
+function ajustarPesos(ativacoes, deltas, taxa) {
+  for (var camada = 0; camada &lt; pesos.length; camada++) {
+    for (var neuronio = 0; neuronio &lt; pesos[camada].length; neuronio++) {
+      for (var anterior = 0; anterior &lt; pesos[camada][neuronio].length; anterior++) {
+        var gradiente = deltas[camada][neuronio] * ativacoes[camada][anterior];
+        pesos[camada][neuronio][anterior] = pesos[camada][neuronio][anterior] - taxa * gradiente;
+      }
+
+      biases[camada][neuronio] = biases[camada][neuronio] - taxa * deltas[camada][neuronio];
+    }
+  }
+}
+
+// Reúne as três fases do treinamento de uma amostra.
+function treinarAmostra(entrada, alvo, taxa) {
+  var ativacoes = forward(entrada);          // 1. previsão
+  var deltas = calcularDeltas(ativacoes, alvo); // 2. backpropagation
+  ajustarPesos(ativacoes, deltas, taxa);     // 3. atualização
+}
+
+criarRede();</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-sources"><strong>Fontes:</strong> <a href="https://developers.google.com/machine-learning/crash-course/neural-networks/backpropagation" target="_blank" rel="noopener">Google Machine Learning · Backpropagation</a> · <a href="https://developers.google.com/machine-learning/crash-course/logistic-regression/loss-regularization" target="_blank" rel="noopener">Google Machine Learning · Entropia cruzada</a></div>
+    <p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p>
+  </footer>
+
+  <script src="../../js/labs/configurable-network-lab.js"></script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

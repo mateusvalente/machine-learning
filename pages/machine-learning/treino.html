@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Treinamento de Modelos | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/learning-theory.css">
+  <style>
+    .training-cycle{display:grid;grid-template-columns:repeat(7,auto);gap:10px;align-items:center;padding:27px;background:#272e47;border-radius:15px;color:#fff}.training-cycle article{min-height:112px;padding:17px;background:#353d59;border-radius:9px}.training-cycle b,.training-cycle span{display:block}.training-cycle b{color:#9cebdc;font-size:17px}.training-cycle span{margin-top:7px;color:#d6daea}.training-cycle i{color:#8d85ff;font-size:25px;font-style:normal}.training-terms{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.training-term{padding:25px;background:#fff;border:1px solid var(--line);border-top:5px solid #4e46e5;border-radius:13px}.training-term:nth-child(2n){border-top-color:#19a987}.training-term:nth-child(3n){border-top-color:#e06c37}.training-term h3{margin:0 0 8px;font-size:23px}.training-term p{color:var(--muted)}.training-term .equation{margin-top:14px}.batch-comparison{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.batch-card{padding:26px;background:#fff;border:1px solid var(--line);border-radius:13px}.batch-card h3{margin:0 0 7px;font-size:23px}.batch-card p{color:var(--muted)}.batch-card span{display:block;margin-top:16px;padding:13px;background:#f1f2fb;border-radius:8px;font:700 15px/1.6 'DM Mono',monospace}.rate-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.rate-card{padding:24px;background:#fff;border:1px solid var(--line);border-radius:13px}.rate-card svg{display:block;width:100%;height:auto;margin-top:12px;background:#fafbff;border-radius:9px}.rate-card h3{margin:0;font-size:22px}.rate-card p{color:var(--muted)}.rate-axis{fill:none;stroke:#69748a;stroke-width:2}.rate-curve{fill:none;stroke:#d77c42;stroke-width:5}.rate-path{fill:none;stroke:#4e46e5;stroke-width:3;stroke-dasharray:7 5}.rate-dot{fill:#4e46e5;stroke:#fff;stroke-width:3}.rate-success{fill:#159b80;stroke:#fff;stroke-width:3}.training-ledger{overflow:auto;border:1px solid var(--line);border-radius:13px}.training-ledger table{width:100%;border-collapse:collapse;background:#fff;font-size:17px}.training-ledger th,.training-ledger td{padding:17px;text-align:left;border-bottom:1px solid var(--line)}.training-ledger th{background:#ecebff;color:#4e46e5}.training-ledger tr:last-child td{border-bottom:0}.stop-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.stop-card{padding:27px;background:#fff;border:1px solid var(--line);border-radius:14px}.stop-card h3{margin:0 0 8px;font-size:25px}.stop-card p{color:var(--muted)}.stop-card ul{display:grid;gap:9px;padding-left:22px;color:#505b72}@media(max-width:1050px){.training-cycle{grid-template-columns:1fr}.training-cycle i{transform:rotate(90deg);text-align:center}.training-terms{grid-template-columns:1fr 1fr}}@media(max-width:760px){.training-terms,.batch-comparison,.rate-grid,.stop-grid{grid-template-columns:1fr}.training-term,.batch-card,.rate-card,.stop-card{padding:21px}.training-ledger table{font-size:15px}.training-ledger th,.training-ledger td{padding:13px}}
+  </style>
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="learning-page">
+    <section class="learning-hero orange">
+      <div><p class="eyebrow">MACHINE LEARNING · TREINO</p><h1>Treinar é transformar erros em ajustes.</h1><p>Durante o treinamento, o modelo produz previsões, mede o quanto errou e modifica seus parâmetros. Repetir esse ciclo permite encontrar uma configuração que represente melhor os dados.</p><a class="button" href="#ciclo-treino">Acompanhar o ciclo ↓</a></div>
+      <div class="learning-hero-visual"><article><b>Forward</b><span>Entradas percorrem o modelo e produzem uma previsão.</span></article><article><b>Erro ou perda</b><span>A previsão é comparada com o objetivo do treinamento.</span></article><article><b>Otimização</b><span>Pesos e bias são corrigidos para reduzir a perda.</span></article></div>
+    </section>
+
+    <section class="learning-section" id="ciclo-treino">
+      <header class="narrative-head"><p class="eyebrow">01 · CICLO COMPLETO</p><h2>Uma atualização acontece passo a passo.</h2><p>Em aprendizado supervisionado, cada amostra contém uma entrada <span class="mono">x</span> e uma resposta correta <span class="mono">y</span>.</p></header>
+      <div class="training-cycle"><article><b>1. Entrada</b><span>Receber x e y.</span></article><i>→</i><article><b>2. Forward</b><span>Calcular ŷ.</span></article><i>→</i><article><b>3. Perda</b><span>Medir L(y, ŷ).</span></article><i>→</i><article><b>4. Gradiente</b><span>Encontrar a direção.</span></article><i>→</i><article><b>5. Ajuste</b><span>Atualizar parâmetros.</span></article></div>
+      <aside class="learning-note"><b>Uma atualização não encerra o treinamento:</b> o ciclo é repetido para diferentes amostras e durante várias épocas.</aside>
+    </section>
+
+    <section class="learning-section">
+      <header class="narrative-head"><p class="eyebrow">02 · ELEMENTOS DO TREINAMENTO</p><h2>Os termos que aparecem durante o ajuste do modelo.</h2></header>
+      <div class="training-terms">
+        <article class="training-term"><h3>Parâmetros</h3><p>Valores aprendidos pelo modelo, como pesos e bias. São modificados pelo algoritmo de otimização.</p><div class="equation">w e b</div></article>
+        <article class="training-term"><h3>Hiperparâmetros</h3><p>Configurações escolhidas antes ou durante os experimentos, como taxa de aprendizado e tamanho do lote.</p><div class="equation">η · épocas · batch size</div></article>
+        <article class="training-term"><h3>Função de perda</h3><p>Transforma a qualidade de uma previsão em um valor numérico que o treinamento procura diminuir.</p><div class="equation">L(y, ŷ)</div></article>
+        <article class="training-term"><h3>Gradiente</h3><p>Indica como uma pequena mudança em cada parâmetro altera a função de perda.</p><div class="equation">∂L/∂w</div></article>
+        <article class="training-term"><h3>Época</h3><p>Uma passagem completa por todas as amostras do conjunto de treinamento.</p><div class="equation">1 época = todo o treino</div></article>
+        <article class="training-term"><h3>Iteração</h3><p>Uma atualização dos parâmetros. Uma época pode conter várias iterações.</p><div class="equation">iterações/época ≈ N ÷ lote</div></article>
+      </div>
+    </section>
+
+    <section class="learning-section">
+      <header class="narrative-head"><p class="eyebrow">03 · COMO APRESENTAR OS DADOS?</p><h2>A atualização pode usar uma amostra, um lote ou todo o conjunto.</h2></header>
+      <div class="batch-comparison"><article class="batch-card"><h3>Estocástico · SGD</h3><p>Atualiza os parâmetros após cada amostra. Produz muitos ajustes rápidos, mas com maior oscilação.</p><span>tamanho do lote = 1</span></article><article class="batch-card"><h3>Mini-batch</h3><p>Calcula o gradiente médio de um pequeno grupo. É a estratégia mais comum em redes neurais.</p><span>lote = 16, 32, 64...</span></article><article class="batch-card"><h3>Batch completo</h3><p>Usa todas as amostras antes de atualizar. O gradiente é estável, mas pode exigir muita memória.</p><span>lote = N amostras</span></article></div>
+    </section>
+
+    <section class="learning-section">
+      <header class="narrative-head"><p class="eyebrow">04 · TAXA DE APRENDIZADO</p><h2>O tamanho do passo altera o caminho da otimização.</h2></header>
+      <div class="rate-grid">
+        <article class="rate-card"><h3>η muito pequeno</h3><p>Os passos são seguros, mas o treinamento pode ficar excessivamente lento.</p><svg viewBox="0 0 320 190"><path class="rate-axis" d="M30 160H295M40 170V25"/><path class="rate-curve" d="M50 35C100 122 126 152 165 154C211 151 236 103 283 35"/><path class="rate-path" d="M267 56L246 88L228 109L212 125L199 136"/><circle class="rate-dot" cx="267" cy="56" r="7"/><circle class="rate-dot" cx="246" cy="88" r="7"/><circle class="rate-dot" cx="228" cy="109" r="7"/><circle class="rate-dot" cx="212" cy="125" r="7"/><circle class="rate-dot" cx="199" cy="136" r="7"/></svg></article>
+        <article class="rate-card"><h3>η adequado</h3><p>Os passos reduzem o erro com velocidade sem ultrapassar repetidamente o mínimo.</p><svg viewBox="0 0 320 190"><path class="rate-axis" d="M30 160H295M40 170V25"/><path class="rate-curve" d="M50 35C100 122 126 152 165 154C211 151 236 103 283 35"/><path class="rate-path" d="M267 56L218 119L181 149L165 154"/><circle class="rate-dot" cx="267" cy="56" r="7"/><circle class="rate-dot" cx="218" cy="119" r="7"/><circle class="rate-dot" cx="181" cy="149" r="7"/><circle class="rate-success" cx="165" cy="154" r="8"/></svg></article>
+        <article class="rate-card"><h3>η muito grande</h3><p>Os passos ultrapassam o mínimo, podem oscilar e até fazer a perda aumentar.</p><svg viewBox="0 0 320 190"><path class="rate-axis" d="M30 160H295M40 170V25"/><path class="rate-curve" d="M50 35C100 122 126 152 165 154C211 151 236 103 283 35"/><path class="rate-path" d="M267 56L75 70L278 42L57 38"/><circle class="rate-dot" cx="267" cy="56" r="7"/><circle class="rate-dot" cx="75" cy="70" r="7"/><circle class="rate-dot" cx="278" cy="42" r="7"/><circle class="rate-dot" cx="57" cy="38" r="7"/></svg></article>
+      </div>
+    </section>
+
+    <section class="learning-section">
+      <header class="narrative-head"><p class="eyebrow">05 · UMA ÉPOCA EM NÚMEROS</p><h2>Exemplo com 100 amostras e lotes de 20.</h2></header>
+      <div class="training-ledger"><table><thead><tr><th>Elemento</th><th>Cálculo</th><th>Resultado</th></tr></thead><tbody><tr><td>Amostras de treino</td><td>N</td><td>100</td></tr><tr><td>Tamanho do lote</td><td>batch size</td><td>20</td></tr><tr><td>Iterações por época</td><td>100 ÷ 20</td><td>5 atualizações</td></tr><tr><td>Treinamento de 30 épocas</td><td>5 × 30</td><td>150 atualizações</td></tr></tbody></table></div>
+      <aside class="learning-warning"><b>Mais épocas não garantem um modelo melhor:</b> depois de certo ponto, a perda do treino pode continuar diminuindo enquanto a perda de validação aumenta. Isso indica sobreajuste.</aside>
+    </section>
+
+    <section class="learning-section">
+      <header class="narrative-head"><p class="eyebrow">06 · QUANDO PARAR?</p><h2>Convergência e generalização precisam ser observadas juntas.</h2></header>
+      <div class="stop-grid"><article class="stop-card"><h3>Sinais de convergência</h3><p>O treinamento está estabilizando quando:</p><ul><li>A perda varia muito pouco entre épocas.</li><li>Os parâmetros recebem ajustes cada vez menores.</li><li>As métricas deixam de melhorar de forma relevante.</li><li>O limite planejado de épocas é alcançado.</li></ul></article><article class="stop-card"><h3>Parada antecipada</h3><p>O treinamento é interrompido quando a validação deixa de melhorar por determinado número de épocas.</p><ul><li>Monitora uma métrica de validação.</li><li>Guarda os parâmetros do melhor momento.</li><li>Evita continuar decorando o conjunto de treino.</li><li>Reduz tempo e custo computacional.</li></ul></article></div>
+      <a class="button" href="./generalizacao.html" style="margin-top:19px">Estudar underfitting e overfitting →</a>
+    </section>
+
+    <section class="deep-closing learning-closing"><p class="eyebrow">IDEIA PARA LEVAR</p><h2>Treinar não significa apenas repetir épocas.</h2><p>É preciso acompanhar a perda, escolher uma taxa adequada, avaliar em dados separados e interromper o processo no momento em que o modelo generaliza melhor.</p><a class="button" href="../aprendizagem-supervisionada/introducao.html">Aplicar no aprendizado supervisionado →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

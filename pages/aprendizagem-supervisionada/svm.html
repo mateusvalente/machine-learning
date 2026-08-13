@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SVM · Máquinas de Vetores de Suporte | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/svm.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="svm-page">
+    <section class="svm-hero">
+      <div><p class="eyebrow">APRENDIZAGEM SUPERVISIONADA · SVM</p><h1>Separar classes deixando a maior margem possível.</h1><p class="lead">Uma Máquina de Vetores de Suporte procura uma fronteira de decisão e dá atenção especial às amostras mais próximas dela: os vetores de suporte.</p><a class="button" href="#hiperplano">Construir a ideia ↓</a></div>
+      <div class="svm-separation" aria-label="Duas classes separadas por uma reta e duas margens"><i class="decision"></i><span class="point p1">−</span><span class="point p2 support">−</span><span class="point p3">−</span><span class="point b p4">+</span><span class="point b p5 support">+</span><span class="point b p6">+</span><small class="margin-a">margem −1</small><small class="margin-b">margem +1</small></div>
+    </section>
+
+    <section class="svm-section">
+      <header class="svm-head"><p class="eyebrow">01 · PROBLEMA PRÁTICO</p><h2>Qual reta separa melhor dois grupos?</h2><p>Imagine classificar duas espécies de fruta usando massa x₁ e intensidade da cor x₂. Várias retas podem acertar os exemplos de treino. A SVM prefere a que deixa o corredor mais largo entre as duas classes.</p></header>
+      <div class="svm-grid"><article class="svm-card"><h3>Entradas x</h3><p>Cada fruta é representada por características numéricas.</p><code>x = [massa, intensidade da cor]</code></article><article class="svm-card"><h3>Alvo y</h3><p>Na formulação binária, as duas classes são representadas por −1 e +1.</p><code>y ∈ {−1, +1}</code></article><article class="svm-card"><h3>Decisão ŷ</h3><p>O sinal do potencial u determina de qual lado da fronteira o ponto ficou.</p><code>ŷ = sinal(u)</code></article></div>
+      <aside class="svm-note"><strong>Por que não escolher qualquer reta que acerte?</strong> Uma fronteira encostada nos dados pode mudar de decisão com uma pequena variação. Uma margem maior cria mais tolerância para exemplos novos próximos aos exemplos de treinamento.</aside>
+    </section>
+
+    <section class="svm-section" id="hiperplano">
+      <header class="svm-head"><p class="eyebrow">02 · FUNÇÃO DE DECISÃO</p><h2>Pesos orientam a fronteira; bias a desloca.</h2></header>
+      <div class="svm-flow"><article><b>x₁, x₂</b><span>entradas</span><code>[x₁,x₂]</code></article><i>→</i><article><b>w₁, w₂</b><span>pesos</span><code>w · x</code></article><i>→</i><article><b>u</b><span>escore</span><code>w₁x₁+w₂x₂+b</code></article><i>→</i><article><b>ŷ</b><span>classe</span><code>sinal(u)</code></article></div>
+      <code class="svm-formula"><strong>u(x)</strong> = w · x + b = w₁x₁ + w₂x₂ + b &nbsp;&nbsp; | &nbsp;&nbsp; <strong>ŷ</strong> = sinal(u)</code>
+      <div class="svm-variable-grid"><article><b>x</b><span>vetor de características da amostra.</span></article><article><b>w</b><span>vetor perpendicular à fronteira; controla sua orientação.</span></article><article><b>b</b><span>bias que desloca a fronteira sem alterar diretamente sua inclinação.</span></article><article><b>u</b><span>escore assinado: negativo de um lado e positivo do outro.</span></article></div>
+      <aside class="svm-warning"><strong>Não é uma probabilidade.</strong> O valor de u mede a posição assinada em relação à fronteira, mas não significa diretamente “80% de chance”. Probabilidades exigem uma etapa de calibração.</aside>
+    </section>
+
+    <section class="svm-section">
+      <header class="svm-head"><p class="eyebrow">03 · FRONTEIRA, MARGENS E VETORES DE SUPORTE</p><h2>Três linhas vêm da mesma função.</h2></header>
+      <div class="svm-grid"><article class="svm-card"><h3>Fronteira central</h3><p>É o conjunto de pontos no qual o modelo está exatamente entre as duas classes.</p><code>w · x + b = 0</code></article><article class="svm-card"><h3>Limites da margem</h3><p>No ajuste canônico, as linhas paralelas passam por u=−1 e u=+1.</p><code>w · x + b = −1 ou +1</code></article><article class="svm-card"><h3>Vetores de suporte</h3><p>São as amostras sobre a margem ou que a violam. Elas participam diretamente da posição final da fronteira.</p><code>y · u ≤ 1</code></article></div>
+      <code class="svm-formula"><strong>largura total da margem</strong> = 2 / ‖w‖ &nbsp;&nbsp; onde &nbsp;&nbsp; ‖w‖ = √(w₁² + w₂²)</code>
+      <p class="svm-note"><strong>O nome explica o método:</strong> são “vetores” porque cada amostra é um vetor de características; são “de suporte” porque as amostras mais críticas sustentam a fronteira. Pontos muito afastados e corretamente classificados não mudam a solução da SVM clássica.</p>
+    </section>
+
+    <section class="svm-section">
+      <header class="svm-head"><p class="eyebrow">04 · UMA AMOSTRA PASSO A PASSO</p><h2>Do ponto até a perda hinge.</h2></header>
+      <div class="svm-example"><div><p class="eyebrow">DADOS</p><h3>x=[2;1], y=+1</h3><p>Considere w=[0,6;0,4] e b=−0,2. O alvo +1 indica que a amostra pertence à classe positiva.</p></div><div class="svm-example-steps"><code>1. u = 0,6×2 + 0,4×1 − 0,2 = <strong>1,4</strong></code><code>2. ŷ = sinal(1,4) = <strong>+1</strong> · previsão correta</code><code>3. margem funcional = y×u = (+1)×1,4 = <strong>1,4</strong></code><code>4. L<sub>hinge</sub> = máx(0, 1−1,4) = <strong>0</strong></code></div></div>
+      <aside class="svm-note"><strong>Acertar a classe não é tudo.</strong> Se u fosse 0,3, o sinal ainda produziria +1, porém y·u=0,3 estaria dentro do corredor da margem. A perda seria 1−0,3=0,7 e o treinamento ainda tentaria afastar esse ponto da fronteira.</aside>
+    </section>
+
+    <section class="svm-section">
+      <header class="svm-head"><p class="eyebrow">05 · PERDA HINGE</p><h2>Erros e margens insuficientes geram correção.</h2><p>A margem funcional combina alvo e escore em um único número: m=y·u. Quanto maior e positivo, mais segura é a decisão correta.</p></header>
+      <code class="svm-formula"><strong>m</strong> = y × u &nbsp;&nbsp; | &nbsp;&nbsp; <strong>L<sub>hinge</sub></strong> = máx(0, 1 − m)</code>
+      <div class="svm-table-wrap" style="margin-top:16px"><table class="svm-table"><thead><tr><th>y</th><th>u</th><th>m=y·u</th><th>L=max(0,1−m)</th><th>Interpretação</th></tr></thead><tbody><tr><td>+1</td><td>+1,6</td><td>1,6</td><td class="good">0</td><td>correto e fora da margem</td></tr><tr><td>+1</td><td>+0,4</td><td>0,4</td><td>0,6</td><td>correto, mas dentro da margem</td></tr><tr><td>−1</td><td>+0,3</td><td>−0,3</td><td class="bad">1,3</td><td>classe errada</td></tr><tr><td>−1</td><td>−1</td><td>1</td><td class="good">0</td><td>exatamente no limite</td></tr></tbody></table></div>
+      <code class="svm-formula"><strong>objetivo</strong> = ½‖w‖² + C × Σ máx(0, 1 − yᵢ(w·xᵢ+b))</code>
+    </section>
+
+    <section class="svm-section">
+      <header class="svm-head"><p class="eyebrow">06 · MARGEM RÍGIDA, MARGEM SUAVE E C</p><h2>Separar perfeitamente ou tolerar violações.</h2></header>
+      <div class="svm-grid"><article class="svm-card"><h3>Hard margin</h3><p>Exige todos os pontos corretamente classificados e fora da margem. Só é viável quando os dados são linearmente separáveis.</p><code>yᵢ(w·xᵢ+b) ≥ 1</code></article><article class="svm-card"><h3>Soft margin</h3><p>Permite algumas violações para lidar com ruído, sobreposição e outliers.</p><code>margem + penalidade</code></article><article class="svm-card"><h3>Parâmetro C</h3><p>C grande penaliza fortemente violações. C menor aceita mais violações e favorece regularização.</p><code>C ↑ → maior custo do erro</code></article></div>
+      <aside class="svm-warning"><strong>C não possui um melhor valor universal.</strong> Ele deve ser escolhido com dados de validação. O efeito também depende da escala das características e do kernel.</aside>
+    </section>
+
+    <section class="svm-section">
+      <header class="svm-head"><p class="eyebrow">07 · KERNELS</p><h2>Quando uma reta não é suficiente.</h2><p>Um kernel calcula similaridades como se os dados fossem representados em outro espaço. Isso permite que uma separação linear nesse novo espaço apareça como uma curva no espaço original.</p></header>
+      <div class="svm-kernel-grid"><article><h3>Linear</h3><div class="kernel-sketch kernel-linear"><i></i></div><p>Bom ponto de partida para muitas características, especialmente dados textuais esparsos.</p><code>K(x,z)=x·z</code></article><article><h3>Polinomial</h3><div class="kernel-sketch kernel-poly"><i></i></div><p>Representa interações de graus definidos entre as características.</p><code>K(x,z)=(γx·z+r)ᵈ</code></article><article><h3>RBF · Gaussiano</h3><div class="kernel-sketch kernel-rbf"><i></i></div><p>Cria regiões curvas e locais. C e γ precisam ser ajustados cuidadosamente.</p><code>K(x,z)=exp(−γ‖x−z‖²)</code></article></div>
+    </section>
+
+    <section class="svm-section">
+      <header class="svm-head"><p class="eyebrow">08 · QUANDO USAR E COMO PREPARAR</p><h2>SVM é poderosa, mas sensível à representação.</h2></header>
+      <div class="svm-grid four"><article class="svm-card"><h3>Texto</h3><p>Classificação de documentos, spam e sentimento com vetores esparsos e muitas dimensões.</p><code>texto → TF-IDF → SVM</code></article><article class="svm-card"><h3>Imagens e sinais</h3><p>Classificação usando características extraídas de pixels, formas, espectros ou sensores.</p><code>características → escala → SVM</code></article><article class="svm-card"><h3>Bioinformática</h3><p>Problemas com muitas características e conjuntos de amostras moderados.</p><code>genes / proteínas → classe</code></article><article class="svm-card"><h3>SVR</h3><p>A família também possui Support Vector Regression para prever valores contínuos.</p><code>regressão com tubo ε</code></article></div>
+      <div class="svm-table-wrap" style="margin-top:16px"><table class="svm-table"><thead><tr><th>Preparação</th><th>Por quê?</th></tr></thead><tbody><tr><td>Padronizar entradas numéricas</td><td>Distâncias, produtos internos e regularização são afetados pela escala.</td></tr><tr><td>Codificar categorias</td><td>Implementações usuais esperam vetores numéricos.</td></tr><tr><td>Separar treino e teste antes da escala</td><td>Evita vazamento das estatísticas do teste.</td></tr><tr><td>Ajustar C e parâmetros do kernel na validação</td><td>Controla o compromisso entre margem, complexidade e violações.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="svm-closing"><p class="eyebrow">DO CONCEITO À PRÁTICA</p><h2>Veja a fronteira e as margens se moverem.</h2><p>Treine uma SVM linear didática, acompanhe a perda hinge de cada ponto e teste novas coordenadas no plano.</p><a class="button" href="./svm-laboratorio.html">Abrir laboratório SVM →</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/svm.html" target="_blank" rel="noopener">scikit-learn · Support Vector Machines</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.hinge_loss.html" target="_blank" rel="noopener">scikit-learn · Hinge loss</a> · <a href="https://scikit-learn.org/stable/auto_examples/svm/plot_separating_hyperplane.html" target="_blank" rel="noopener">scikit-learn · Maximum margin</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

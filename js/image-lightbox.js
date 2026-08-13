@@ -4,7 +4,7 @@
 // ============================================================================
 
 (function enableImageLightbox() {
-  const images = [...document.querySelectorAll('main img')];
+  const images = [...document.querySelectorAll('main img:not([data-no-lightbox])')];
   if (!images.length) return;
 
   // O visualizador é criado uma única vez e reutilizado por todas as imagens.
@@ -15,7 +15,7 @@
   overlay.setAttribute('aria-label', 'Imagem ampliada');
   overlay.hidden = true;
   overlay.innerHTML = `
-    <button class="image-lightbox-close" type="button" aria-label="Fechar imagem ampliada">×</button>
+    <button class="image-lightbox-close" type="button" aria-label="Fechar imagem ampliada"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     <figure>
       <img class="image-lightbox-content" alt="">
       <figcaption class="image-lightbox-caption"></figcaption>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório RBF · Classificação | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/rbf-labs.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="rbf-lab-page">
+    <header class="rbf-lab-hero classification"><div><p class="eyebrow">LABORATÓRIO RBF 01 · CLASSIFICAÇÃO</p><h1>Regiões curvas construídas por proximidade.</h1><p class="lead">Seis neurônios Gaussianos medem a proximidade entre uma entrada 2D e centros de referência. A saída linear combina essas respostas e separa um grupo central de uma classe externa.</p></div><div class="rbf-lab-hero-flow"><span>x₁, x₂<small>entrada</small></span><i>→</i><span>φ₁ … φ₆<small>distâncias</small></span><i>→</i><span>u<small>saída linear</small></span><i>→</i><span>ŷ<small>Step(u−0,5)</small></span></div></header>
+
+    <section class="rbf-lab-introduction"><article><span>1</span><h2>Centros fixos</h2><p>Escolhemos seis amostras representativas. Cada centro define uma região Gaussiana local.</p><code>c₁ … c₆</code></article><article><span>2</span><h2>Ativações RBF</h2><p>Entradas próximas de um centro produzem φ próximo de 1; entradas distantes produzem φ próximo de 0.</p><code>φⱼ(x)=e<sup>−γ‖x−cⱼ‖²</sup></code></article><article><span>3</span><h2>Saída treinável</h2><p>Apenas os pesos lineares e o bias são ajustados neste experimento.</p><code>u=b+Σwⱼφⱼ</code></article></section>
+
+    <section class="rbf-lab-workspace">
+      <aside class="rbf-lab-controls"><h2>Treinamento</h2><p>A arquitetura permanece fixa: <strong>2 → 6 → 1</strong>.</p><div class="rbf-control-block"><div class="fixed-parameter"><span>LARGURA GAUSSIANA</span><strong>γ = 0,85</strong></div><div class="fixed-parameter"><span>TAXA DE APRENDIZADO</span><strong>η = 0,12</strong></div></div><div class="rbf-control-block"><button class="button full-button" id="rbfClassTrainOne">Treinar 1 época</button><button class="button full-button" id="rbfClassTrainHundred">Treinar 100 épocas</button><button class="button outline full-button" id="rbfClassReset">Reiniciar saída</button></div><div class="rbf-control-block"><h3>Testar novo ponto</h3><div class="rbf-test-grid"><label>x₁<input id="rbfClassTestX1" type="number" min="-4" max="4" step="0.1" value="0"></label><label>x₂<input id="rbfClassTestX2" type="number" min="-4" max="4" step="0.1" value="0"></label></div><button class="button full-button" id="rbfClassTest">Testar</button><div id="rbfClassTestResult" class="rbf-test-result">O ponto será comparado aos seis centros.</div></div></aside>
+
+      <div class="rbf-lab-results">
+        <div class="rbf-lab-metrics"><article><span>ÉPOCAS</span><strong id="rbfClassEpoch">0</strong></article><article><span>MSE</span><strong id="rbfClassLoss">—</strong></article><article><span>ACURÁCIA</span><strong id="rbfClassAccuracy">—</strong></article><article><span>CENTROS</span><strong>6</strong></article></div>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Regiões de decisão não lineares</h2><p>Os círculos maiores são centros. As linhas pontilhadas ligam a última amostra aos centros mais ativos.</p></div><span class="status" id="rbfClassStatus">Saída não treinada</span></div><canvas id="rbfClassPlane" width="940" height="660"></canvas><div class="rbf-lab-legend"><span><i class="rbf-class-a"></i>classe A · central</span><span><i class="rbf-class-b"></i>classe B · externa</span><span><i class="rbf-center-symbol"></i>centro RBF</span></div></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Rede e ativações da amostra</h2><p>Os valores dentro da camada oculta são as respostas Gaussianas φ.</p></div></div><canvas id="rbfClassNetwork" width="940" height="420"></canvas></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Último treinamento, passo a passo</h2><p>Distâncias, Gaussianas, potencial u, erro e ajuste da saída.</p></div></div><div id="rbfClassMath" class="rbf-lab-math"><p>Treine uma época para abrir as contas.</p></div></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Erro × resposta</h2><p>Compare a queda do MSE com o aumento da acurácia.</p></div></div><canvas id="rbfClassHistory" width="940" height="350"></canvas><div class="rbf-history-legend"><span><i></i>erro</span><span><i></i>acurácia</span></div></article>
+        <article class="rbf-lab-card"><div class="card-top"><div><h2>Resultados do dataset</h2><p>A saída contínua u é transformada em classe pelo limiar 0,5.</p></div></div><div class="rbf-table-wrap"><table id="rbfClassTable" class="rbf-result-table"></table></div></article>
+      </div>
+    </section>
+
+    <section class="algorithm-section"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>RBF para classificação em JavaScript</h2><p>Os centros ficam fixos; o treinamento ajusta somente os pesos da saída linear.</p><div class="algorithm-flow"><span>distanciaQuadrada()</span><span>gaussiana()</span><span>forward()</span><span>calcularErro()</span><span>ajustarSaida()</span></div></header><div class="code-window"><div class="code-window-bar"><span>rbf-classificacao.js</span><i>2 entradas → 6 Gaussianas → 1 saída</i></div><pre><code>// 1. Cada centro representa uma região do plano.
+var centros = [[0, 0], [0.8, 0.2], [-0.7, -0.3], [2.8, 0], [-2.7, 0.5], [0, -2.8]];
+var pesosSaida = [0, 0, 0, 0, 0, 0];
+var bias = 0;
+var gamma = 0.85;
+
+// 2. Calcula ‖x - c‖² sem usar objetos ou funções avançadas.
+function distanciaQuadrada(x, centro) {
+  var dx1 = x[0] - centro[0];
+  var dx2 = x[1] - centro[1];
+  return dx1 * dx1 + dx2 * dx2;
+}
+
+// 3. Transforma a distância em uma resposta local entre 0 e 1.
+function gaussiana(x, centro) {
+  return Math.exp(-gamma * distanciaQuadrada(x, centro));
+}
+
+// 4. Faz o forward e devolve [saída linear, ativações].
+function forward(x) {
+  var ativacoes = [];
+  var u = bias;
+  for (var j = 0; j &lt; centros.length; j++) {
+    ativacoes[j] = gaussiana(x, centros[j]);
+    u = u + pesosSaida[j] * ativacoes[j];
+  }
+  return [u, ativacoes];
+}
+
+// 5. O treinamento usa a saída contínua u, antes do Step.
+function calcularErro(y, u) {
+  return y - u;
+}
+
+// 6. Ajusta cada peso de acordo com a ativação de sua Gaussiana.
+function ajustarSaida(ativacoes, erro, taxa) {
+  for (var j = 0; j &lt; pesosSaida.length; j++) {
+    pesosSaida[j] = pesosSaida[j] + taxa * erro * ativacoes[j];
+  }
+  bias = bias + taxa * erro;
+}
+
+// 7. Reúne o forward, o erro e o ajuste de uma amostra.
+function treinarAmostra(x, y, taxa) {
+  var resultado = forward(x);
+  var u = resultado[0];
+  var ativacoes = resultado[1];
+  var erro = calcularErro(y, u);
+  ajustarSaida(ativacoes, erro, taxa);
+}</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aston.ac.uk/files/18258465/Radial_Basis_Function_Network.pdf" target="_blank" rel="noopener">Broomhead e Lowe · RBF Networks</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/rbf-classification-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body></html>

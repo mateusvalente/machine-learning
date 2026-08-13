@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Transformers e Self-Attention | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/advanced-neural.css">
+</head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="advanced-page">
+    <section class="advanced-hero">
+      <div><p class="eyebrow">REDES NEURAIS · TRANSFORMERS</p><h1>Cada token decide em quais outros tokens prestar atenção.</h1><p class="lead">O Transformer representa palavras como vetores e usa Self-Attention para combinar informações da sequência. Isso permite modelar relações próximas ou distantes sem depender de uma leitura recorrente palavra por palavra.</p><div class="advanced-hero-actions"><a class="button" href="./transformer-laboratorio.html">Abrir laboratório →</a><a class="button outline" href="#self-attention">Ver a matemática ↓</a></div></div>
+      <div class="advanced-hero-visual"><div class="architecture-row"><span>tokens<small>entrada</small></span><i>→</i><span class="square">embeddings<small>vetores</small></span><i>→</i><span>Q K V<small>atenção</small></span><i>→</i><span class="square">saída<small>contexto</small></span></div><div class="advanced-hero-note">O processamento da sequência pode ser paralelizado durante o treinamento. Na geração autoregressiva, porém, cada novo token depende dos tokens já produzidos.</div></div>
+    </section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">01 · DA FRASE AOS VETORES</p><h2>Antes da atenção, o texto vira números.</h2><p>O modelo não recebe palavras diretamente. Ele recebe identificadores e vetores aprendidos.</p></header><div class="concept-grid four">
+      <article class="concept-card"><span class="step-badge">1</span><h3>Tokenização</h3><p>Divide o texto em unidades chamadas tokens: palavras, partes de palavras, caracteres ou bytes.</p><code class="formula-light">"eu gosto" → ["eu", "gosto"]</code></article>
+      <article class="concept-card"><span class="step-badge">2</span><h3>Embedding</h3><p>Cada token consulta uma linha da matriz E e recebe um vetor d-dimensional.</p><code class="formula-light">xᵢ = E[tokenᵢ]</code></article>
+      <article class="concept-card"><span class="step-badge">3</span><h3>Posição</h3><p>Uma informação posicional diferencia “A segue B” de “B segue A”.</p><code class="formula-light">hᵢ = xᵢ + pᵢ</code></article>
+      <article class="concept-card"><span class="step-badge">4</span><h3>Projeções</h3><p>Cada vetor gera uma consulta, uma chave e um valor.</p><code class="formula-light">Q=HWQ · K=HWK · V=HWV</code></article>
+    </div></section>
+
+    <section class="lesson-section" id="self-attention"><header class="lesson-head"><p class="eyebrow">02 · SELF-ATTENTION PASSO A PASSO</p><h2>Consulta, compatibilidade, pesos e contexto.</h2><p>Para cada token, a rede mede a compatibilidade entre sua consulta e as chaves de todos os tokens permitidos.</p></header><div class="math-walkthrough">
+      <article class="math-step"><span>1</span><div><h3>Formar Q, K e V</h3><p>As matrizes treináveis WQ, WK e WV criam três visões diferentes do mesmo embedding.</p><code class="formula">qᵢ = hᵢWQ &nbsp;·&nbsp; kⱼ = hⱼWK &nbsp;·&nbsp; vⱼ = hⱼWV</code></div></article>
+      <article class="math-step"><span>2</span><div><h3>Calcular os escores</h3><p>O produto escalar cresce quando consulta e chave apontam para direções semelhantes. A divisão por √dₖ controla a escala.</p><code class="formula">score(i,j) = qᵢ · kⱼ / √dₖ</code></div></article>
+      <article class="math-step"><span>3</span><div><h3>Normalizar com Softmax</h3><p>Os escores viram pesos positivos cuja soma é 1. Um peso maior significa maior contribuição para aquele token de consulta.</p><code class="formula">αᵢⱼ = exp(scoreᵢⱼ) / Σₘ exp(scoreᵢₘ) &nbsp;·&nbsp; <strong>Σⱼαᵢⱼ=1</strong></code></div></article>
+      <article class="math-step"><span>4</span><div><h3>Construir o vetor de contexto</h3><p>O resultado é a média ponderada dos valores. Cada posição recebe uma mistura diferente da sequência.</p><code class="formula">contextoᵢ = Σⱼ αᵢⱼvⱼ</code></div></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">03 · EXEMPLO NUMÉRICO PEQUENO</p><h2>Como “banco” pode buscar contexto.</h2></header><div class="concept-grid">
+      <article class="concept-card"><h3>Consulta</h3><p>Imagine que o token atual seja “banco” e que seu vetor de consulta seja q = [1; 1].</p><code class="formula-light">q = [1; 1]</code></article>
+      <article class="concept-card"><h3>Escores</h3><p>Com chaves simplificadas de “sentei”, “no” e “banco”, obtemos três compatibilidades.</p><code class="formula-light">s = [0,71; 0; 1,41]</code></article>
+      <article class="concept-card"><h3>Atenção</h3><p>A Softmax transforma esses números em uma distribuição.</p><code class="formula-light">α ≈ [0,28; 0,14; 0,58]</code></article>
+    </div><aside class="notice"><strong>Importante:</strong> atenção não é uma explicação perfeita do raciocínio interno do modelo. Ela mostra como valores foram combinados naquela camada e cabeça, mas o comportamento final também depende das demais camadas, pesos e representações.</aside></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">04 · BLOCO TRANSFORMER</p><h2>A atenção é uma parte da arquitetura.</h2></header><div class="concept-grid four">
+      <article class="concept-card"><h3>Multi-Head Attention</h3><p>Várias cabeças calculam atenções em subespaços diferentes e suas saídas são concatenadas.</p><code class="formula-light">MHA = Concat(head₁,…,headₕ)WO</code></article>
+      <article class="concept-card"><h3>Conexão residual</h3><p>A entrada é somada à transformação para facilitar o fluxo da informação e dos gradientes.</p><code class="formula-light">r = h + Attention(h)</code></article>
+      <article class="concept-card"><h3>Normalização</h3><p>Layer Normalization estabiliza a escala das ativações dentro de cada exemplo.</p><code class="formula-light">LN(r)=(r−μ)/√(σ²+ε)</code></article>
+      <article class="concept-card"><h3>Feedforward</h3><p>Uma pequena MLP é aplicada independentemente em cada posição.</p><code class="formula-light">FFN(x)=W₂·g(W₁x+b₁)+b₂</code></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">05 · TREINAMENTO E GERAÇÃO</p><h2>Prever o próximo token muitas vezes.</h2><p>Em um modelo causal, a máscara impede que uma posição veja tokens futuros durante o treinamento.</p></header><div class="math-walkthrough">
+      <article class="math-step"><span>1</span><div><h3>Logits</h3><p>O contexto é projetado para um número por token do vocabulário.</p><code class="formula">z = Wₒ·contexto + bₒ</code></div></article>
+      <article class="math-step"><span>2</span><div><h3>Probabilidades</h3><p>A Softmax converte os logits na distribuição do próximo token.</p><code class="formula">P(token=t|contexto)=exp(zₜ)/Σⱼexp(zⱼ)</code></div></article>
+      <article class="math-step"><span>3</span><div><h3>Cross-entropy</h3><p>Se o token correto é y, a perda pune probabilidades pequenas atribuídas a y.</p><code class="formula">L = −log P(y|contexto)</code></div></article>
+      <article class="math-step"><span>4</span><div><h3>Backpropagation</h3><p>Os gradientes atravessam saída, atenção, projeções e embeddings; o otimizador corrige os pesos.</p><code class="formula">θ novo = θ atual − η∂L/∂θ</code></div></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">06 · VARIAÇÕES E APLICAÇÕES</p><h2>O mesmo princípio serve a diferentes modalidades.</h2><p>Transformers são o componente central de grandes modelos de linguagem, incluindo famílias como GPT e Gemini. A arquitetura também foi adaptada para visão, áudio e sequências biológicas.</p></header><div class="comparison-wrap"><table><thead><tr><th>Formato</th><th>O que observa</th><th>Uso comum</th></tr></thead><tbody><tr><td>Encoder</td><td>Contexto nos dois sentidos.</td><td>Classificação, busca e representação.</td></tr><tr><td>Decoder causal</td><td>Somente tokens anteriores.</td><td>Geração de texto e código.</td></tr><tr><td>Encoder–decoder</td><td>Entrada completa e saída autoregressiva.</td><td>Tradução e transformação de sequências.</td></tr><tr><td>Vision Transformer</td><td>Patches da imagem tratados como tokens.</td><td>Classificação e compreensão visual.</td></tr></tbody></table></div><div class="application-grid" style="margin-top:16px"><article><span>文</span><h3>Linguagem</h3><p>Tradução, resumo, resposta a perguntas e geração.</p></article><article><span>&lt;/&gt;</span><h3>Código</h3><p>Completar, explicar, revisar e transformar programas.</p></article><article><span>▦</span><h3>Visão e multimodalidade</h3><p>Patches de imagem e representações de áudio podem participar como tokens.</p></article><article><span>⌁</span><h3>Ciência</h3><p>Modelagem de proteínas, sequências biológicas e estruturas moleculares.</p></article></div></section>
+
+    <section class="module-cta"><h2>Veja uma cabeça causal aprender um corpus minúsculo.</h2><p>O laboratório expõe embeddings, escores, Softmax da atenção, contexto, probabilidades, cross-entropy e atualização da camada de saída.</p><a class="button" href="./transformer-laboratorio.html">Treinar o mini Transformer →</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener">Vaswani et al. · Attention Is All You Need</a> · <a href="https://arxiv.org/abs/2010.11929" target="_blank" rel="noopener">Dosovitskiy et al. · Vision Transformer</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

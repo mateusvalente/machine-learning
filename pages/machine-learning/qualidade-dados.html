@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Qualidade dos Dados | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/data-preparation.css">
+  <link rel="stylesheet" href="../../css/data-quality.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="data-page quality-page">
+    <section class="data-hero quality-hero">
+      <div>
+        <p class="eyebrow">PREPARAÇÃO DE DADOS · QUALIDADE</p>
+        <h1>O modelo não separa sozinho sinal, erro e peso morto.</h1>
+        <p class="lead">Tratar dados é torná-los adequados ao objetivo: corretos o bastante para representar o problema, relevantes para a previsão e eficientes para serem processados.</p>
+      </div>
+      <div class="quality-balance" aria-label="Relação entre qualidade, precisão e custo">
+        <div><i class="fa-solid fa-bullseye"></i><b>Precisão</b><span>aprender o sinal correto</span></div>
+        <div><i class="fa-solid fa-microchip"></i><b>Custo</b><span>processar menos trabalho inútil</span></div>
+        <div><i class="fa-solid fa-scale-balanced"></i><b>Equilíbrio</b><span>validar antes de remover</span></div>
+      </div>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">01 · O QUE É QUALIDADE?</p><h2>Dado de qualidade é dado adequado ao uso.</h2><p>Uma tabela pode estar completa e ainda ser ruim para uma previsão. Qualidade depende do problema, do momento da decisão e da população em que o modelo será usado.</p></header>
+      <div class="quality-dimensions">
+        <article><i class="fa-solid fa-check-double"></i><h3>Exatidão</h3><p>O valor corresponde ao fato real?</p><code>idade = 32, não 320</code></article>
+        <article><i class="fa-solid fa-puzzle-piece"></i><h3>Completude</h3><p>Os campos necessários estão preenchidos?</p><code>renda ausente = 18%</code></article>
+        <article><i class="fa-solid fa-equals"></i><h3>Consistência</h3><p>Formato, unidade e regras concordam?</p><code>kg ≠ libras</code></article>
+        <article><i class="fa-solid fa-filter-circle-check"></i><h3>Validade</h3><p>O valor respeita tipo, intervalo e domínio?</p><code>nota ∈ [0, 10]</code></article>
+        <article><i class="fa-solid fa-crosshairs"></i><h3>Relevância</h3><p>A variável ajuda o objetivo sem revelar o futuro?</p><code>prever aprovação ≠ ler resultado</code></article>
+        <article><i class="fa-solid fa-users-viewfinder"></i><h3>Representatividade</h3><p>O treino cobre os casos encontrados no uso real?</p><code>grupos, épocas e situações</code></article>
+      </div>
+      <aside class="rule-box"><strong>Precisão do dado × precisão do modelo:</strong> precisão do dado significa proximidade do valor real; precisão do modelo é seu desempenho preditivo. A primeira influencia a segunda, mas dados limpos não corrigem um alvo mal definido, uma amostra enviesada ou um modelo inadequado.</aside>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">02 · POR QUE TRATAR?</p><h2>O tratamento atua na qualidade e no custo.</h2></header>
+      <div class="quality-goals">
+        <article><span>01</span><div><h3>Evitar padrões falsos</h3><p>Duplicatas, erros, vazamento do alvo e códigos tratados como medidas podem produzir uma validação enganosa.</p></div></article>
+        <article><span>02</span><div><h3>Facilitar a otimização</h3><p>Escalas coerentes e menos ruído tornam a superfície de erro mais fácil de percorrer por algoritmos de gradiente.</p></div></article>
+        <article><span>03</span><div><h3>Reduzir processamento</h3><p>Menos linhas redundantes, colunas inúteis e categorias desnecessárias significam matrizes menores.</p></div></article>
+        <article><span>04</span><div><h3>Melhorar generalização</h3><p>Selecionar sinais estáveis pode reduzir sobreajuste, mas a decisão deve ser confirmada em validação.</p></div></article>
+      </div>
+      <div class="cost-equation">
+        <div><span>Custo simplificado do treino</span><strong>C ≈ N × P × E</strong><small>N exemplos · P características após codificação · E épocas</small></div>
+        <i class="fa-solid fa-arrow-right"></i>
+        <div><span>Exemplo</span><strong>100.000 × 80 × 50</strong><small>= 400 milhões de valores processados</small></div>
+        <i class="fa-solid fa-arrow-right"></i>
+        <div><span>Após remoção validada</span><strong>80.000 × 45 × 50</strong><small>= 180 milhões · 55% menos</small></div>
+      </div>
+      <aside class="warning-box"><strong>É uma aproximação didática.</strong> O custo real depende do algoritmo, esparsidade, hardware, batch, implementação e comunicação de memória. Remover 55% dos valores processados também não garante treino exatamente 55% mais rápido.</aside>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">03 · VARIÁVEIS QUE ATRAPALHAM</p><h2>Como suspeitar, testar e decidir.</h2><p>Alguns problemas são detectáveis pela tabela; outros só aparecem quando comparamos o modelo em dados de validação que não participaram das decisões.</p></header>
+      <div class="table-scroll"><table class="data-table quality-guide"><thead><tr><th>Problema</th><th>Como detectar</th><th>Como pode atrapalhar</th><th>Ação possível</th><th>Confirmação</th></tr></thead><tbody>
+        <tr><td>Coluna constante</td><td>variância = 0 ou um único valor</td><td>Ocupa memória e nunca separa exemplos.</td><td>Remover.</td><td>Regra direta.</td></tr>
+        <tr><td>ID quase único</td><td>valores únicos ÷ linhas ≈ 100%</td><td>Pode incentivar memorização e explodir um One-Hot.</td><td>Remover, transformar ou investigar.</td><td>Entender a semântica.</td></tr>
+        <tr><td>Muitos ausentes</td><td>ausentes ÷ linhas acima do limite</td><td>Imputação pode dominar o sinal real.</td><td>Coletar, imputar ou remover.</td><td>Comparar pipeline em validação.</td></tr>
+        <tr><td>Redundância</td><td>|correlação| próxima de 1 ou informação duplicada</td><td>Aumenta custo e pode instabilizar coeficientes lineares.</td><td>Manter uma, combinar ou regularizar.</td><td>Ablation test.</td></tr>
+        <tr><td>Vazamento do alvo</td><td>coluna criada depois da decisão ou derivada de y</td><td>Produz desempenho irreal que desaparece em produção.</td><td>Remover do conjunto de entradas.</td><td>Linha do tempo e regra de negócio.</td></tr>
+        <tr><td>Ruído irrelevante</td><td>permutation importance, seleção univariada ou ablação</td><td>Aumenta variância, tempo e risco de sobreajuste.</td><td>Remover somente se a validação sustentar.</td><td>Validação cruzada.</td></tr>
+      </tbody></table></div>
+      <div class="selection-methods">
+        <article><b>Filtro</b><span>Analisa propriedades da variável: variância, correlação, informação mútua.</span></article><i>→</i><article><b>Wrapper</b><span>Treina diferentes subconjuntos: seleção sequencial ou eliminação recursiva.</span></article><i>→</i><article><b>Embutido</b><span>O próprio modelo seleciona: L1, árvores e importâncias.</span></article><i>→</i><article><b>Ablação</b><span>Remove uma variável e mede a mudança em validação.</span></article>
+      </div>
+      <div class="quality-math-grid">
+        <article><h3>Variância</h3><p>Se todos os valores são iguais, cada desvio em relação à média vale zero.</p><code>Var(x) = Σ(xᵢ − x̄)² ÷ N = 0</code></article>
+        <article><h3>Permutation importance</h3><p>Embaralhamos uma coluna. Se o desempenho cair muito, o modelo dependia dela.</p><code>Iⱼ = score_original − score_embaralhado</code></article>
+        <article><h3>Ablação</h3><p>Treinamos novamente sem a variável e comparamos usando a mesma validação.</p><code>Δ = score_completo − score_sem_xⱼ</code></article>
+      </div>
+      <aside class="rule-box"><strong>Teste de ablação:</strong> treine um baseline com todas as variáveis; remova uma variável ou grupo; repita a mesma validação. Se a métrica não piorar e o custo cair de forma relevante, há evidência para a remoção. Faça seleção usando somente treino/validação — nunca escolha variáveis olhando o teste final.</aside>
+      <div class="table-scroll quality-example-table"><table class="data-table"><thead><tr><th>Experimento didático</th><th>Acurácia de validação</th><th>Custo relativo</th><th>Leitura correta</th></tr></thead><tbody><tr><td>Todas, incluindo resultado posterior</td><td>100%</td><td>100%</td><td>Resultado suspeito: existe vazamento, não um modelo perfeito.</td></tr><tr><td>Sem vazamento</td><td>83%</td><td>87,5%</td><td>Estimativa mais realista do que estará disponível em produção.</td></tr><tr><td>Sem constante e redundância, após ablação</td><td>83%</td><td>62,5%</td><td>Mesma acurácia ilustrativa com uma entrada menor.</td></tr><tr><td>Sem uma variável realmente útil</td><td>71%</td><td>50%</td><td>Ficou mais barato, mas perdeu sinal preditivo.</td></tr></tbody></table></div>
+      <p class="illustrative-note"><i class="fa-solid fa-circle-info"></i> Valores ilustrativos para interpretar o método; não são resultados calculados pelo laboratório abaixo.</p>
+    </section>
+
+    <section class="data-section quality-lab" id="laboratorio-qualidade">
+      <header class="data-head"><p class="eyebrow">04 · LABORATÓRIO</p><h2>Um inspetor de qualidade feito à mão.</h2><p>Edite qualquer célula e clique em analisar. O JavaScript percorre a matriz sem biblioteca externa, calcula estatísticas e explica cada suspeita. “Aplicar sugestões seguras” exclui somente regras diretas; alertas dependentes do contexto continuam para decisão humana.</p></header>
+      <div class="quality-toolbar">
+        <button class="button" id="qualityAnalyze"><i class="fa-solid fa-magnifying-glass-chart"></i> Analisar dados</button>
+        <button class="button secondary" id="qualityApply"><i class="fa-solid fa-wand-magic-sparkles"></i> Aplicar sugestões seguras</button>
+        <button class="button secondary" id="qualityRestore"><i class="fa-solid fa-rotate-left"></i> Restaurar exemplo</button>
+        <span>Alvo: <b>aprovado</b></span>
+      </div>
+      <div class="quality-stats" aria-live="polite">
+        <article><span>Linhas ativas</span><b id="qualityRows">—</b></article>
+        <article><span>Entradas ativas</span><b id="qualityColumns">—</b></article>
+        <article><span>Células processadas</span><b id="qualityCells">—</b></article>
+        <article><span>Economia estimada</span><b id="qualitySaving">—</b></article>
+      </div>
+      <div class="quality-lab-grid">
+        <article class="quality-panel"><div class="panel-heading"><div><h3>Dataset editável</h3><p>Vazio, “NA” e “?” contam como ausentes.</p></div><span contenteditable="false">duplo clique não necessário</span></div><div class="table-scroll"><table class="data-table editable-data" id="qualityTable"><thead></thead><tbody></tbody></table></div><p class="lab-hint"><i class="fa-solid fa-pen"></i> Clique em uma célula para alterar o valor. Colunas removidas ficam ocultas até restaurar.</p></article>
+        <article class="quality-panel"><div class="panel-heading"><div><h3>Relatório por variável</h3><p>Diagnóstico, evidência e ação sugerida.</p></div></div><div id="qualityReport" class="quality-report" aria-live="polite"></div></article>
+      </div>
+      <div class="quality-duplicates" id="qualityDuplicates"></div>
+      <aside class="warning-box"><strong>O programa sinaliza; o especialista decide.</strong> Uma matrícula pode ser um ID inútil, mas um identificador de máquina pode carregar informação legítima sobre manutenção. Correlação também não prova causalidade nem irrelevância.</aside>
+    </section>
+
+    <section class="algorithm-section quality-code">
+      <header><p class="eyebrow">JAVASCRIPT DIDÁTICO</p><h2>A lógica central do inspetor.</h2><p>O laboratório usa laços, arrays e funções pequenas. Este recorte mostra como detectar uma coluna constante e a proporção de valores ausentes.</p></header>
+      <div class="code-window"><div class="code-window-bar"><span>qualidade-dados.js</span><i>sem biblioteca de Machine Learning</i></div><pre><code class="language-javascript">// Conta quantas vezes um valor está ausente.
+function calcularTaxaDeAusencia(coluna) {
+  var ausentes = 0;
+
+  for (var linha = 0; linha &lt; coluna.length; linha++) {
+    if (coluna[linha] === '' || coluna[linha] === 'NA' || coluna[linha] === '?') {
+      ausentes = ausentes + 1;
+    }
+  }
+
+  return ausentes / coluna.length;
+}
+
+// Uma coluna é constante quando todos os valores válidos são iguais.
+function colunaEhConstante(coluna) {
+  var primeiroValor = '';
+
+  for (var linha = 0; linha &lt; coluna.length; linha++) {
+    if (coluna[linha] !== '') {
+      if (primeiroValor === '') primeiroValor = coluna[linha];
+      if (coluna[linha] !== primeiroValor) return false;
+    }
+  }
+
+  return true;
+}</code></pre></div>
+    </section>
+
+    <section class="data-section">
+      <header class="data-head"><p class="eyebrow">05 · CHECKLIST DE PRODUÇÃO</p><h2>O tratamento continua depois do treinamento.</h2></header>
+      <div class="quality-checklist"><article><b>Antes</b><span>Defina o significado, origem, unidade, período e responsável por cada campo.</span></article><article><b>No treino</b><span>Ajuste imputação, escala e seleção somente com os dados permitidos.</span></article><article><b>Na validação</b><span>Compare métrica, estabilidade, tempo, memória e desempenho por grupos.</span></article><article><b>Em produção</b><span>Monitore ausências, categorias novas, mudança de distribuição e queda de desempenho.</span></article></div>
+    </section>
+
+    <nav class="page-links"><a href="./preparacao-dados.html"><b>Visão geral →</b><span>Limpeza, transformação, embeddings e pipelines.</span></a><a href="./tipos-variaveis.html"><b>Tipos de variáveis →</b><span>Entenda o significado antes de selecionar.</span></a><a href="./generalizacao.html"><b>Generalização →</b><span>Relacione qualidade, overfitting e desempenho fora do treino.</span></a></nav>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://www.nist.gov/itl/health-it-testing-infrastructure/health-it-testing-infrastructure/supporting-ai-healthcare" target="_blank" rel="noopener">NIST · Qualidade de dados para IA</a> · <a href="https://scikit-learn.org/stable/modules/feature_selection.html" target="_blank" rel="noopener">scikit-learn · Seleção de características</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.VarianceThreshold.html" target="_blank" rel="noopener">scikit-learn · VarianceThreshold</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/qualidade-dados.js"></script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CNNs · Redes Neurais Convolucionais | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/advanced-neural.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="advanced-page">
+    <section class="advanced-hero cnn"><div><p class="eyebrow">REDES NEURAIS · CNN</p><h1>Um mesmo filtro procura um padrão em toda a imagem.</h1><p class="lead">Uma Rede Neural Convolucional aplica pequenos filtros compartilhados sobre os pixels. As primeiras camadas detectam bordas e orientações; camadas posteriores combinam essas respostas em formas mais complexas.</p><div class="advanced-hero-actions"><a class="button" href="./cnn-laboratorio.html">Classificar dígitos →</a><a class="button outline" href="#convolucao">Ver a convolução ↓</a></div></div><div class="advanced-hero-visual"><div class="architecture-row"><span class="square">imagem<small>28 × 28</small></span><i>→</i><span class="square">filtros<small>convolução</small></span><i>→</i><span>ReLU<small>ativação</small></span><i>→</i><span class="square">classe<small>Softmax</small></span></div><div class="advanced-hero-note">A inspiração biológica é uma analogia histórica com campos receptivos locais. Uma CNN não reproduz literalmente o sistema visual biológico.</div></div>
+    </section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">01 · POR QUE NÃO LIGAR TUDO A TUDO?</p><h2>Localidade e compartilhamento de pesos.</h2></header><div class="concept-grid">
+      <article class="concept-card"><span class="step-badge">□</span><h3>Campo receptivo local</h3><p>Um neurônio observa apenas uma pequena vizinhança, como 3 × 3 pixels, em vez da imagem inteira.</p><code class="formula-light">patch local → uma ativação</code></article>
+      <article class="concept-card"><span class="step-badge">↔</span><h3>Mesmo filtro</h3><p>Os nove pesos do filtro são reutilizados em todas as posições. Assim, uma borda pode ser detectada onde aparecer.</p><code class="formula-light">9 pesos percorrem a imagem</code></article>
+      <article class="concept-card"><span class="step-badge">▦</span><h3>Mapas de características</h3><p>Cada filtro produz um mapa indicando onde aquele padrão ativou com maior intensidade.</p><code class="formula-light">imagem * filtro = feature map</code></article>
+    </div></section>
+
+    <section class="lesson-section" id="convolucao"><header class="lesson-head"><p class="eyebrow">02 · CONVOLUÇÃO PASSO A PASSO</p><h2>Multiplicar nove pares e somar.</h2><p>Em bibliotecas de redes neurais, a operação chamada convolução costuma ser tecnicamente uma correlação cruzada, pois o filtro não é invertido. A regra numérica abaixo é a usada na prática.</p></header><div class="math-walkthrough">
+      <article class="math-step"><span>1</span><div><h3>Recorte da imagem</h3><p>Considere um patch com uma linha vertical no centro.</p><code class="formula">X = [0 1 0]<br>&nbsp;&nbsp;&nbsp;&nbsp;[0 1 0]<br>&nbsp;&nbsp;&nbsp;&nbsp;[0 1 0]</code></div></article>
+      <article class="math-step"><span>2</span><div><h3>Filtro vertical</h3><p>Pesos positivos no centro e negativos nas laterais favorecem uma faixa vertical.</p><code class="formula">K = [−1 2 −1]<br>&nbsp;&nbsp;&nbsp;&nbsp;[−1 2 −1]<br>&nbsp;&nbsp;&nbsp;&nbsp;[−1 2 −1]</code></div></article>
+      <article class="math-step"><span>3</span><div><h3>Soma ponderada</h3><p>Multiplicamos as posições correspondentes e acrescentamos o bias.</p><code class="formula">u = ΣᵣΣ꜀ Xᵣ꜀Kᵣ꜀ + b<br>u = 0+2+0+0+2+0+0+2+0 = <strong>6</strong></code></div></article>
+      <article class="math-step"><span>4</span><div><h3>Ativação ReLU</h3><p>Respostas negativas são zeradas; evidências positivas permanecem.</p><code class="formula">a = max(0,u) = max(0,6) = <strong>6</strong></code></div></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">03 · TAMANHO DA SAÍDA</p><h2>Filtro, stride e padding controlam a geometria.</h2></header><div class="concept-grid">
+      <article class="concept-card"><h3>Filtro F</h3><p>Quanto maior o filtro, maior a vizinhança observada em uma operação.</p><code class="formula-light">F = 3 para um filtro 3 × 3</code></article>
+      <article class="concept-card"><h3>Stride S</h3><p>É o número de pixels que o filtro avança a cada posição.</p><code class="formula-light">S = 1: avança um pixel</code></article>
+      <article class="concept-card"><h3>Padding P</h3><p>Adiciona bordas artificiais para controlar a redução espacial.</p><code class="formula-light">saída = ⌊(N+2P−F)/S⌋+1</code></article>
+    </div><aside class="notice"><strong>Exemplo:</strong> uma entrada 28 × 28, filtro 3 × 3, stride 1 e sem padding produz um mapa 26 × 26: (28 − 3)/1 + 1 = 26.</aside></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">04 · DA BORDA À CLASSE</p><h2>As etapas de um classificador convolucional.</h2></header><div class="concept-grid four">
+      <article class="concept-card"><span class="step-badge">1</span><h3>Convolução</h3><p>Filtros produzem mapas de linhas, curvas, cantos e texturas.</p><code class="formula-light">Uₖ = X * Kₖ + bₖ</code></article>
+      <article class="concept-card"><span class="step-badge">2</span><h3>ReLU</h3><p>Introduz não linearidade e mantém ativações positivas.</p><code class="formula-light">Aₖ=max(0,Uₖ)</code></article>
+      <article class="concept-card"><span class="step-badge">3</span><h3>Pooling</h3><p>Resume pequenas regiões, reduzindo a resolução e mantendo respostas fortes.</p><code class="formula-light">p=max(a₁,a₂,a₃,a₄)</code></article>
+      <article class="concept-card"><span class="step-badge">4</span><h3>Densa + Softmax</h3><p>As características são combinadas para produzir probabilidades das classes.</p><code class="formula-light">P(y=k)=Softmax(z)ₖ</code></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">05 · TREINAMENTO</p><h2>A classe correta corrige filtros e saída.</h2></header><div class="math-walkthrough">
+      <article class="math-step"><span>ŷ</span><div><h3>Forward</h3><p>A imagem atravessa convoluções, ativações, pooling e camada densa.</p><code class="formula">X → mapas → características → P(classes)</code></div></article>
+      <article class="math-step"><span>L</span><div><h3>Cross-entropy</h3><p>Se a classe correta é y, usamos a probabilidade atribuída a ela.</p><code class="formula">L = −log P(y)</code></div></article>
+      <article class="math-step"><span>∂</span><div><h3>Backpropagation</h3><p>O gradiente volta pela camada densa, pooling, ReLU e convolução.</p><code class="formula">∂L/∂Kᵣ꜀ = Σ posições ∂L/∂u · pixel observado</code></div></article>
+      <article class="math-step"><span>η</span><div><h3>Atualização</h3><p>Cada filtro aprende os padrões que ajudam a reduzir a classificação errada.</p><code class="formula">K novo = K atual − η∂L/∂K</code></div></article>
+    </div></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">06 · CNN E DÍGITOS</p><h2>O que os filtros podem descobrir?</h2></header><div class="application-grid"><article><span>│</span><h3>Traços verticais</h3><p>Ajudam a reconhecer 1, 4 e 7, mas não determinam sozinhos a classe.</p></article><article><span>—</span><h3>Traços horizontais</h3><p>Contribuem para 2, 4, 5 e 7 em posições diferentes.</p></article><article><span>○</span><h3>Contornos fechados</h3><p>Combinações de bordas podem formar os laços de 0, 6, 8 e 9.</p></article><article><span>╱</span><h3>Diagonais</h3><p>Ajudam a representar inclinações presentes em 2, 4 e 7.</p></article></div><aside class="notice"><strong>Não existe necessariamente “um filtro do número 8”.</strong> Em redes profundas, o reconhecimento surge da composição de muitas ativações distribuídas por diversas camadas.</aside></section>
+
+    <section class="lesson-section"><header class="lesson-head"><p class="eyebrow">07 · APLICAÇÕES</p><h2>Convoluções exploram estrutura espacial.</h2></header><div class="application-grid"><article><span>⌕</span><h3>Classificação</h3><p>Identificar objetos, defeitos, espécies ou padrões médicos.</p></article><article><span>▣</span><h3>Detecção</h3><p>Localizar e classificar vários objetos em uma imagem.</p></article><article><span>▒</span><h3>Segmentação</h3><p>Atribuir uma classe a cada pixel da cena.</p></article><article><span>⌁</span><h3>Sinais</h3><p>Convoluções 1D também processam áudio e séries temporais.</p></article></div></section>
+
+    <section class="module-cta"><h2>Desenhe um dígito e acompanhe os mapas.</h2><p>O laboratório usa quatro filtros 3 × 3, ReLU, Max Pooling e uma saída Softmax treinável.</p><a class="button" href="./cnn-laboratorio.html">Abrir mini CNN →</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://yann.lecun.org/exdb/mnist/index.html" target="_blank" rel="noopener">LeCun, Cortes e Burges · MNIST</a> · <a href="https://yann.lecun.com/exdb/publis/pdf/lecun-98.pdf" target="_blank" rel="noopener">LeCun et al. · Gradient-Based Learning</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

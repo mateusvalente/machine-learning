@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Regressão Linear | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/learning-theory.css">
+  <link rel="stylesheet" href="../../css/regression-theory.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="regression-page" data-regression-lab="linear">
+    <section class="regression-hero">
+      <div><p class="eyebrow">MACHINE LEARNING · REGRESSÃO LINEAR</p><h1>Representar uma relação com uma equação.</h1><p>A regressão linear descreve como uma variável de resposta <b>y</b> varia em função de uma ou mais variáveis explicativas <b>x</b>. Depois de encontrar os coeficientes da equação, podemos inserir novos valores de entrada e calcular uma previsão.</p><a class="button" href="#modelo-matematico"><i class="fa-solid fa-arrow-down" aria-hidden="true"></i> Construir o modelo</a></div>
+      <figure class="regression-plot"><svg viewBox="0 0 480 330" role="img" aria-label="Pontos próximos de uma reta crescente"><path class="reg-grid" d="M65 45V280M137 45V280M209 45V280M281 45V280M353 45V280M425 45V280M65 280H435M65 225H435M65 170H435M65 115H435M65 60H435"/><path class="reg-axis" d="M55 280H442M65 292V35"/><path class="reg-line" d="M80 261L420 69"/><g><circle class="reg-point" cx="94" cy="248" r="7"/><circle class="reg-point" cx="148" cy="211" r="7"/><circle class="reg-point" cx="205" cy="201" r="7"/><circle class="reg-point" cx="259" cy="160" r="7"/><circle class="reg-point" cx="316" cy="142" r="7"/><circle class="reg-point" cx="370" cy="91" r="7"/><circle class="reg-point" cx="418" cy="83" r="7"/></g><g class="reg-label"><text x="60" y="304">0</text><text x="133" y="304">1</text><text x="205" y="304">2</text><text x="277" y="304">3</text><text x="349" y="304">4</text><text x="421" y="304">5</text><text x="41" y="284">0</text><text x="41" y="229">2</text><text x="41" y="174">4</text><text x="41" y="119">6</text><text x="41" y="64">8</text><text x="418" y="322">x</text><text x="25" y="48">y</text></g></svg><figcaption>A equação resume a tendência média; os resíduos mostram o que ela não explicou.</figcaption></figure>
+    </section>
+
+    <section class="regression-section" id="modelo-matematico">
+      <header class="narrative-head"><p class="eyebrow">01 · RELAÇÃO ENTRE VARIÁVEIS</p><h2>Uma entrada explica; uma saída responde.</h2><p>Escolhemos uma função para representar matematicamente a relação observada nos dados.</p></header>
+      <div class="regression-intro">
+        <article class="regression-card"><h3>Exemplo: dose e crescimento</h3><p>Em um experimento, <b>x</b> pode representar a dose de fertilizante e <b>y</b> o crescimento medido da planta. A regressão procura uma tendência média: quanto esperamos que o crescimento mude quando a dose aumenta uma unidade?</p><div class="regression-equation">y = m·x + b + ε<br>ŷ = m·x + b</div><p><b>y</b> contém o valor real e o termo não explicado <b>ε</b>. A previsão <b>ŷ</b> contém somente a parte estimada pela função.</p></article>
+        <article class="regression-card"><h3>O significado de cada símbolo</h3><div class="symbol-list"><div><b>x</b><span>variável explicativa ou entrada conhecida</span></div><div><b>y</b><span>resposta realmente observada</span></div><div><b>ŷ</b><span>resposta prevista pela equação</span></div><div><b>m</b><span>inclinação: variação média de ŷ para cada +1 em x</span></div><div><b>b</b><span>intercepto: previsão quando x = 0</span></div><div><b>ε</b><span>ruído e fatores que a equação não representa</span></div></div></article>
+      </div>
+      <aside class="learning-warning"><b>Associação não prova causa e efeito.</b> A regressão quantifica uma relação preditiva. Para interpretar <b>m</b> como efeito causal, é preciso um desenho adequado — por exemplo, experimento controlado, temporalidade e controle de variáveis de confusão. Sem isso, diga “x está associado a y”, não “x causa y”.</aside>
+    </section>
+
+    <section class="regression-section">
+      <header class="narrative-head"><p class="eyebrow">02 · DA EQUAÇÃO À PREVISÃO</p><h2>Prever é substituir x e realizar a conta.</h2></header>
+      <div class="regression-intro"><article class="regression-card"><h3>Equação encontrada</h3><div class="regression-equation">ŷ = 2,4x + 15</div><p>A inclinação 2,4 indica que, dentro da faixa estudada, cada unidade adicionada a x aumenta a previsão média em 2,4. O valor 15 é o ponto onde a reta cruza o eixo y.</p></article><article class="regression-card"><h3>Nova entrada x = 10</h3><div class="calculation"><p>ŷ = m·x + b</p><p>ŷ = 2,4·10 + 15</p><p>ŷ = 24 + 15</p><p><strong>ŷ = 39</strong></p></div><p>Isso é uma previsão pontual. Ela não informa certeza absoluta e deve ser acompanhada do erro observado e, quando necessário, de um intervalo de previsão.</p></article></div>
+    </section>
+
+    <section class="regression-section">
+      <header class="narrative-head"><p class="eyebrow">03 · GRÁFICO INTERATIVO</p><h2>Mova os dados e os parâmetros da reta.</h2><p>Arraste qualquer ponto. Depois altere <b>m</b> e <b>b</b> manualmente, calcule a solução direta ou acompanhe o gradiente descendente.</p></header>
+      <div class="reg-math-lab">
+        <div class="reg-canvas-panel"><canvas aria-label="Gráfico interativo da regressão linear com pontos arrastáveis"></canvas><div class="reg-canvas-help"><span><i class="fa-solid fa-hand-pointer" aria-hidden="true"></i> Arraste os círculos para mudar x e y.</span><span><b>Tracejado laranja:</b> resíduo eᵢ = yᵢ − ŷᵢ</span></div></div>
+        <aside class="reg-control-panel"><h3>Parâmetros da reta</h3><p>Ajuste a função e observe os erros mudarem.</p><div class="reg-param"><label for="linearM">Inclinação m <output data-param-value="0">0,60</output></label><input id="linearM" data-param="0" type="range" min="-3" max="3" step="0.01" value="0.60"></div><div class="reg-param"><label for="linearB">Intercepto b <output data-param-value="1">0,40</output></label><input id="linearB" data-param="1" type="range" min="-5" max="5" step="0.01" value="0.40"></div><div class="reg-rate"><label for="linearEta">Taxa η do gradiente</label><input id="linearEta" data-learning-rate type="number" min="0.0001" max="0.1" step="0.001" value="0.01"></div><div class="reg-action-grid"><button class="button primary-action" data-action="ols" type="button">Calcular diretamente · OLS</button><button class="button" data-action="gradient-one" type="button">1 passo do gradiente</button><button class="button" data-action="gradient-many" type="button">100 passos</button><button class="button" data-action="gradient-converge" type="button">Treinar até convergir</button><button class="button outline" data-action="add-point" type="button">Adicionar ponto</button><button class="button outline" data-action="remove-point" type="button">Remover último</button><button class="button outline" data-action="reset" type="button">Reiniciar exemplo</button></div><div class="reg-live-equation" data-current-equation aria-live="polite"></div><div class="reg-metrics"><div><b>SSE · Σe²</b><span data-metric="sse"></span></div><div><b>MSE · SSE/n</b><span data-metric="mse"></span></div><div><b>R²</b><span data-metric="r2"></span></div></div></aside>
+      </div>
+      <div class="reg-calculation-live" data-calculation><b>Comece experimentando.</b> Arraste os pontos, altere os coeficientes ou escolha um método de cálculo.</div>
+    </section>
+
+    <section class="regression-section">
+      <header class="narrative-head"><p class="eyebrow">04 · TODA A MATEMÁTICA VISÍVEL</p><h2>Cada ponto participa da função de custo.</h2></header>
+      <div class="reg-data-table"><table><thead><tr><th>Amostra</th><th>xᵢ</th><th>yᵢ real</th><th>ŷᵢ previsto</th><th>eᵢ = yᵢ−ŷᵢ</th><th>eᵢ²</th></tr></thead><tbody data-points-table></tbody></table></div>
+      <div class="reg-math-steps" style="margin-top:17px"><article class="reg-math-step"><b>1. Previsão</b><p>Aplique a reta em cada xᵢ.</p><code>ŷᵢ = m·xᵢ + b</code></article><article class="reg-math-step"><b>2. Resíduo</b><p>Compare observação e previsão.</p><code>eᵢ = yᵢ − ŷᵢ</code></article><article class="reg-math-step"><b>3. Quadrado</b><p>Evite cancelamento entre sinais.</p><code>eᵢ² = (yᵢ − ŷᵢ)²</code></article><article class="reg-math-step"><b>4. Custo</b><p>Calcule a média de todos os erros.</p><code>MSE = (1/n)Σeᵢ²</code></article></div>
+    </section>
+
+    <section class="regression-section">
+      <header class="narrative-head"><p class="eyebrow">05 · COMO ENCONTRAR m E b?</p><h2>Duas formas de calcular a mesma reta.</h2></header>
+      <div class="reg-method-comparison"><article class="reg-method"><h3>Fórmula direta · OLS</h3><p>Mínimos Quadrados Ordinários escolhe os coeficientes que tornam a soma dos resíduos quadráticos a menor possível.</p><div class="regression-equation light">m = Σ(xᵢ−x̄)(yᵢ−ȳ) ÷ Σ(xᵢ−x̄)²<br><br>b = ȳ − m·x̄</div><ol><li>Calcule as médias x̄ e ȳ.</li><li>Calcule o numerador e o denominador de m.</li><li>Use m e as médias para encontrar b.</li><li>A reta ótima aparece em uma solução direta.</li></ol></article><article class="reg-method"><h3>Gradiente descendente</h3><p>Começa com valores iniciais e atualiza os coeficientes repetidamente na direção que reduz o MSE.</p><div class="regression-equation light mint">∂MSE/∂m = (2/n)Σ(ŷᵢ−yᵢ)xᵢ<br>∂MSE/∂b = (2/n)Σ(ŷᵢ−yᵢ)<br><br>m ← m − η·∂MSE/∂m<br>b ← b − η·∂MSE/∂b</div><ol><li>Faça o forward para todos os pontos.</li><li>Calcule as derivadas do erro.</li><li>Atualize m e b usando a taxa η.</li><li>Repita até o custo estabilizar.</li></ol></article></div>
+      <aside class="learning-note"><b>O modelo é o mesmo:</b> OLS e gradiente descendente não criam duas regressões diferentes. São duas maneiras de encontrar os coeficientes da mesma equação.</aside>
+    </section>
+
+    <section class="regression-section"><header class="narrative-head"><p class="eyebrow">06 · VÁRIAS ENTRADAS</p><h2>A reta se torna um plano ou hiperplano.</h2></header><div class="regression-intro"><article class="regression-card"><h3>Regressão linear múltipla</h3><div class="regression-equation">ŷ = b + w₁x₁ + w₂x₂ + ··· + wₙxₙ</div><p>Cada peso expressa quanto a previsão varia com sua entrada quando as demais são mantidas constantes. A saída continua sendo uma soma linear.</p></article><article class="regression-card"><h3>Solução matricial</h3><div class="regression-equation">θ̂ = (XᵀX)⁻¹Xᵀy</div><p><b>X</b> reúne todas as entradas; <b>y</b> reúne as respostas; <b>θ̂</b> contém pesos e bias. Implementações reais usam solucionadores numericamente estáveis em vez de inverter a matriz literalmente.</p></article></div></section>
+
+    <section class="regression-section perceptron-ancestor">
+      <header class="narrative-head"><p class="eyebrow">07 · DA REGRESSÃO LINEAR AO PERCEPTRON</p><h2>A soma linear é a ponte entre os dois modelos.</h2><p>A regressão linear é uma precursora matemática do Perceptron: ela já combina entradas, pesos e bias em uma única expressão. O Perceptron conserva esse núcleo e acrescenta uma função de ativação para transformar o valor contínuo em uma classe.</p></header>
+
+      <div class="linear-perceptron-flow">
+        <article><span>REGRESSÃO LINEAR</span><h3>Calcula uma saída contínua</h3><code>ŷ = w₁x₁ + w₂x₂ + ··· + wₙxₙ + b</code><p>A própria soma ponderada é a previsão.</p></article>
+        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+        <article class="shared-core"><span>NÚCLEO HERDADO</span><h3>Combinador linear</h3><code>u = Σ(wᵢxᵢ) + b</code><p>As entradas são multiplicadas pelos pesos e somadas ao bias.</p></article>
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <article class="perceptron-result"><span>PERCEPTRON</span><h3>Aplica uma decisão</h3><code>ŷ = g(u)</code><p>A função degrau converte o potencial <b>u</b> em 0 ou 1.</p></article>
+      </div>
+
+      <div class="same-calculation">
+        <article><h3>A mesma entrada nos dois modelos</h3><p>Considere duas entradas, dois pesos e um bias:</p><div class="regression-equation light">x₁ = 0,8 · x₂ = 0,6<br>w₁ = 0,7 · w₂ = 0,5 · b = −0,6</div></article>
+        <article><h3>1. Primeiro, a soma linear</h3><div class="calculation"><p>u = w₁x₁ + w₂x₂ + b</p><p>u = 0,7·0,8 + 0,5·0,6 − 0,6</p><p>u = 0,56 + 0,30 − 0,60</p><p><strong>u = 0,26</strong></p></div></article>
+        <article><h3>2. Depois, cada modelo responde</h3><div class="model-answers"><div><b>Regressão</b><code>ŷ = u = 0,26</code><span>Entrega um número contínuo.</span></div><div><b>Perceptron</b><code>ŷ = degrau(0,26) = 1</code><span>Como u ≥ 0, entrega a classe 1.</span></div></div></article>
+      </div>
+
+      <div class="regression-table ancestor-table"><table><thead><tr><th>Elemento</th><th>Regressão linear</th><th>Perceptron</th></tr></thead><tbody><tr><td>Entradas</td><td>x₁, x₂, …, xₙ</td><td>x₁, x₂, …, xₙ</td></tr><tr><td>Parâmetros</td><td>pesos w e bias b</td><td>pesos w e bias b</td></tr><tr><td>Combinador</td><td>u = Σ(wᵢxᵢ) + b</td><td>u = Σ(wᵢxᵢ) + b</td></tr><tr><td>Saída</td><td>contínua: ŷ = u</td><td>binária: ŷ = degrau(u)</td></tr><tr><td>Aprendizado clássico</td><td>minimiza erros quadráticos</td><td>corrige pesos quando erra a classe</td></tr><tr><td>Problema típico</td><td>prever preço, consumo ou temperatura</td><td>separar aprovado/reprovado ou 0/1</td></tr></tbody></table></div>
+
+      <aside class="perceptron-ancestor-note"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i><div><b>O salto conceitual</b><p>A regressão pergunta “qual valor?”. O Perceptron reutiliza a mesma evidência linear e pergunta “de que lado do limite esse valor ficou?”. A função degrau não cria outra soma; ela interpreta a soma como uma decisão.</p></div><a class="button" href="../redes-neurais/perceptron.html"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Continuar no Perceptron</a></aside>
+    </section>
+
+    <section class="regression-section"><div class="reg-rna-bridge"><div><p class="eyebrow">E AS REDES NEURAIS?</p><h2>Uma RNA também pode aprender uma função de regressão.</h2><p>Um neurônio com saída linear reproduz uma regressão linear. Camadas ocultas e ativações não lineares permitem aprender relações mais complexas. Esse caminho é estudado separadamente para não misturar a equação da reta com a arquitetura neural.</p></div><a class="button" href="../redes-neurais/perceptron-multicamadas.html"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i> Abrir Perceptron Multicamadas</a></div></section>
+
+    <section class="deep-closing regression-closing"><p class="eyebrow">PRÓXIMO PASSO</p><h2>Quando a taxa de variação não é constante.</h2><p>Se uma reta deixa resíduos estruturados, podemos representar a relação com uma função curva.</p><a class="button" href="./regressao-nao-linear.html"><i class="fa-solid fa-bezier-curve" aria-hidden="true"></i> Estudar regressão não linear</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://developers.google.com/machine-learning/crash-course/linear-regression" target="_blank" rel="noopener">Google ML · Regressão Linear</a> · <a href="https://developers.google.com/machine-learning/crash-course/linear-regression/gradient-descent" target="_blank" rel="noopener">Google ML · Gradiente Descendente</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html" target="_blank" rel="noopener">scikit-learn · OLS</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/regression-math-lab.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

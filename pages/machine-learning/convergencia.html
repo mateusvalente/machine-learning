@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Convergência e Natureza Estocástica | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/convergence.css"></head>
+<body>
+  <header class="site-header"></header><!-- Menu compartilhado: ../../js/navigation.js + ../../css/navigation.css -->
+  <main class="convergence-page">
+    <section class="convergence-hero">
+      <div><p class="eyebrow">MACHINE LEARNING · CONVERGÊNCIA</p><h1>Convergir é estabilizar o aprendizado, não zerar todo erro.</h1><p class="lead">Durante o treinamento, o otimizador percorre diferentes configurações dos parâmetros. Dizemos que há convergência quando as atualizações e a função objetivo deixam de mudar de forma relevante.</p><a class="button" href="#laboratorio-convergencia">Experimentar seeds e mini-batches ↓</a></div>
+      <div class="convergence-hero-visual" aria-label="Curvas suave e estocástica aproximando-se de uma perda mínima"><i class="hero-axis-x"></i><i class="hero-axis-y"></i><svg class="hero-curve" viewBox="0 0 500 250" preserveAspectRatio="none"><path d="M8 18 C55 120,85 186,145 205 C210 226,285 225,492 226"/><path class="noise-path" d="M8 24 L35 75 L59 54 L88 139 L115 118 L140 189 L166 171 L193 213 L219 198 L247 222 L273 211 L301 229 L328 216 L356 228 L384 222 L412 229 L441 224 L492 228"/></svg><span class="hero-minimum">região estável</span></div>
+    </section>
+
+    <section class="convergence-section">
+      <header class="convergence-head"><p class="eyebrow">01 · O QUE É CONVERGÊNCIA?</p><h2>O processo aproxima-se de uma solução estável.</h2><p>Se θ representa todos os pesos e bias, o treinamento produz uma sequência θ₀, θ₁, θ₂… O objetivo é diminuir uma função de custo J(θ).</p></header>
+      <div class="convergence-definition"><article><h3>Convergência dos parâmetros</h3><p>Os parâmetros passam a receber atualizações muito pequenas. A distância entre duas configurações consecutivas tende a diminuir.</p><code class="convergence-formula"><strong>Δθₜ</strong> = θₜ₊₁ − θₜ &nbsp; e &nbsp; ‖Δθₜ‖ → pequeno</code></article><article><h3>Convergência da função objetivo</h3><p>A perda deixa de apresentar melhora relevante. Ela pode oscilar em torno de uma região em vez de ficar exatamente constante.</p><code class="convergence-formula"><strong>|Jₜ₊₁ − Jₜ|</strong> → pequeno</code></article></div>
+      <aside class="convergence-warning"><strong>Convergir não significa necessariamente encontrar a melhor solução possível.</strong> O treinamento pode estabilizar em uma solução subótima, em um ponto de sela, em um patamar ou até em uma configuração que se ajusta ao treino, mas generaliza mal.</aside>
+    </section>
+
+    <section class="convergence-section">
+      <header class="convergence-head"><p class="eyebrow">02 · COMO RECONHECER?</p><h2>Observe mais de um sinal.</h2></header>
+      <div class="convergence-signals"><article><b>Perda estabilizada</b><p>A média da perda muda pouco ao longo de várias épocas.</p><code>|Jₜ−Jₜ₋₁| &lt; ε</code></article><article><b>Gradiente pequeno</b><p>A inclinação local está próxima de zero, portanto o otimizador recebe pouca direção.</p><code>‖∇J(θ)‖ &lt; ε</code></article><article><b>Ajustes pequenos</b><p>Pesos e bias quase não mudam entre atualizações consecutivas.</p><code>‖Δθ‖ &lt; ε</code></article><article><b>Métrica em platô</b><p>Acurácia, erro ou outra métrica deixa de melhorar de modo relevante.</p><code>melhora &lt; min_delta</code></article></div>
+      <aside class="convergence-note"><strong>Não use apenas a perda de uma amostra.</strong> Em mini-batches, uma atualização pode aumentar a perda local e ainda fazer parte de uma tendência global de melhora. Analise médias e janelas de várias épocas.</aside>
+    </section>
+
+    <section class="convergence-section">
+      <header class="convergence-head"><p class="eyebrow">03 · NATUREZA ESTOCÁSTICA</p><h2>O treinamento pode seguir caminhos diferentes.</h2><p>“Estocástico” significa que alguma etapa envolve amostragem ou números pseudoaleatórios. O algoritmo não recebe sempre exatamente o mesmo gradiente.</p></header>
+      <div class="stochastic-flow"><article><b>Inicializar</b><span>pesos aleatórios</span></article><i>→</i><article><b>Embaralhar</b><span>nova ordem</span></article><i>→</i><article><b>Amostrar</b><span>mini-batch</span></article><i>→</i><article><b>Atualizar</b><span>gradiente estimado</span></article></div>
+      <div class="stochastic-comparison"><article><h3>Gradiente de batch completo</h3><p>Usa todas as N amostras. Para o mesmo θ e dataset, o gradiente calculado é o mesmo e a curva tende a ser mais suave.</p><code>g = (1/N) Σᵢ ∇Lᵢ</code></article><article><h3>Gradiente estocástico ou mini-batch</h3><p>Usa um subconjunto B. É uma estimativa mais barata do gradiente total, mas muda conforme as amostras escolhidas.</p><code>ĝ = (1/|B|) Σᵢ∈B ∇Lᵢ</code></article></div>
+      <aside class="convergence-note"><strong>O ruído não é apenas defeito.</strong> Ele torna a trajetória irregular, mas permite atualizações frequentes e pode ajudar o otimizador a atravessar regiões planas ou escapar de algumas soluções pouco interessantes.</aside>
+    </section>
+
+    <section class="convergence-section">
+      <header class="convergence-head"><p class="eyebrow">04 · SEEDS E REPRODUTIBILIDADE</p><h2>A seed escolhe uma sequência pseudoaleatória.</h2><p>Um gerador pseudoaleatório é determinístico: dado o mesmo estado inicial, produz a mesma sequência. A seed define esse ponto inicial.</p></header>
+      <div class="seed-list"><article class="seed-row"><h3>Seed diferente</h3><div><p>Pode mudar pesos iniciais, ordem das amostras, divisão treino/teste, dropout, aumento de dados e outras decisões aleatórias.</p><code>seed 7 → sequência A · seed 42 → sequência B</code></div></article><article class="seed-row"><h3>Mesma seed</h3><div><p>Ajuda a repetir o experimento quando código, dados, ambiente, bibliotecas e operações determinísticas também permanecem iguais.</p><code>mesma configuração + mesma sequência → mesma trajetória esperada</code></div></article><article class="seed-row"><h3>Seed não remove variabilidade</h3><div><p>Ela congela uma realização da aleatoriedade. Avaliar apenas uma seed pode esconder que o método é instável ou que o resultado foi excepcionalmente favorável.</p><code>resultado = média de várias seeds ± desvio padrão</code></div></article><article class="seed-row"><h3>Hardware também importa</h3><div><p>Operações paralelas, GPU, versões de bibliotecas e algoritmos não determinísticos podem alterar resultados mesmo com seeds iguais.</p><code>reprodutível depende do ambiente inteiro</code></div></article></div>
+      <aside class="convergence-warning"><strong>Não escolha a “seed vencedora”.</strong> Testar muitas seeds e publicar somente a melhor transforma a seed em um hiperparâmetro oculto. Para comparar métodos, fixe um protocolo e reporte várias execuções.</aside>
+    </section>
+
+    <section class="convergence-lab" id="laboratorio-convergencia">
+      <header class="convergence-lab-hero"><p class="eyebrow">EXPERIMENTO · REGRESSÃO LINEAR ESTOCÁSTICA</p><h2>Veja a mesma função convergir por caminhos diferentes.</h2><p>O modelo aprende <strong>ŷ = wx + b</strong> por gradiente descendente. A seed controla os parâmetros iniciais e o embaralhamento; o tamanho do lote controla quanto ruído existe no gradiente.</p></header>
+      <div class="convergence-lab-layout">
+        <aside class="convergence-controls"><h3>Configuração</h3><p>Altere um elemento por vez e compare as curvas.</p><div class="convergence-control-group"><label>SEED<input id="convergenceSeed" type="number" min="1" max="999999" step="1" value="42"></label><label>TAMANHO DO LOTE<select id="convergenceBatch"><option value="1">1 · SGD</option><option value="4" selected>4 · mini-batch</option><option value="16">16 · mini-batch</option><option value="64">64 · batch completo</option></select></label><label>TAXA DE APRENDIZADO η<input id="convergenceRate" type="number" min="0.001" max="1.2" step="0.01" value="0.08"></label><label>ÉPOCAS<input id="convergenceEpochs" type="number" min="10" max="200" step="10" value="80"></label></div><div class="convergence-control-group convergence-seed-actions"><button class="button" id="convergenceRun" type="button">Executar</button><button class="button outline" id="convergenceRepeat" type="button">Repetir seed</button><button class="button outline" id="convergenceCompare" type="button">Comparar 5 seeds</button><button class="button outline" id="convergenceUntil" type="button">Treinar até convergir</button></div></aside>
+
+        <div class="convergence-results">
+          <section class="convergence-metrics"><article><span>SEED</span><strong id="convergenceSeedMetric">42</strong></article><article><span>PERDA FINAL</span><strong id="convergenceLossMetric">—</strong></article><article><span>MENOR VALIDAÇÃO</span><strong id="convergenceValidationMetric">—</strong></article><article><span>ÉPOCA DO MELHOR</span><strong id="convergenceBestEpochMetric">—</strong></article><article><span>ESTADO</span><strong id="convergenceStateMetric">—</strong></article></section>
+          <article class="convergence-chart-card"><h3>Perda × épocas</h3><p>O eixo vertical usa escala logarítmica para exibir valores grandes e pequenos no mesmo gráfico.</p><canvas id="convergenceCanvas" width="980" height="520" aria-label="Gráfico de perda de treinamento e validação por época"></canvas><div class="convergence-legend"><span><i></i>treino</span><span><i class="validation"></i>validação</span><span><i class="multi-seed"></i>outras seeds</span></div><div class="convergence-run-summary" id="convergenceSummary">Execute o treinamento para gerar a trajetória.</div></article>
+
+          <article class="convergence-chart-card"><h3>Uma atualização por mini-batch</h3><p>As fórmulas abaixo usam o primeiro lote da execução atual.</p><div class="convergence-equation-steps" id="convergenceMath"><article><b>1 · Forward</b><p>Calcule as previsões.</p><code>ŷᵢ = wxᵢ + b</code></article><article><b>2 · Perda</b><p>Meça o erro quadrático médio.</p><code>MSE = (1/B)Σ(yᵢ−ŷᵢ)²</code></article><article><b>3 · Ajuste</b><p>Atualize na direção oposta ao gradiente.</p><code>w ← w−η∂J/∂w<br>b ← b−η∂J/∂b</code></article></div></article>
+
+          <article class="convergence-chart-card" id="convergenceSeedResultsCard" hidden><h3>Resultado de várias seeds</h3><p>O valor médio resume o desempenho; o desvio padrão mostra a sensibilidade à aleatoriedade.</p><div class="seed-results-table"><table id="convergenceSeedTable"></table></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="convergence-section">
+      <header class="convergence-head"><p class="eyebrow">05 · CONVERGÊNCIA E GENERALIZAÇÃO</p><h2>Treino estável não garante desempenho fora do treino.</h2></header>
+      <div class="stopping-table"><table><thead><tr><th>Comportamento</th><th>Treino</th><th>Validação</th><th>Interpretação</th></tr></thead><tbody><tr><td>As duas perdas caem e estabilizam</td><td>Cai</td><td>Cai</td><td>Convergência com generalização compatível.</td></tr><tr><td>Treino cai, validação começa a subir</td><td>Continua caindo</td><td>Sobe</td><td>Sobreajuste; considere early stopping.</td></tr><tr><td>As duas permanecem altas</td><td>Alta</td><td>Alta</td><td>Subajuste, taxa inadequada ou otimização insuficiente.</td></tr><tr><td>Perdas oscilam ou explodem</td><td>Instável</td><td>Instável</td><td>Taxa alta, gradientes problemáticos ou dados mal escalados.</td></tr></tbody></table></div>
+      <aside class="convergence-note"><strong>Early stopping:</strong> monitore uma métrica de validação. Se ela não melhorar pelo menos <code>min_delta</code> durante <code>patience</code> épocas, pare e restaure os parâmetros do melhor momento.</aside>
+    </section>
+
+    <section class="convergence-section">
+      <header class="convergence-head"><p class="eyebrow">06 · CHECKLIST REPRODUTÍVEL</p><h2>Uma seed é o começo, não o protocolo inteiro.</h2></header>
+      <pre class="convergence-code"><code># Exemplo conceitual em Python
+import random
+import numpy as np
+import torch
+
+seed = 42
+random.seed(seed)          # aleatoriedade do Python
+np.random.seed(seed)       # gerador global do NumPy
+torch.manual_seed(seed)    # CPU e dispositivos do PyTorch
+torch.use_deterministic_algorithms(True)
+
+# Registre também:
+# - versão do código, bibliotecas e drivers;
+# - divisão de treino, validação e teste;
+# - hiperparâmetros, hardware e dataset;
+# - média e desvio padrão de várias seeds.</code></pre>
+      <aside class="convergence-warning"><strong>Determinismo pode custar desempenho.</strong> Algumas bibliotecas oferecem algoritmos determinísticos alternativos que podem ser mais lentos. O objetivo é escolher conscientemente entre velocidade, depuração e reprodutibilidade.</aside>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://docs.pytorch.org/docs/stable/notes/randomness" target="_blank" rel="noopener">PyTorch · Reproducibility</a> · <a href="https://scikit-learn.org/stable/common_pitfalls.html#controlling-randomness" target="_blank" rel="noopener">scikit-learn · Controlling randomness</a> · <a href="https://keras.io/api/callbacks/early_stopping/" target="_blank" rel="noopener">Keras · EarlyStopping</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/convergence-demo.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>
