@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Teste do WAF com IA</title>
+  <style>body{max-width:760px;margin:45px auto;padding:0 20px;background:#f4f6fb;color:#18223a;font:17px/1.55 Arial,sans-serif}main{padding:32px;background:#fff;border:1px solid #dbe1ef;border-radius:16px}button{margin:8px 8px 8px 0;padding:12px 16px;border:0;border-radius:8px;background:#4e46e5;color:#fff;font-weight:700;cursor:pointer}button.suspect{background:#bd5631}pre{min-height:115px;padding:17px;background:#202840;border-radius:9px;color:#dfe7f7;white-space:pre-wrap}small{color:#65718a}</style>
+</head>
+<body><main>
+  <p>LABORATÓRIO · WAF COM IA</p><h1>Envie duas requisições de teste.</h1>
+  <p>A infraestrutura está pronta. Quando o algoritmo do aluno estiver funcionando, a requisição suspeita deve retornar <strong>403</strong>; a normal deve continuar com <strong>200</strong>.</p>
+  <button data-kind="normal">Enviar requisição normal</button>
+  <button class="suspect" data-kind="suspeita">Enviar requisição suspeita</button>
+  <pre id="result">Aguardando teste…</pre><small>O exemplo suspeito usa uma tentativa de acessar um caminho fora do diretório público; não envia dados sensíveis.</small>
+</main>
+<script>
+  const result = document.querySelector('#result');
+  const urls = { normal: '/api/produtos?categoria=livros', suspeita: '/api/arquivos?file=..%2Fprivate.txt' };
+  document.querySelectorAll('button').forEach((button) => button.addEventListener('click', async () => {
+    const kind = button.dataset.kind;
+    result.textContent = 'Enviando requisição ' + kind + '…';
+    try {
+      const response = await fetch(urls[kind]);
+      const body = await response.text();
+      result.textContent = 'HTTP ' + response.status + '\n\n' + body;
+    } catch (error) {
+      result.textContent = 'Falha de conexão: ' + error.message;
+    }
+  }));
+</script></body></html>

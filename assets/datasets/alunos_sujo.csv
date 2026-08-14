@@ -1,0 +1,19 @@
+id_aluno,idade,horas_estudo,frequencia_percentual,modalidade,nota_simulado,aprovado
+001,19,8,92,Presencial,7.8,sim
+002,20,5,88,EAD,6.4,sim
+003,,12,95,presencial,8.9,sim
+004,22,NA,71,EAD,5.1,não
+005,21,3, 65 ,ead,4.8,não
+006,320,7,83,Presencial,6.9,sim
+007,18,2,110,Presencial,5.4,não
+008,23,15,97,Híbrido,"9,1",sim
+009,20,5,88,EAD,6.4,sim
+010,19,?,76,Presencial,6.0,não
+011,24,10,90,hibrido,7.5,sim
+012,17,-3,82,Presencial,5.7,não
+013,22,9,NA,EAD,7.1,sim
+014,21,120,86,Presencial,8.0,sim
+015,20,6,89, Presencial ,6.8,sim
+016,25,4,68,EAD,4.9,não
+017,23,11,93,HÍBRIDO,8.3,sim
+018,21,5,73,ead,5.5,não

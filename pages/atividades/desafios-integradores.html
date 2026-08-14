@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Atividades integradoras de MLP, qualidade de dados, WAF com IA e avaliação de modelos.">
+  <title>Atividades integradoras | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/activity-menu.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="activity-page">
+    <section class="activity-hero">
+      <div>
+        <p class="eyebrow">ATIVIDADES INTEGRADORAS · DO DADO À DECISÃO</p>
+        <h1>Construa, trate, proteja e avalie.</h1>
+        <p class="lead">Quatro desafios encadeados para praticar uma rede multicamadas, a preparação de dados, a classificação de requisições suspeitas e a leitura crítica das métricas.</p>
+      </div>
+      <aside class="activity-hero-card"><i class="fa-solid fa-route" aria-hidden="true"></i><strong>Uma sequência, quatro entregas.</strong><span>O dataset tratado na atividade 2 alimenta a MLP da atividade 1. A mesma disciplina de dados é aplicada aos logs do WAF e sua decisão é analisada na atividade 4.</span></aside>
+    </section>
+
+    <section class="activity-section" aria-label="Mapa das atividades">
+      <header class="activity-heading"><p class="eyebrow">ROTEIRO</p><h2>O percurso proposto</h2><p>Faça as atividades na ordem. Os links de estudo abrem o conteúdo de apoio já disponível no material.</p></header>
+      <div class="activity-route">
+        <article><b>01 · MLP</b><span>Defina arquitetura e implemente o treinamento.</span></article>
+        <article><b>02 · Limpeza</b><span>Converta uma tabela inconsistente em dados de treino.</span></article>
+        <article><b>03 · WAF</b><span>Classifique requisições antes que cheguem ao PHP.</span></article>
+        <article><b>04 · Métricas</b><span>Justifique a qualidade e os riscos da decisão.</span></article>
+      </div>
+    </section>
+
+    <article class="challenge" id="atividade-mlp">
+      <div class="challenge-number">01</div>
+      <div>
+        <p class="eyebrow">REDE NEURAL MULTICAMADAS</p>
+        <h2>Implemente uma MLP configurável.</h2>
+        <p class="challenge-lead">Crie um algoritmo de Perceptron Multicamadas no qual seja possível definir o número de entradas, os neurônios da camada oculta e as saídas. A implementação deve montar pesos e vieses com os tamanhos corretos e treinar a rede por backpropagation.</p>
+        <div class="activity-tags"><span>Forward pass</span><span>Backpropagation</span><span>Arquitetura variável</span><span>Treino e teste</span></div>
+        <div class="challenge-grid">
+          <section class="activity-card"><h3>Requisitos mínimos</h3><ol><li>Receber <code>n_entradas</code>, <code>n_ocultos</code> e <code>n_saidas</code>.</li><li>Inicializar matrizes de pesos e vieses sem valores fixos de dimensão.</li><li>Implementar ativação, forward pass, função de perda e atualização por backpropagation.</li><li>Separar treino, validação e teste; não medir desempenho no conjunto usado para ajustar pesos.</li><li>Exibir perda por época e uma métrica apropriada ao alvo.</li></ol></section>
+          <section class="activity-card emphasis"><h3>Entrega</h3><p>Entregue o código, um arquivo de configuração da arquitetura, gráfico de perda e uma breve explicação das escolhas: ativação, taxa de aprendizagem, épocas, critério de parada e métrica.</p><p>Teste pelo menos duas arquiteturas e compare erro de validação, não apenas acurácia de treino.</p></section>
+        </div>
+        <div class="activity-downloads"><a class="primary" href="../redes-neurais/rede-configuravel.html"><i class="fa-solid fa-flask"></i> Explorar laboratório de rede configurável</a><a href="../redes-neurais/perceptron-multicamadas.html"><i class="fa-solid fa-book-open"></i> Revisar MLP e backpropagation</a></div>
+      </div>
+    </article>
+
+    <article class="challenge" id="atividade-limpeza">
+      <div class="challenge-number">02</div>
+      <div>
+        <p class="eyebrow">TRATAMENTO DE DADOS</p>
+        <h2>Transforme um dataset “sujo” em dado de treino.</h2>
+        <p class="challenge-lead">O arquivo fornecido descreve estudantes e o alvo <code>aprovado</code>. Ele contém valores ausentes, duplicata, espaços, categorias escritas de formas diferentes, formatos numéricos incompatíveis e valores fora do intervalo esperado.</p>
+        <div class="challenge-grid">
+          <section class="activity-card"><h3>Amostra de problemas presentes</h3><div style="overflow:auto"><table class="data-preview"><thead><tr><th>id</th><th>idade</th><th>horas</th><th>frequência</th><th>modalidade</th><th>nota</th></tr></thead><tbody><tr><td>003</td><td class="dirty">vazio</td><td>12</td><td>95</td><td class="dirty">presencial</td><td>8.9</td></tr><tr><td>006</td><td class="dirty">320</td><td>7</td><td>83</td><td>Presencial</td><td>6.9</td></tr><tr><td>008</td><td>23</td><td>15</td><td>97</td><td>Híbrido</td><td class="dirty">9,1</td></tr><tr><td>009</td><td>20</td><td>5</td><td>88</td><td>EAD</td><td>6.4</td></tr></tbody></table></div></section>
+          <section class="activity-card"><h3>Checklist obrigatório</h3><ul><li>Padronize nomes, espaços e categorias.</li><li>Converta valores para o tipo numérico correto.</li><li>Trate <code>NA</code>, <code>?</code> e células vazias sem usar informação do teste.</li><li>Encontre e trate duplicatas, intervalos impossíveis e outliers com uma regra justificada.</li><li>Codifique a modalidade, normalize entradas quando necessário e registre cada transformação.</li><li>Remova <code>id_aluno</code> das entradas: ele não representa um sinal pedagógico.</li></ul></section>
+        </div>
+        <aside class="activity-callout warn"><strong>Não há uma única resposta correta.</strong> Para cada intervenção, registre a evidência e a decisão: remover, corrigir, imputar ou manter. Ajuste média, mediana, escalonador e codificador usando somente o conjunto de treino; depois aplique-os na validação e no teste.</aside>
+        <div class="activity-downloads"><a class="primary" download href="../../assets/datasets/alunos_sujo.csv"><i class="fa-solid fa-download"></i> Baixar alunos_sujo.csv</a><a href="../machine-learning/qualidade-dados.html"><i class="fa-solid fa-broom"></i> Menu de limpeza dos dados</a><a href="../machine-learning/normalizacao-padronizacao.html"><i class="fa-solid fa-arrows-left-right-to-line"></i> Normalização e padronização</a></div>
+      </div>
+    </article>
+
+    <section class="activity-section" aria-labelledby="correlacao-title">
+      <header class="activity-heading"><p class="eyebrow">CONEXÃO ENTRE AS ATIVIDADES 01 E 02</p><h2 id="correlacao-title">O algoritmo aprende exatamente a representação que recebe.</h2><p>Use o dataset limpo como problema de classificação para a MLP. O objetivo é prever <code>aprovado</code> usando idade, horas de estudo, frequência, modalidade e nota de simulado.</p></header>
+      <div class="pipeline-flow"><article><b>Dataset bruto</b><span>erros, ausências e escalas misturadas</span></article><article><b>Pipeline de limpeza</b><span>regras aprendidas somente no treino</span></article><article><b>MLP configurável</b><span>entradas tratadas → camada oculta → saída</span></article><article><b>Teste final</b><span>métricas e análise dos erros</span></article></div>
+      <aside class="activity-callout"><strong>Experimento de correlação:</strong> treine a mesma arquitetura antes e depois da limpeza. Compare a taxa de falhas, a perda e as métricas no mesmo conjunto de teste. Explique quais transformações evitaram que a MLP interpretasse ruído como padrão.</aside>
+    </section>
+
+    <article class="challenge" id="atividade-waf">
+      <div class="challenge-number">03</div>
+      <div>
+        <p class="eyebrow">SEGURANÇA DEFENSIVA · WAF COM IA</p>
+        <h2>Classifique e bloqueie requisições suspeitas antes do PHP.</h2>
+        <p class="challenge-lead">O kit fornece a infraestrutura completa em Docker: Nginx na frente, PHP como aplicação protegida, um pequeno serviço de decisão e uma página de teste. A única parte que o aluno altera é o algoritmo em <code>student/model.py</code>.</p>
+        <div class="waf-layout" aria-label="Fluxo de uma requisição no WAF"><article><b>Navegador</b><span>página de teste</span></article><i>→</i><article><b>Nginx</b><span>ponto de bloqueio</span></article><i>→</i><article><b>Modelo IA</b><span>risco: permitir ou bloquear</span></article><i>→</i><article class="block"><b>403 ou PHP</b><span>interrompe ou encaminha</span></article></div>
+        <div class="challenge-grid">
+          <section class="activity-card"><h3>O que já está pronto</h3><ul><li><code>docker-compose.yml</code> com Nginx, PHP-FPM e serviço do modelo.</li><li>Configuração <code>auth_request</code> do Nginx: uma resposta 403 do modelo para a requisição protegida.</li><li>Coleta de atributos da requisição e limiar configurável.</li><li>Página HTML + JavaScript com botão para requisição normal e outra com padrão suspeito, além da visualização da resposta.</li><li>Dataset rotulado de exemplos normais e suspeitos.</li></ul></section>
+          <section class="activity-card emphasis"><h3>Responsabilidade do aluno</h3><p>Transformar os atributos em um vetor, treinar ou definir a regra/classificador e retornar um risco entre 0 e 1. Escolha o limiar a partir da validação; não use o conjunto de teste para essa decisão.</p><p>O exemplo inicial permite tudo. Após o modelo funcionar, o teste normal deve chegar ao PHP (200) e o teste suspeito deve receber 403.</p></section>
+        </div>
+        <section class="activity-card" style="margin-top:16px"><h3>Como executar o ambiente</h3><ol><li>Instale e inicie o Docker Desktop.</li><li>No terminal, entre em <code>starter-kits/waf-ia</code>.</li><li>Execute <code>docker compose up --build</code>.</li><li>Abra <code>http://localhost:8080/testar.html</code> e faça os dois testes.</li><li>Edite apenas <code>student/model.py</code>, reconstrua com <code>docker compose up --build</code> e repita os testes.</li><li>Ao terminar, execute <code>docker compose down</code>.</li></ol></section>
+        <div class="activity-downloads"><a class="primary" href="../../starter-kits/waf-ia/README.md"><i class="fa-solid fa-box-open"></i> Abrir instruções do kit Docker</a><a href="../../starter-kits/waf-ia/student/model.py"><i class="fa-solid fa-code"></i> Abrir arquivo do algoritmo</a><a download href="../../assets/datasets/requisicoes_waf.csv"><i class="fa-solid fa-download"></i> Baixar requisicoes_waf.csv</a></div>
+      </div>
+    </article>
+
+    <article class="challenge" id="atividade-avaliacao">
+      <div class="challenge-number">04</div>
+      <div>
+        <p class="eyebrow">AVALIAÇÃO DO MODELO</p>
+        <h2>Defenda a decisão do modelo com métricas.</h2>
+        <p class="challenge-lead">Avalie tanto a MLP de aprovação quanto o classificador do WAF. Apresente matriz de confusão, acurácia, precisão, recall e F1-score no conjunto de teste mantido separado.</p>
+        <div class="challenge-grid">
+          <section class="activity-card"><h3>Leitura esperada para o WAF</h3><table class="metric-table"><thead><tr><th>Métrica</th><th>Pergunta prática</th></tr></thead><tbody><tr><td>Precisão</td><td>Dos bloqueios, quantos eram de fato suspeitos?</td></tr><tr><td>Recall</td><td>Das requisições suspeitas, quantas o WAF encontrou?</td></tr><tr><td>F1-score</td><td>Como está o equilíbrio entre bloqueio correto e cobertura?</td></tr><tr><td>Matriz</td><td>Quais erros foram bloqueios indevidos (FP) e ataques liberados (FN)?</td></tr></tbody></table></section>
+          <section class="activity-card"><h3>Entrega final</h3><ul><li>Uma tabela com as métricas para cada modelo.</li><li>A matriz de confusão identificando VP, VN, FP e FN.</li><li>O limiar usado e por que ele foi escolhido.</li><li>Três exemplos de erro e uma hipótese para cada um.</li><li>Uma decisão de melhoria: mais dados, atributos melhores, limpeza, arquitetura ou ajuste de limiar.</li></ul></section>
+        </div>
+        <div class="activity-downloads"><a class="primary" href="../aprendizagem-supervisionada/matriz-confusao.html"><i class="fa-solid fa-table-cells"></i> Abrir matriz de confusão</a><a href="../aprendizagem-supervisionada/f1-score.html"><i class="fa-solid fa-scale-balanced"></i> Revisar F1-score</a></div>
+      </div>
+    </article>
+
+    <section class="activity-footer"><p class="eyebrow">CRITÉRIO DE QUALIDADE</p><h2>Uma boa entrega torna suas decisões auditáveis.</h2><p>Mais importante que atingir um número alto é documentar o dado recebido, o tratamento aplicado, a arquitetura treinada, o limiar escolhido e os erros que ainda permanecem.</p><a href="#atividade-mlp">Voltar ao início do roteiro →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

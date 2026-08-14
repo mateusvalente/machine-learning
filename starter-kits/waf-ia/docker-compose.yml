@@ -1,0 +1,21 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./app:/var/www/html:ro
+    depends_on:
+      - php
+      - model
+
+  php:
+    build: ./php
+    volumes:
+      - ./app:/var/www/html:ro
+
+  model:
+    build:
+      context: .
+      dockerfile: model/Dockerfile

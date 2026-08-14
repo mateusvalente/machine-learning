@@ -1,0 +1,15 @@
+request_id,method,path,query_length,body_length,has_encoded_chars,special_char_count,rate_1m,source_reputation,label
+r001,GET,/produtos,0,0,0,0,3,0.94,normal
+r002,GET,/busca,18,0,0,0,5,0.91,normal
+r003,POST,/contato,0,164,0,1,2,0.97,normal
+r004,GET,/arquivos,31,0,1,7,11,0.39,suspeita
+r005,POST,/login,22,78,1,8,19,0.42,suspeita
+r006,GET,/artigos,0,0,0,0,4,0.96,normal
+r007,GET,/admin,14,0,1,9,26,0.28,suspeita
+r008,POST,/api/pedido,0,342,0,2,6,0.89,normal
+r009,GET,/perfil,9,0,0,1,3,0.93,normal
+r010,GET,/busca,44,0,1,12,31,0.33,suspeita
+r011,POST,/comentarios,0,205,0,3,5,0.90,normal
+r012,GET,/download,38,0,1,10,22,0.36,suspeita
+r013,GET,/home,0,0,0,0,2,0.99,normal
+r014,POST,/api/consulta,28,125,1,8,17,0.48,suspeita
