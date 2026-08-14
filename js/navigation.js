@@ -147,6 +147,9 @@
         {
           icone: 'fa-list-check', titulo: 'Atividades integradoras', filhos: [
             { icone: 'fa-diagram-project', titulo: 'Roteiro e desafios', caminho: 'pages/atividades/desafios-integradores.html' },
+            { icone: 'fa-code-compare', titulo: 'Diagramas · MPA e SPA', caminho: 'pages/atividades/mpa-spa.html' },
+            { icone: 'fa-clock-rotate-left', titulo: 'História da IA', caminho: 'pages/atividades/historia.html' },
+            { icone: 'fa-fingerprint', titulo: 'Padrões nos dados', caminho: 'pages/atividades/padroes.html' },
             { icone: 'fa-brain', titulo: '01 · MLP configurável', caminho: 'pages/atividades/desafios-integradores.html#atividade-mlp' },
             { icone: 'fa-broom', titulo: '02 · Dataset sujo', caminho: 'pages/atividades/desafios-integradores.html#atividade-limpeza' },
             { icone: 'fa-shield-halved', titulo: '03 · WAF com IA', caminho: 'pages/atividades/desafios-integradores.html#atividade-waf' },

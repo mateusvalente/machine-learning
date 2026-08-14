@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Atividade para identificar padrões, ruído e sinais em dados de Machine Learning.">
+  <title>Padrões nos dados | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/story-patterns.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="patterns-page">
+    <section class="patterns-hero">
+      <div><p class="eyebrow">ATIVIDADES · PADRÕES</p><h1>Encontrar uma regularidade não é o mesmo que encontrar uma regra confiável.</h1><p class="lead">Um padrão útil se repete em novos dados, é coerente com o problema e melhora uma decisão. Ruído, vazamento e coincidências também podem parecer padrões durante o treino.</p></div>
+      <aside class="hero-statement"><i class="fa-solid fa-fingerprint" aria-hidden="true"></i><strong>Modelo bom aprende sinal, não memorização.</strong><span>Observe os exemplos, formule uma hipótese, teste em dados separados e investigue os erros. Esta sequência vale para a MLP e para o WAF.</span></aside>
+    </section>
+
+    <section class="patterns-section">
+      <header class="patterns-heading"><p class="eyebrow">SINAL OU RUÍDO?</p><h2>Antes de treinar, pergunte o que cada coluna realmente representa.</h2><p>Uma correlação pode ser útil, mas não prova causa. Um campo pode ter aparência de alta qualidade e ainda revelar o alvo, codificar um erro ou representar apenas uma particularidade do conjunto de treino.</p></header>
+      <div class="signal-grid">
+        <article class="signal-panel signal"><h3>Sinal que pode generalizar</h3><ul><li>Está disponível no momento em que a decisão será tomada.</li><li>Tem significado relacionado ao objetivo do problema.</li><li>Repete seu efeito em treino, validação e teste.</li><li>Melhora a métrica sem criar riscos desproporcionais.</li></ul></article>
+        <article class="signal-panel noise"><h3>Indício que exige cuidado</h3><ul><li>É um ID, uma informação posterior ou uma coluna derivada do rótulo.</li><li>Tem muitos erros, valores ausentes ou escala inconsistente.</li><li>Só parece funcionar em uma divisão específica dos dados.</li><li>Produz acurácia alta, mas muitos erros graves em uma classe.</li></ul></article>
+      </div>
+    </section>
+
+    <section class="patterns-section">
+      <header class="patterns-heading"><p class="eyebrow">PADRÕES NOS DESAFIOS</p><h2>O mesmo método aparece nos dois datasets.</h2></header>
+      <div class="pattern-rule-grid"><article><b>Estudantes</b><span>Horas de estudo, frequência e nota podem ajudar a prever aprovação, desde que sejam tratadas e medidas antes do resultado final.</span></article><article><b>WAF</b><span>Codificação incomum, muitos caracteres especiais e volume elevado podem elevar risco, mas nenhum deles sozinho prova intenção maliciosa.</span></article><article><b>Validação</b><span>Um padrão só merece confiança depois de ser confrontado com exemplos que não participaram do ajuste de pesos ou limiares.</span></article></div>
+      <aside class="pattern-note"><strong>Experimento recomendado:</strong> retire uma entrada por vez e compare as métricas. Se o desempenho não mudar, ela talvez não contribua; se mudar somente no treino, pode haver memorização. Registre a hipótese antes de olhar o resultado.</aside>
+    </section>
+
+    <section class="patterns-section" id="desafio-padroes">
+      <div class="pattern-workbench">
+        <header><p class="eyebrow">MINIATIVIDADE · OBSERVE ANTES DE CLASSIFICAR</p><h2>Quais requisições merecem investigação?</h2><p>Marque os casos que você considera suspeitos apenas pelos sinais apresentados. Depois confira o resultado e compare sua regra mental com o rótulo do conjunto didático.</p></header>
+        <div class="request-grid" id="patternRequests">
+          <article class="request-card" data-suspicious="false"><h3>Req. A</h3><p>GET /produtos<br>query: 0 · especiais: 0<br>volume/min: 3 · reputação: 0.94</p><label><input type="checkbox"> Marcar como suspeita</label></article>
+          <article class="request-card" data-suspicious="true"><h3>Req. B</h3><p>GET /arquivos<br>query: 31 · encoded: sim<br>especiais: 7 · reputação: 0.39</p><label><input type="checkbox"> Marcar como suspeita</label></article>
+          <article class="request-card" data-suspicious="false"><h3>Req. C</h3><p>POST /contato<br>corpo: 164 · especiais: 1<br>volume/min: 2 · reputação: 0.97</p><label><input type="checkbox"> Marcar como suspeita</label></article>
+          <article class="request-card" data-suspicious="true"><h3>Req. D</h3><p>POST /login<br>query: 22 · encoded: sim<br>especiais: 8 · reputação: 0.42</p><label><input type="checkbox"> Marcar como suspeita</label></article>
+          <article class="request-card" data-suspicious="true"><h3>Req. E</h3><p>GET /busca<br>query: 44 · encoded: sim<br>especiais: 12 · volume/min: 31</p><label><input type="checkbox"> Marcar como suspeita</label></article>
+          <article class="request-card" data-suspicious="false"><h3>Req. F</h3><p>POST /api/pedido<br>corpo: 342 · especiais: 2<br>volume/min: 6 · reputação: 0.89</p><label><input type="checkbox"> Marcar como suspeita</label></article>
+        </div>
+        <div class="pattern-actions"><button type="button" id="checkPatterns">Conferir classificações</button><button type="button" class="secondary" id="resetPatterns">Limpar seleção</button><span class="pattern-feedback" id="patternFeedback" aria-live="polite"></span></div>
+      </div>
+    </section>
+
+    <section class="patterns-section">
+      <header class="patterns-heading"><p class="eyebrow">DEPOIS DA ATIVIDADE</p><h2>Transforme uma observação em modelo.</h2><p>Os cartões mostram poucos sinais escolhidos para estudo. Um classificador real deve ser treinado com mais exemplos, dividido em treino, validação e teste, e acompanhado por métricas que revelem bloqueios incorretos e ameaças não detectadas.</p></header>
+      <div class="pattern-rule-grid"><article><b>1 · Representar</b><span>Converter categorias, tamanhos e caracteres em atributos coerentes.</span></article><article><b>2 · Treinar</b><span>Ajustar pesos ou regras usando somente os exemplos de treino.</span></article><article><b>3 · Avaliar</b><span>Usar matriz de confusão, precisão, recall e F1 para escolher o limiar.</span></article></div>
+    </section>
+
+    <section class="page-next"><p class="eyebrow">VOLTE AO ROTEIRO</p><h2>Use os padrões como hipótese, não como resposta pronta.</h2><p>Aplique essa investigação ao dataset sujo e ao classificador do WAF antes de realizar a avaliação final.</p><a href="./desafios-integradores.html">Abrir atividades integradoras →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/patterns-activity.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

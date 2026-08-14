@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Diagramas didáticos de fluxo para aplicações MPA e SPA protegidas por WAF.">
+  <title>Diagramas MPA e SPA | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/mpa-spa.css">
+</head>
+<body>
+  <header class="site-header"></header>
+  <main class="architecture-page">
+    <section class="architecture-hero">
+      <div><p class="eyebrow">ATIVIDADES · DIAGRAMAS DE ARQUITETURA</p><h1>MPA e SPA: duas formas de entregar a mesma aplicação.</h1><p class="lead">Os diagramas mostram o caminho de uma requisição em uma aplicação de múltiplas páginas e em uma aplicação de página única. Em ambos os casos, o WAF pode analisar a chamada antes da aplicação responder.</p></div>
+      <aside class="architecture-hero-aside"><i class="fa-solid fa-code-compare" aria-hidden="true"></i><strong>A diferença principal é quem atualiza a tela.</strong><span>No MPA, o servidor devolve uma página HTML a cada navegação. No SPA, o navegador mantém a página e atualiza apenas os dados recebidos pela API.</span></aside>
+    </section>
+
+    <section class="architecture-section">
+      <header class="architecture-heading"><p class="eyebrow">DIAGRAMA 01 · MULTI-PAGE APPLICATION</p><h2>MPA: cada rota solicita um novo documento.</h2><p>Uma aplicação PHP tradicional é um exemplo comum: ao abrir uma rota, o navegador espera uma resposta HTML completa e substitui a página atual.</p></header>
+      <article class="architecture-diagram">
+        <header class="diagram-title"><div><p class="eyebrow">FLUXO DE NAVEGAÇÃO</p><h2>MPA com Nginx, WAF e PHP</h2><p>O WAF fica entre a requisição e o PHP. Se o risco ultrapassar o limiar, a aplicação não é executada.</p></div><span class="diagram-badge">HTML por rota</span></header>
+        <div class="flow-line" aria-label="Fluxo MPA: navegador, Nginx, WAF, PHP, HTML e navegador">
+          <article class="flow-node"><i class="fa-solid fa-display"></i><b>Navegador</b><span>Clica em uma rota, por exemplo /produtos</span></article><i class="arrow" aria-hidden="true">→</i>
+          <article class="flow-node"><i class="fa-solid fa-server"></i><b>Nginx</b><span>Recebe a navegação e encaminha a verificação</span></article><i class="arrow" aria-hidden="true">→</i>
+          <article class="flow-node security"><i class="fa-solid fa-shield-halved"></i><b>WAF + IA</b><span>Calcula o risco e permite ou bloqueia</span></article><i class="arrow" aria-hidden="true">→</i>
+          <article class="flow-node api"><i class="fa-brands fa-php"></i><b>PHP</b><span>Renderiza a página HTML da rota permitida</span></article>
+        </div>
+        <p class="diagram-caption"><strong>Resposta:</strong> o PHP devolve HTML ao navegador. Uma nova rota normalmente provoca uma nova navegação e uma nova renderização de documento.</p>
+      </article>
+    </section>
+
+    <section class="architecture-section">
+      <header class="architecture-heading"><p class="eyebrow">DIAGRAMA 02 · SINGLE-PAGE APPLICATION</p><h2>SPA: a página permanece; os dados mudam.</h2><p>O navegador recebe o HTML e JavaScript inicial uma vez. Depois, os eventos da interface fazem chamadas à API e o JavaScript atualiza parte da tela sem trocar o documento inteiro.</p></header>
+      <article class="architecture-diagram">
+        <header class="diagram-title"><div><p class="eyebrow">FLUXO DE DADOS</p><h2>SPA com API protegida por WAF</h2><p>O WAF protege as chamadas de API. A resposta permitida costuma ser JSON, que o JavaScript usa para alterar a interface.</p></div><span class="diagram-badge">JSON sem recarregar a página</span></header>
+        <div class="flow-line" aria-label="Fluxo SPA: interface JavaScript, API Nginx, WAF, serviço e JSON">
+          <article class="flow-node"><i class="fa-solid fa-window-maximize"></i><b>SPA no navegador</b><span>Usuário interage; JavaScript faz fetch para /api</span></article><i class="arrow" aria-hidden="true">→</i>
+          <article class="flow-node"><i class="fa-solid fa-server"></i><b>Nginx / API</b><span>Recebe a chamada de dados da interface</span></article><i class="arrow" aria-hidden="true">→</i>
+          <article class="flow-node security"><i class="fa-solid fa-shield-halved"></i><b>WAF + IA</b><span>Bloqueia com 403 ou permite a chamada</span></article><i class="arrow" aria-hidden="true">→</i>
+          <article class="flow-node api"><i class="fa-solid fa-brackets-curly"></i><b>API / PHP</b><span>Devolve JSON para o JavaScript atualizar a tela</span></article>
+        </div>
+        <p class="diagram-caption"><strong>Resposta:</strong> quando recebe JSON, o JavaScript muda apenas o componente necessário. Se o WAF devolver 403, a SPA pode informar o bloqueio sem abandonar a página.</p>
+      </article>
+    </section>
+
+    <section class="architecture-section">
+      <header class="architecture-heading"><p class="eyebrow">COMPARAÇÃO PRÁTICA</p><h2>O WAF protege a borda, independente do tipo de interface.</h2></header>
+      <div class="comparison-grid">
+        <article class="comparison-card mpa"><h3>Quando pensar em MPA</h3><ul><li>Páginas renderizadas no servidor e rotas orientadas a documentos.</li><li>Fluxo tradicional de PHP, formulários e navegação completa.</li><li>O WAF intercepta a solicitação antes do código da rota renderizar o HTML.</li></ul></article>
+        <article class="comparison-card spa"><h3>Quando pensar em SPA</h3><ul><li>Interface altamente interativa, com estado mantido no navegador.</li><li>Dados obtidos por API e exibidos sem recarga do documento.</li><li>O WAF intercepta cada chamada da API antes de devolver JSON à interface.</li></ul></article>
+      </div>
+      <aside class="architecture-note"><strong>Relação com o kit Docker:</strong> a página <code>testar.html</code> se comporta como uma interface SPA pequena: ela usa <code>fetch</code> e mostra a resposta na própria tela. A rota <code>/api/</code> é protegida pelo Nginx antes de chegar ao PHP.</aside>
+    </section>
+
+    <section class="architecture-next"><p class="eyebrow">APLIQUE NO DESAFIO</p><h2>Use o diagrama para explicar sua implementação do WAF.</h2><p>Na entrega, indique qual requisição o modelo recebe, onde ocorre o bloqueio e qual resposta é devolvida à interface.</p><a href="./desafios-integradores.html#atividade-waf">Voltar ao desafio do WAF →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>
