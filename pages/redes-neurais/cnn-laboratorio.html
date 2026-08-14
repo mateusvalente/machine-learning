@@ -21,16 +21,54 @@
       </div>
     </section>
 
-    <section class="didactic-code"><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>Convolução e Max Pooling com laços simples</h2><p>Sem bibliotecas: cada produto pode ser localizado na imagem e no filtro.</p><div class="code-flow"><span>convoluir()</span><span>relu()</span><span>maxPooling()</span><span>softmax()</span><span>treinarSaida()</span></div><pre><code>// Percorre todas as posições válidas da imagem.
+    <section class="didactic-code"><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2>Treine uma pequena CNN para reconhecer linhas</h2><p>O programa contém imagens, filtros, Convolução, ReLU, pooling, camada Softmax, treinamento e previsão. Os filtros são definidos manualmente para concentrar a explicação no fluxo; redes reais também aprendem os filtros pelo backpropagation.</p><div class="code-flow"><span>convoluir()</span><span>extrairCaracteristicas()</span><span>treinar()</span><span>prever()</span><span>avaliar()</span></div><pre><code>// ============================================================
+// MINI CNN: imagem 5 × 5 → 2 filtros → Softmax → classe
+// Classe 0 = linha vertical; classe 1 = linha horizontal.
+// ============================================================
+var vertical1 = [
+  [0,0,1,0,0], [0,0,1,0,0], [0,0,1,0,0],
+  [0,0,1,0,0], [0,0,1,0,0]
+];
+var vertical2 = [
+  [0,1,1,0,0], [0,0,1,0,0], [0,0,1,0,0],
+  [0,0,1,0,0], [0,1,1,0,0]
+];
+var horizontal1 = [
+  [0,0,0,0,0], [0,0,0,0,0], [1,1,1,1,1],
+  [0,0,0,0,0], [0,0,0,0,0]
+];
+var horizontal2 = [
+  [0,0,0,0,0], [1,1,1,1,0], [1,1,1,1,1],
+  [0,0,0,0,0], [0,0,0,0,0]
+];
+
+var treino = [
+  [vertical1, 0], [vertical2, 0],
+  [horizontal1, 1], [horizontal2, 1]
+];
+
+var filtroVertical = [
+  [-1, 2, -1], [-1, 2, -1], [-1, 2, -1]
+];
+var filtroHorizontal = [
+  [-1,-1,-1], [ 2, 2, 2], [-1,-1,-1]
+];
+var filtros = [filtroVertical, filtroHorizontal];
+var pesosSaida = [[0, 0], [0, 0]];
+var biasSaida = [0, 0];
+
 function convoluir(imagem, filtro) {
   var mapa = [];
-  for (var linha = 0; linha &lt; 10; linha++) {
+  var linhasSaida = imagem.length - filtro.length + 1;
+  var colunasSaida = imagem[0].length - filtro[0].length + 1;
+
+  for (var linha = 0; linha &lt; linhasSaida; linha++) {
     mapa[linha] = [];
-    for (var coluna = 0; coluna &lt; 10; coluna++) {
+    for (var coluna = 0; coluna &lt; colunasSaida; coluna++) {
       var soma = 0;
-      for (var r = 0; r &lt; 3; r++) {
-        for (var c = 0; c &lt; 3; c++) {
-          soma = soma + imagem[linha + r][coluna + c] * filtro[r][c];
+      for (var r = 0; r &lt; filtro.length; r++) {
+        for (var c = 0; c &lt; filtro[0].length; c++) {
+          soma += imagem[linha + r][coluna + c] * filtro[r][c];
         }
       }
       mapa[linha][coluna] = Math.max(0, soma); // ReLU
@@ -39,23 +77,81 @@ function convoluir(imagem, filtro) {
   return mapa;
 }
 
-// Resume cada bloco 2 × 2 mantendo a maior ativação.
-function maxPooling(mapa) {
-  var saida = [];
-  for (var linha = 0; linha &lt; 5; linha++) {
-    saida[linha] = [];
-    for (var coluna = 0; coluna &lt; 5; coluna++) {
-      var maior = mapa[linha * 2][coluna * 2];
-      for (var r = 0; r &lt; 2; r++) {
-        for (var c = 0; c &lt; 2; c++) {
-          if (mapa[linha * 2 + r][coluna * 2 + c] > maior) maior = mapa[linha * 2 + r][coluna * 2 + c];
-        }
-      }
-      saida[linha][coluna] = maior;
+// Global Max Pooling: guarda a maior ativação de cada mapa.
+function maiorValor(mapa) {
+  var maior = mapa[0][0];
+  for (var linha = 0; linha &lt; mapa.length; linha++) {
+    for (var coluna = 0; coluna &lt; mapa[linha].length; coluna++) {
+      if (mapa[linha][coluna] &gt; maior) maior = mapa[linha][coluna];
     }
   }
-  return saida;
-}</code></pre></section>
+  return maior;
+}
+
+function extrairCaracteristicas(imagem) {
+  var caracteristicas = [];
+  for (var f = 0; f &lt; filtros.length; f++) {
+    caracteristicas[f] = maiorValor(convoluir(imagem, filtros[f]));
+  }
+  return caracteristicas;
+}
+
+function softmax(logits) {
+  var maior = Math.max(logits[0], logits[1]);
+  var e0 = Math.exp(logits[0] - maior);
+  var e1 = Math.exp(logits[1] - maior);
+  return [e0 / (e0 + e1), e1 / (e0 + e1)];
+}
+
+function forward(imagem) {
+  var x = extrairCaracteristicas(imagem);
+  var logits = [biasSaida[0], biasSaida[1]];
+  for (var classe = 0; classe &lt; 2; classe++) {
+    for (var j = 0; j &lt; 2; j++) logits[classe] += pesosSaida[classe][j] * x[j];
+  }
+  return [softmax(logits), x];
+}
+
+function treinarAmostra(imagem, alvo, taxa) {
+  var resultado = forward(imagem);
+  var probabilidades = resultado[0];
+  var x = resultado[1];
+
+  for (var classe = 0; classe &lt; 2; classe++) {
+    var esperado = classe === alvo ? 1 : 0;
+    var gradiente = probabilidades[classe] - esperado;
+    for (var j = 0; j &lt; 2; j++) pesosSaida[classe][j] -= taxa * gradiente * x[j];
+    biasSaida[classe] -= taxa * gradiente;
+  }
+}
+
+function treinar(dados, epocas, taxa) {
+  for (var epoca = 0; epoca &lt; epocas; epoca++) {
+    for (var i = 0; i &lt; dados.length; i++) {
+      treinarAmostra(dados[i][0], dados[i][1], taxa);
+    }
+  }
+}
+
+function prever(imagem) {
+  var p = forward(imagem)[0];
+  if (p[0] &gt; p[1]) return 0;
+  return 1;
+}
+
+function avaliar(dados) {
+  var acertos = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    if (prever(dados[i][0]) === dados[i][1]) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+treinar(treino, 200, 0.03);
+console.log('Acurácia:', avaliar(treino));
+console.log('Características da vertical:', extrairCaracteristicas(vertical1));
+console.log('Previsão (0=vertical, 1=horizontal):', prever(vertical1));</code></pre></section>
   </main>
   <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://yann.lecun.org/exdb/mnist/index.html" target="_blank" rel="noopener">MNIST</a> · <a href="https://yann.lecun.com/exdb/publis/pdf/lecun-98.pdf" target="_blank" rel="noopener">LeCun et al.</a> · <a href="https://img.magnific.com/vetores-premium/conjunto-vetorial-de-numeros-escritos-a-mao-numeros-desenhados-a-mao_79152-2609.jpg" target="_blank" rel="noopener">Imagem de referência indicada</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
   <script src="../../js/labs/digit-data.js"></script><script src="../../js/labs/cnn-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/image-lightbox.js"></script><script src="../../js/navigation.js"></script>

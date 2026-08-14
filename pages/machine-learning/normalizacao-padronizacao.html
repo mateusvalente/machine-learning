@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Normalização e padronização | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/ml-curriculum.css">
+</head>
+<body data-lab="escala">
+  <header class="site-header"></header>
+  <main class="ml-study-page">
+    <section class="ml-study-hero">
+      <div><p class="eyebrow">5.2 · PREPARAÇÃO DOS DADOS</p><h1>Normalização e padronização</h1><p class="lead">Mudar a escala não altera o significado do atributo, mas torna suas magnitudes comparáveis. Isso é especialmente importante em modelos baseados em distância, gradiente, regularização e kernels.</p></div>
+      <aside class="ml-study-badge"><i class="fa-solid fa-arrows-left-right-to-line"></i><strong>Escala não é importância</strong><span>Renda não deveria dominar idade apenas porque seus números são maiores.</span></aside>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">DUAS TRANSFORMAÇÕES</p><h2>Intervalo fixo ou distância da média?</h2></header>
+      <div class="ml-concept-grid">
+        <article class="ml-concept-card"><h3>Min–max · normalização</h3><p>Transporta mínimo e máximo para um intervalo, normalmente [0, 1]. O menor valor vira 0 e o maior vira 1. É sensível a valores extremos.</p><div class="equation">x' = (x − xₘᵢₙ)/(xₘₐₓ − xₘᵢₙ)</div></article>
+        <article class="ml-concept-card"><h3>Z-score · padronização</h3><p>Centraliza a coluna na média e mede quantos desvios-padrão separam cada valor da média.</p><div class="equation">z = (x − μ)/σ</div></article>
+        <article class="ml-concept-card"><h3>Quando faz diferença?</h3><p>k-NN, k-means, SVM com RBF, PCA, regressões regularizadas e redes neurais são sensíveis à escala. Árvores costumam ser pouco afetadas por transformações monotônicas.</p></article>
+      </div>
+      <div class="ml-callout ml-warning"><b>Calcule μ, σ, mínimo e máximo somente no treino.</b> Guarde essas estatísticas e use exatamente as mesmas para transformar validação, teste e novas previsões.</div>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">PARA QUE USAR Z-SCORE?</p><h2>Comparar valores usando a distância até a média.</h2><p>O z-score troca a unidade original — reais, anos ou quilômetros — por uma unidade comum: o número de desvios-padrão que separa o valor da média da coluna.</p></header>
+      <div class="ml-concept-grid">
+        <article class="ml-concept-card"><h3>Centralizar em zero</h3><p>Depois da padronização, a média da coluna fica próxima de 0. Isso facilita a otimização de modelos treinados por gradiente.</p><div class="equation">x = μ → z = 0</div></article>
+        <article class="ml-concept-card"><h3>Igualar a escala</h3><p>O desvio-padrão passa a valer 1. Assim, renda, idade e distância podem participar de cálculos sem uma coluna dominar apenas pela unidade.</p><div class="equation">1 unidade z = 1 desvio σ</div></article>
+        <article class="ml-concept-card"><h3>Interpretar posição</h3><p>O sinal informa o lado da média e o módulo informa a distância: z negativo está abaixo; z positivo está acima.</p><div class="equation">z = −1,2 → 1,2σ abaixo de μ</div></article>
+      </div>
+
+      <div class="ml-table-wrap"><table class="ml-table"><thead><tr><th>z-score</th><th>Leitura</th><th>Exemplo</th></tr></thead><tbody><tr><td>z = 0</td><td>Valor igual à média.</td><td>Renda exatamente igual à renda média do treino.</td></tr><tr><td>z = +1</td><td>Um desvio-padrão acima da média.</td><td>Valor maior que o centro da coluna.</td></tr><tr><td>z = −2</td><td>Dois desvios-padrão abaixo da média.</td><td>Valor consideravelmente abaixo do centro.</td></tr><tr><td>|z| elevado</td><td>Valor distante da maior parte da coluna.</td><td>Pode ser extremo, mas exige análise do domínio.</td></tr></tbody></table></div>
+
+      <div class="ml-concept-grid" style="margin-top:18px">
+        <article class="ml-concept-card"><h3>Modelos que costumam se beneficiar</h3><p>k-NN, k-means, SVM, PCA, regressões linear e logística regularizadas, redes neurais e outros métodos baseados em distância ou gradiente.</p></article>
+        <article class="ml-concept-card"><h3>Quando escolher z-score</h3><p>Quando as colunas possuem unidades muito diferentes e queremos preservar quanto cada valor está distante da média, sem obrigá-lo a ficar entre 0 e 1.</p></article>
+        <article class="ml-concept-card"><h3>O que ele não faz</h3><p>Não transforma automaticamente os dados em uma distribuição normal, não limita valores extremos e não corrige viés, erros de coleta ou rótulos incorretos.</p></article>
+      </div>
+
+      <div class="ml-callout"><b>Exemplo:</b> suponha renda média μ = R$ 6.000 e desvio σ = R$ 2.000. Para uma renda de R$ 8.000, <b>z = (8.000 − 6.000)/2.000 = 1</b>. O valor está um desvio-padrão acima da média. Essa leitura pode ser comparada com o z-score de idade ou distância, mesmo que as unidades originais sejam diferentes.</div>
+      <div class="ml-callout ml-warning"><b>Z-score não significa probabilidade por si só.</b> Interpretações como “aproximadamente 95% entre −2 e +2” dependem de a distribuição ser aproximadamente normal. O cálculo do z-score pode ser usado sem normalidade, mas essa leitura probabilística não.</div>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">POR QUE NÚMEROS GRANDES ATRAPALHAM?</p><h2>O algoritmo enxerga magnitude antes de entender significado.</h2><p>Uma coluna em milhares e outra entre 0 e 5 podem contribuir de forma muito diferente para os cálculos, mesmo quando a segunda é tão importante quanto a primeira.</p></header>
+      <div class="ml-concept-grid">
+        <article class="ml-concept-card"><h3>Distâncias ficam dominadas</h3><p>Em k-NN, k-means e kernels, diferenças grandes pesam ao quadrado. Uma diferença de renda igual a 1.000 contribui com 1.000.000; uma diferença de idade igual a 10 contribui com apenas 100.</p><div class="equation">d² = 10² + 1000²</div></article>
+        <article class="ml-concept-card"><h3>Gradiente fica desequilibrado</h3><p>A superfície de custo pode ficar muito alongada. O gradiente desce em zigue-zague, exige taxa de aprendizado menor e pode demorar mais para convergir ou oscilar.</p><div class="equation">Δwⱼ ∝ erro × xⱼ</div></article>
+        <article class="ml-concept-card"><h3>Regularização compara pesos</h3><p>Quando as escalas são diferentes, o modelo precisa de pesos numericamente muito diferentes para compensá-las. Penalidades L1 e L2 passam a comparar coeficientes em escalas incompatíveis.</p><div class="equation">L₂ = λΣwⱼ²</div></article>
+      </div>
+      <div class="ml-callout"><b>Isso pode gerar preferência pela escala, mas não é automaticamente “viés estatístico”.</b> Uma variável grande pode dominar a otimização, a distância ou a regularização e influenciar demais a resposta. Entretanto, normalizar não corrige amostra desbalanceada, rótulos preconceituosos, variável omitida ou desigualdade histórica. Esses são outros tipos de viés e precisam de diagnóstico próprio.</div>
+      <div class="ml-callout ml-warning"><b>Números extremos também podem gerar instabilidade numérica.</b> Produtos, quadrados e exponenciais muito grandes podem perder precisão ou resultar em infinito/NaN. Escala, clipping e transformações logarítmicas podem ajudar, desde que sejam adequados à distribuição.</div>
+    </section>
+
+    <section class="ml-lab">
+      <p class="eyebrow">LABORATÓRIO INTERATIVO</p><h2>Normalize e padronize cinco colunas.</h2><p class="ml-lab-intro">A tabela possui cinco amostras e cinco atributos com escalas diferentes. Edite qualquer célula: mínimo, máximo, média, desvio-padrão, min–max, z-score e todas as contas serão atualizados imediatamente.</p>
+
+      <div class="ml-table-wrap"><table class="ml-table ml-scale-table"><thead><tr><th>Amostra</th><th>Idade <small>anos</small></th><th>Renda <small>R$</small></th><th>Distância <small>km</small></th><th>Compras <small>unidades</small></th><th>Satisfação <small>nota 1–5</small></th></tr></thead><tbody>
+        <tr><td>A</td><td><input class="scale-input" id="escala-0-0" type="number" value="22"></td><td><input class="scale-input" id="escala-0-1" type="number" value="1800"></td><td><input class="scale-input" id="escala-0-2" type="number" value="1.2" step="0.1"></td><td><input class="scale-input" id="escala-0-3" type="number" value="2"></td><td><input class="scale-input" id="escala-0-4" type="number" value="4"></td></tr>
+        <tr><td>B</td><td><input class="scale-input" id="escala-1-0" type="number" value="35"></td><td><input class="scale-input" id="escala-1-1" type="number" value="5200"></td><td><input class="scale-input" id="escala-1-2" type="number" value="18" step="0.1"></td><td><input class="scale-input" id="escala-1-3" type="number" value="15"></td><td><input class="scale-input" id="escala-1-4" type="number" value="2"></td></tr>
+        <tr><td>C</td><td><input class="scale-input" id="escala-2-0" type="number" value="48"></td><td><input class="scale-input" id="escala-2-1" type="number" value="3500"></td><td><input class="scale-input" id="escala-2-2" type="number" value="5.5" step="0.1"></td><td><input class="scale-input" id="escala-2-3" type="number" value="7"></td><td><input class="scale-input" id="escala-2-4" type="number" value="5"></td></tr>
+        <tr><td>D</td><td><input class="scale-input" id="escala-3-0" type="number" value="29"></td><td><input class="scale-input" id="escala-3-1" type="number" value="12000"></td><td><input class="scale-input" id="escala-3-2" type="number" value="80" step="0.1"></td><td><input class="scale-input" id="escala-3-3" type="number" value="3"></td><td><input class="scale-input" id="escala-3-4" type="number" value="1"></td></tr>
+        <tr><td>E</td><td><input class="scale-input" id="escala-4-0" type="number" value="67"></td><td><input class="scale-input" id="escala-4-1" type="number" value="7800"></td><td><input class="scale-input" id="escala-4-2" type="number" value="27" step="0.1"></td><td><input class="scale-input" id="escala-4-3" type="number" value="22"></td><td><input class="scale-input" id="escala-4-4" type="number" value="3"></td></tr>
+      </tbody></table></div>
+
+      <div class="ml-output-block"><h3>Estatísticas calculadas coluna por coluna</h3><p>O laboratório usa o desvio-padrão populacional didático: σ = √(Σ(xᵢ − μ)²/N), com N = 5.</p><div class="ml-table-wrap"><table class="ml-table ml-scale-summary"><thead><tr><th>Atributo</th><th>Mínimo</th><th>Máximo</th><th>Média μ</th><th>Desvio σ</th></tr></thead><tbody id="resumoEscala"></tbody></table></div></div>
+
+      <div class="ml-output-block"><h3>Todos os valores normalizados por min–max</h3><p>Cada coluna passa a ocupar o intervalo de 0 a 1.</p><div class="ml-table-wrap"><table class="ml-table ml-scale-summary"><thead><tr><th>Amostra</th><th>Idade</th><th>Renda</th><th>Distância</th><th>Compras</th><th>Satisfação</th></tr></thead><tbody id="tabelaMinMax"></tbody></table></div></div>
+
+      <div class="ml-output-block"><h3>Todos os valores padronizados por z-score</h3><p>Valores negativos estão abaixo da média; positivos estão acima; zero coincide com a média.</p><div class="ml-table-wrap"><table class="ml-table ml-scale-summary"><thead><tr><th>Amostra</th><th>Idade</th><th>Renda</th><th>Distância</th><th>Compras</th><th>Satisfação</th></tr></thead><tbody id="tabelaZscore"></tbody></table></div></div>
+
+      <div class="ml-output-block"><div class="ml-controls"><div class="ml-control"><label for="amostraEscala">Mostrar substituição das fórmulas para</label><select id="amostraEscala"><option value="0">Amostra A</option><option value="1">Amostra B</option><option value="2">Amostra C</option><option value="3">Amostra D</option><option value="4">Amostra E</option></select></div></div><h3 id="tituloContasEscala"></h3><p>As cinco caixas usam as estatísticas da respectiva coluna, nunca as estatísticas de outra variável.</p><div class="ml-formula-grid" id="contasEscala"></div><p class="ml-scale-note">Se todos os valores de uma coluna forem iguais, sua amplitude e seu desvio serão zero. Neste laboratório o resultado transformado será mostrado como 0 para evitar divisão por zero; na prática, uma coluna constante não acrescenta informação e pode ser removida.</p></div>
+    </section>
+
+    <section class="ml-study-section"><header class="narrative-head"><p class="eyebrow">DECISÃO PRÁTICA</p><h2>A distribuição e o modelo orientam a escolha.</h2></header><div class="ml-concept-grid"><article class="ml-concept-card"><h3>Min–max</h3><p>Útil quando limites são conhecidos e estáveis e há poucos extremos. Um novo valor fora dos limites do treino pode produzir resultado menor que 0 ou maior que 1.</p></article><article class="ml-concept-card"><h3>Z-score</h3><p>Boa escolha quando a distribuição é aproximadamente concentrada em torno da média. Não obriga os dados a terem distribuição normal.</p></article><article class="ml-concept-card"><h3>Log e clipping</h3><p>Podem ajudar com caudas longas e extremos, mas precisam de justificativa, ajuste no treino e monitoramento em produção.</p></article></div></section>
+
+    <section class="ml-sources"><strong>Fontes consultadas:</strong> <a href="https://developers.google.com/machine-learning/crash-course/numerical-data/normalization" target="_blank" rel="noopener">Google ML · normalização</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html" target="_blank" rel="noopener">scikit-learn · StandardScaler</a> · <a href="https://scikit-learn.org/stable/auto_examples/preprocessing/plot_scaling_importance.html" target="_blank" rel="noopener">scikit-learn · importância da escala</a>.</section>
+    <section class="ml-next"><h2>Próximo: engenharia de atributos.</h2><p>Transforme conhecimento do domínio em representações que facilitem o aprendizado.</p><a href="./engenharia-atributos.html">Abrir engenharia de atributos →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/ml-curriculum.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

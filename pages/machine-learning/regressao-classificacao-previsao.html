@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Regressão, classificação e previsão | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/ml-curriculum.css">
+</head>
+<body data-lab="problemas">
+  <header class="site-header"></header>
+  <main class="ml-study-page">
+    <section class="ml-study-hero">
+      <div><p class="eyebrow">5.1 · FUNDAMENTOS</p><h1>Regressão, classificação e previsão</h1><p class="lead">Antes de escolher um algoritmo, precisamos identificar o tipo de resposta desejada. Regressão estima números; classificação escolhe categorias; previsão é o resultado que o modelo produz para uma entrada nova.</p></div>
+      <aside class="ml-study-badge"><i class="fa-solid fa-shapes"></i><strong>Comece pela saída</strong><span>Pergunte primeiro: quero obter um valor numérico, uma categoria ou uma probabilidade?</span></aside>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">A IDEIA PRINCIPAL</p><h2>O formato de y define a tarefa.</h2><p>No aprendizado supervisionado, cada exemplo possui atributos <b>x</b> e uma resposta esperada <b>y</b>. O modelo aprende uma função que transforma x em uma previsão ŷ.</p></header>
+      <div class="ml-concept-grid">
+        <article class="ml-concept-card"><h3>Regressão</h3><p>Usada quando a saída é um <b>valor numérico contínuo</b>: preço, temperatura, consumo, tempo ou demanda.</p><div class="equation">ŷ = 438.500 reais</div></article>
+        <article class="ml-concept-card"><h3>Classificação</h3><p>Usada quando a saída é uma <b>categoria</b>: spam/não spam, aprovado/reprovado ou uma espécie entre várias.</p><div class="equation">ŷ = classe “spam”</div></article>
+        <article class="ml-concept-card"><h3>Previsão · inferência</h3><p>É a resposta calculada para uma nova entrada. Tanto uma regressão quanto uma classificação produzem previsões.</p><div class="equation">novo x → modelo → ŷ</div></article>
+      </div>
+      <div class="ml-callout"><b>“Previsão” não significa apenas descobrir o futuro.</b> Classificar uma imagem já existente como “gato” também é fazer uma previsão. Quando o alvo pertence ao futuro e os exemplos têm ordem temporal, falamos frequentemente em previsão temporal ou forecasting.</div>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">COMO RECONHECER</p><h2>Observe a pergunta e o tipo da resposta.</h2></header>
+      <div class="ml-table-wrap"><table class="ml-table"><thead><tr><th>Pergunta</th><th>Saída esperada</th><th>Tarefa</th></tr></thead><tbody>
+        <tr><td>Qual será o preço do imóvel?</td><td>R$ 438.500</td><td>Regressão</td></tr>
+        <tr><td>O cliente cancelará?</td><td>sim ou não</td><td>Classificação binária</td></tr>
+        <tr><td>Qual espécie aparece na imagem?</td><td>gato, cão ou ave</td><td>Classificação multiclasse</td></tr>
+        <tr><td>Quanto a loja venderá amanhã?</td><td>R$ 82.300</td><td>Regressão temporal</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">PROBABILIDADE E DECISÃO</p><h2>Classificar costuma envolver duas etapas.</h2></header>
+      <div class="ml-concept-grid">
+        <article class="ml-concept-card"><h3>1. Estimar evidências</h3><p>O modelo pode calcular probabilidades ou pontuações para as classes.</p><div class="equation">P(spam | x) = 0,92</div></article>
+        <article class="ml-concept-card"><h3>2. Aplicar uma regra</h3><p>Um limiar converte a probabilidade em decisão. Ele pode mudar conforme o custo de cada erro.</p><div class="equation">0,92 ≥ 0,50 → spam</div></article>
+        <article class="ml-concept-card"><h3>3. Avaliar o erro certo</h3><p>Regressão usa métricas como MAE e MSE. Classificação usa matriz de confusão, precisão, recall e F1-score.</p></article>
+      </div>
+    </section>
+
+    <section class="ml-lab">
+      <p class="eyebrow">EXERCÍCIO INTERATIVO</p><h2>Identifique o tipo de problema.</h2><p class="ml-lab-intro">Escolha um cenário e observe como a forma da saída determina a tarefa.</p>
+      <div class="ml-controls"><div class="ml-control"><label for="cenarioProblema">Cenário</label><select id="cenarioProblema"><option value="preco">Preço de uma casa</option><option value="spam">Detectar spam</option><option value="flor">Reconhecer espécie</option><option value="demanda">Demanda de energia amanhã</option></select></div></div>
+      <div class="ml-lab-result"><h3 id="cenarioNome"></h3><div class="ml-metric-grid"><div class="ml-metric"><b id="cenarioTipo"></b><span>tipo de tarefa</span></div><div class="ml-metric"><b id="cenarioSaida"></b><span>exemplo de previsão ŷ</span></div></div><p id="cenarioLeitura"></p></div>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">APROFUNDE</p><h2>Agora escolha o caminho.</h2></header>
+      <div class="ml-concept-grid"><article class="ml-concept-card"><h3>Regressão</h3><p>Visualize a matemática da reta, resíduos, coeficientes e métodos de ajuste.</p><a href="../aprendizagem-supervisionada/regressao-linear.html">Estudar regressão linear →</a></article><article class="ml-concept-card"><h3>Classificação</h3><p>Compare classificação binária, multiclasse, multilabel e fronteiras de decisão.</p><a href="./classificacao.html">Estudar classificação →</a></article><article class="ml-concept-card"><h3>Avaliação</h3><p>Entenda por que a métrica precisa corresponder ao tipo de saída e ao custo do erro.</p><a href="../aprendizagem-supervisionada/matriz-confusao.html">Abrir avaliação de modelos →</a></article></div>
+    </section>
+
+    <section class="ml-sources"><strong>Fontes:</strong> <a href="https://developers.google.com/machine-learning/crash-course/linear-regression" target="_blank" rel="noopener">Google ML · regressão linear</a> · <a href="https://developers.google.com/machine-learning/crash-course/logistic-regression" target="_blank" rel="noopener">Google ML · classificação e regressão logística</a> · <a href="https://scikit-learn.org/stable/supervised_learning.html" target="_blank" rel="noopener">scikit-learn · aprendizagem supervisionada</a>.</section>
+    <section class="ml-next"><h2>Próximo: dados, atributos e rótulos.</h2><p>Veja como uma tabela é convertida em entradas X e respostas y.</p><a href="./dados-atributos-rotulos.html">Continuar os fundamentos →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/ml-curriculum.js"></script><script src="../../js/navigation.js"></script>
+</body></html>

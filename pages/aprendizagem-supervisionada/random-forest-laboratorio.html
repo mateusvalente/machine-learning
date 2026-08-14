@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório Random Forest | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/classical-labs.css"></head>
+<body>
+  <header class="site-header"></header>
+  <main class="model-lab-page">
+    <section class="model-lab-hero forest"><div><p class="eyebrow">LABORATÓRIO · RANDOM FOREST</p><h1>Construa a floresta árvore por árvore.</h1><p class="lead">Cada árvore rasa recebe um bootstrap, sorteia atributos, escolhe a divisão com menor Gini e vota. Observe a fronteira e o erro se estabilizarem à medida que novas árvores entram.</p></div><div class="model-lab-rule"><code>Gini(S) = 1 − Σp(c)²</code><code>Gini_div = (nL/n)Gini(L) + (nR/n)Gini(R)</code><code>ŷ = moda(T₁(x), …, Tₘ(x))</code><p>A implementação usa stumps — árvores com uma divisão — para manter toda a matemática visível.</p></div></section>
+
+    <section class="model-lab-layout">
+      <aside class="model-lab-controls"><h2>Floresta</h2><p>Altere os sorteios e acompanhe as árvores produzidas.</p>
+        <div class="lab-control-group"><label>NÚMERO DE ÁRVORES<input id="forestTreeTarget" type="number" min="1" max="40" value="12"></label><label>ATRIBUTOS CANDIDATOS<select id="forestMaxFeatures"><option value="1" selected>1 atributo sorteado</option><option value="2">x₁ e x₂</option></select></label><label>SEED<input id="forestSeed" type="number" min="1" max="99999" value="42"></label></div>
+        <div class="lab-control-group lab-button-stack"><button class="button" id="forestAddTree" type="button">Treinar 1 árvore</button><button class="button" id="forestTrain" type="button">Treinar floresta</button><button class="button outline" id="forestStabilize" type="button">Adicionar até estabilizar</button><button class="button outline" id="forestReset" type="button">Reiniciar</button></div>
+        <div class="lab-control-group"><h3>Testar novo ponto</h3><div class="lab-control-grid"><label>x₁<input id="forestQueryX" type="number" min="0" max="10" step="0.1" value="5"></label><label>x₂<input id="forestQueryY" type="number" min="0" max="10" step="0.1" value="5"></label></div><button class="button" id="forestPredict" type="button">Classificar ponto</button></div>
+        <div class="lab-control-note"><b>Estabilizar não é convergir por épocas.</b><br>O botão acrescenta árvores até o erro de validação permanecer igual por oito árvores ou atingir 40 árvores.</div>
+      </aside>
+
+      <div class="model-lab-results">
+        <section class="model-lab-metrics"><article><span>ÁRVORES</span><strong id="forestTreeCount">0</strong></article><article><span>PREVISÃO</span><strong id="forestPrediction">—</strong></article><article><span>VOTOS A</span><strong id="forestVotesA">0</strong></article><article><span>VOTOS B</span><strong id="forestVotesB">0</strong></article><article><span>ERRO VALIDAÇÃO</span><strong id="forestError">—</strong></article></section>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Fronteira da floresta</h2><p>O fundo mostra a votação do conjunto. As linhas finas são divisões das árvores individuais.</p></div><span class="model-status" id="forestStatus">Floresta vazia</span></div><canvas class="model-plot" id="forestCanvas" width="960" height="620" aria-label="Fronteiras das árvores e da Random Forest"></canvas><div class="model-legend"><span><i></i>classe A</span><span><i class="class-b"></i>classe B</span><span><i class="query"></i>consulta</span></div></article>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Matemática da última árvore</h2><p>Bootstrap, contagens, Gini dos lados e regra escolhida.</p></div></div><div class="model-math-grid" id="forestMath"><article class="full"><b>Comece o treinamento</b><p>Clique em “Treinar 1 árvore” para visualizar o primeiro sorteio.</p></article></div></article>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Árvores e votos</h2><p>Cada linha é uma árvore de uma divisão. Índices repetidos revelam o bootstrap com reposição.</p></div></div><div class="model-table-wrap"><table class="model-lab-table"><thead><tr><th>#</th><th>Bootstrap</th><th>Regra</th><th>Folha esquerda</th><th>Folha direita</th><th>Gini</th><th>Voto em q</th></tr></thead><tbody id="forestTreeBody"></tbody></table></div></article>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Erro × resposta conforme entram árvores</h2><p>O gráfico usa um pequeno conjunto de validação separado. A linha verde mostra a acurácia.</p></div></div><canvas class="model-plot" id="forestHistoryCanvas" width="960" height="340" aria-label="Erro e acurácia da Random Forest por quantidade de árvores"></canvas><div class="model-legend"><span><i style="border-radius:3px;background:#e35c6e"></i>erro</span><span><i style="border-radius:3px;background:#19a987"></i>acurácia</span></div></article>
+
+        <aside class="model-warning"><strong>Aproximação didática:</strong> uma Random Forest real normalmente usa árvores profundas. Aqui usamos stumps para que bootstrap, divisão e Gini caibam na tela. A aleatoriedade e a votação são reais, mas a capacidade do modelo é deliberadamente menor.</aside>
+      </div>
+    </section>
+
+    <section class="model-code-section"><header><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2>Treine, avalie e use uma pequena Random Forest</h2><p>Copie o programa inteiro para o console do navegador ou para um arquivo JavaScript. Ele cria bootstraps, treina árvores de um nível, monta a floresta, mede a acurácia e classifica uma nova entrada.</p><div class="model-code-flow"><span>bootstrap()</span><span>treinarArvore()</span><span>treinarFloresta()</span><span>prever()</span><span>avaliar()</span></div></header><div class="model-code-window"><div class="model-code-bar"><span>random-forest-completo.js</span><i>execute do início ao fim</i></div><pre><code class="language-javascript">// ============================================================
+// RANDOM FOREST DIDÁTICA: 2 entradas, 2 classes e árvores rasas
+// Cada amostra contém [x1, x2, classe].
+// ============================================================
+var treino = [
+  [1, 2, 'A'], [2, 3, 'A'], [2, 6, 'A'], [4, 7, 'A'],
+  [6, 2, 'B'], [7, 4, 'B'], [8, 6, 'B'], [9, 8, 'B']
+];
+
+var teste = [
+  [2, 4, 'A'], [3, 7, 'A'], [7, 3, 'B'], [8, 7, 'B']
+];
+
+// Sorteia N linhas com reposição. Uma linha pode aparecer mais de uma vez.
+function bootstrap(dados) {
+  var amostra = [];
+  for (var i = 0; i &lt; dados.length; i++) {
+    var indice = Math.floor(Math.random() * dados.length);
+    amostra[i] = dados[indice];
+  }
+  return amostra;
+}
+
+// Mede a impureza de uma lista de classes.
+function gini(classes) {
+  if (classes.length === 0) return 0;
+  var quantidadeA = 0;
+  for (var i = 0; i &lt; classes.length; i++) {
+    if (classes[i] === 'A') quantidadeA++;
+  }
+  var pA = quantidadeA / classes.length;
+  var pB = 1 - pA;
+  return 1 - pA * pA - pB * pB;
+}
+
+// Retorna a classe que aparece mais vezes.
+function classeMajoritaria(classes) {
+  var quantidadeA = 0;
+  for (var i = 0; i &lt; classes.length; i++) {
+    if (classes[i] === 'A') quantidadeA++;
+  }
+  if (quantidadeA &gt;= classes.length - quantidadeA) return 'A';
+  return 'B';
+}
+
+// Treina uma árvore de um nível: [atributo, limiar, classeEsquerda, classeDireita].
+function treinarArvore(dados) {
+  var atributo = Math.floor(Math.random() * 2); // Random Forest sorteia atributos.
+  var melhorGini = Infinity;
+  var melhorArvore = null;
+
+  for (var candidato = 0; candidato &lt; dados.length; candidato++) {
+    var limiar = dados[candidato][atributo];
+    var esquerda = [];
+    var direita = [];
+
+    for (var i = 0; i &lt; dados.length; i++) {
+      if (dados[i][atributo] &lt;= limiar) esquerda.push(dados[i][2]);
+      else direita.push(dados[i][2]);
+    }
+
+    if (esquerda.length === 0 || direita.length === 0) continue;
+    var impureza = (esquerda.length * gini(esquerda)
+                  + direita.length * gini(direita)) / dados.length;
+
+    if (impureza &lt; melhorGini) {
+      melhorGini = impureza;
+      melhorArvore = [atributo, limiar,
+        classeMajoritaria(esquerda), classeMajoritaria(direita)];
+    }
+  }
+  return melhorArvore;
+}
+
+// Cada árvore recebe seu próprio bootstrap.
+function treinarFloresta(dados, numeroArvores) {
+  var floresta = [];
+  while (floresta.length &lt; numeroArvores) {
+    var arvore = treinarArvore(bootstrap(dados));
+    if (arvore !== null) floresta.push(arvore);
+  }
+  return floresta;
+}
+
+function preverArvore(arvore, entrada) {
+  if (entrada[arvore[0]] &lt;= arvore[1]) return arvore[2];
+  return arvore[3];
+}
+
+// A previsão final é a classe com mais votos.
+function prever(floresta, entrada) {
+  var votosA = 0;
+  for (var i = 0; i &lt; floresta.length; i++) {
+    if (preverArvore(floresta[i], entrada) === 'A') votosA++;
+  }
+  if (votosA &gt; floresta.length / 2) return 'A';
+  return 'B';
+}
+
+function avaliar(floresta, dados) {
+  var acertos = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    if (prever(floresta, dados[i]) === dados[i][2]) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+var modelo = treinarFloresta(treino, 21);
+console.log('Acurácia de teste:', avaliar(modelo, teste));
+console.log('Previsão para [7, 5]:', prever(modelo, [7, 5]));
+console.log('Primeira árvore [atributo, limiar, esquerda, direita]:', modelo[0]);</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://link.springer.com/article/10.1023/A:1010933404324" target="_blank" rel="noopener">Breiman · Random Forests</a> · <a href="https://scikit-learn.org/stable/modules/ensemble.html#forest" target="_blank" rel="noopener">scikit-learn · Random Forests</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/random-forest-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body></html>

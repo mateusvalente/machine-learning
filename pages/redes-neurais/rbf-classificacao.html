@@ -21,7 +21,16 @@
       </div>
     </section>
 
-    <section class="algorithm-section"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>RBF para classificação em JavaScript</h2><p>Os centros ficam fixos; o treinamento ajusta somente os pesos da saída linear.</p><div class="algorithm-flow"><span>distanciaQuadrada()</span><span>gaussiana()</span><span>forward()</span><span>calcularErro()</span><span>ajustarSaida()</span></div></header><div class="code-window"><div class="code-window-bar"><span>rbf-classificacao.js</span><i>2 entradas → 6 Gaussianas → 1 saída</i></div><pre><code>// 1. Cada centro representa uma região do plano.
+    <section class="algorithm-section"><header><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2>Treine, avalie e use uma RBF classificadora</h2><p>Os centros ficam fixos; o programa treina os pesos da saída, mede a acurácia e classifica uma nova entrada.</p><div class="algorithm-flow"><span>gaussiana()</span><span>forward()</span><span>treinar()</span><span>avaliar()</span><span>prever()</span></div></header><div class="code-window"><div class="code-window-bar"><span>rbf-classificacao-completa.js</span><i>execute do início ao fim</i></div><pre><code>// 1. Cada centro representa uma região do plano.
+var treino = [
+  [0, 0, 0], [0.5, 0.2, 0], [-0.5, -0.4, 0], [0.2, -0.6, 0],
+  [2.8, 0, 1], [-2.7, 0.5, 1], [0, -2.8, 1], [0, 2.7, 1]
+];
+
+var teste = [
+  [0.3, 0.1, 0], [-0.4, 0.3, 0], [2.5, 0.4, 1], [-0.3, -2.6, 1]
+];
+
 var centros = [[0, 0], [0.8, 0.2], [-0.7, -0.3], [2.8, 0], [-2.7, 0.5], [0, -2.8]];
 var pesosSaida = [0, 0, 0, 0, 0, 0];
 var bias = 0;
@@ -70,7 +79,34 @@ function treinarAmostra(x, y, taxa) {
   var ativacoes = resultado[1];
   var erro = calcularErro(y, u);
   ajustarSaida(ativacoes, erro, taxa);
-}</code></pre></div></section>
+}
+
+function treinar(dados, epocas, taxa) {
+  for (var epoca = 0; epoca &lt; epocas; epoca++) {
+    for (var i = 0; i &lt; dados.length; i++) {
+      treinarAmostra([dados[i][0], dados[i][1]], dados[i][2], taxa);
+    }
+  }
+}
+
+// O limiar só é aplicado depois do treinamento da saída linear.
+function prever(x) {
+  if (forward(x)[0] &gt;= 0.5) return 1;
+  return 0;
+}
+
+function avaliar(dados) {
+  var acertos = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    if (prever(dados[i]) === dados[i][2]) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+treinar(treino, 500, 0.04);
+console.log('Acurácia de teste:', avaliar(teste));
+console.log('Previsão para [2.6, 0.2]:', prever([2.6, 0.2]));</code></pre></div></section>
   </main>
   <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aston.ac.uk/files/18258465/Radial_Basis_Function_Network.pdf" target="_blank" rel="noopener">Broomhead e Lowe · RBF Networks</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
   <script src="../../js/labs/rbf-classification-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>

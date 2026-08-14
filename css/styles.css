@@ -165,3 +165,7 @@ main .eyebrow{font-size:13.5px!important}
   .concept-formula strong{font-size:16px!important}
   .training-step-calculation span,.math-steps span,.neuron-methods span{font-size:14px!important}
 }
+pre.copyable-code{position:relative;padding-top:58px!important}
+.code-copy-button{position:absolute;z-index:4;top:12px;right:12px;display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:7px 12px;border:1px solid #ffffff38;border-radius:8px;background:#ffffff14;color:#fff;font:800 14px Manrope,Arial,sans-serif;cursor:pointer;transition:background .2s ease,transform .2s ease}
+.code-copy-button:hover{background:#ffffff25;transform:translateY(-1px)}
+.code-copy-button:focus-visible{outline:3px solid #7c75ff;outline-offset:2px}

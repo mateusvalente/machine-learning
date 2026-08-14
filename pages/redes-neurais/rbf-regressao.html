@@ -21,7 +21,14 @@
       </div>
     </section>
 
-    <section class="algorithm-section"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>RBF para regressão em JavaScript</h2><p>A única diferença essencial está na saída: não existe limiar, pois ŷ deve continuar sendo um valor numérico.</p><div class="algorithm-flow"><span>gaussiana()</span><span>forward()</span><span>calcularErro()</span><span>ajustarSaida()</span></div></header><div class="code-window"><div class="code-window-bar"><span>rbf-regressao.js</span><i>1 entrada → 7 Gaussianas → 1 saída linear</i></div><pre><code>// 1. Os sete centros cobrem diferentes regiões do eixo x.
+    <section class="algorithm-section"><header><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2>Treine, avalie e use uma RBF regressora</h2><p>O exemplo aproxima uma curva seno, calcula o erro quadrático médio e prevê um valor que não estava no treino.</p><div class="algorithm-flow"><span>gaussiana()</span><span>forward()</span><span>treinar()</span><span>calcularMSE()</span><span>prever()</span></div></header><div class="code-window"><div class="code-window-bar"><span>rbf-regressao-completa.js</span><i>execute do início ao fim</i></div><pre><code>// 1. Dados [x, y] amostrados da função seno.
+var treino = [
+  [-3, -0.141], [-2.5, -0.598], [-2, -0.909], [-1.5, -0.997],
+  [-1, -0.841], [-0.5, -0.479], [0, 0], [0.5, 0.479],
+  [1, 0.841], [1.5, 0.997], [2, 0.909], [2.5, 0.598], [3, 0.141]
+];
+
+// 2. Os sete centros cobrem diferentes regiões do eixo x.
 var centros = [-3, -2, -1, 0, 1, 2, 3];
 var pesos = [0, 0, 0, 0, 0, 0, 0];
 var bias = 0;
@@ -64,7 +71,34 @@ function treinarAmostra(x, y, taxa) {
   var ativacoes = resultado[1];
   var erro = calcularErro(y, previsao);
   ajustarSaida(ativacoes, erro, taxa);
-}</code></pre></div></section>
+}
+
+function treinar(dados, epocas, taxa) {
+  for (var epoca = 0; epoca &lt; epocas; epoca++) {
+    for (var i = 0; i &lt; dados.length; i++) {
+      treinarAmostra(dados[i][0], dados[i][1], taxa);
+    }
+  }
+}
+
+function prever(x) {
+  return forward(x)[0];
+}
+
+function calcularMSE(dados) {
+  var soma = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    var erro = dados[i][1] - prever(dados[i][0]);
+    soma = soma + erro * erro;
+  }
+  return soma / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+treinar(treino, 800, 0.03);
+console.log('MSE de treino:', calcularMSE(treino));
+console.log('Previsão para x = 0.75:', prever(0.75));
+console.log('Valor real aproximado:', Math.sin(0.75));</code></pre></div></section>
   </main>
   <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aston.ac.uk/files/18258465/Radial_Basis_Function_Network.pdf" target="_blank" rel="noopener">Broomhead e Lowe · RBF Networks</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
   <script src="../../js/labs/rbf-regression-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>

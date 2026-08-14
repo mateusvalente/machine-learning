@@ -32,28 +32,132 @@
       </div>
     </section>
 
-    <section class="didactic-code"><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>Treinamento alternado da mini GAN</h2><p>As funções do Gerador e do Discriminador ficam separadas para evidenciar qual rede é atualizada em cada fase.</p><div class="code-flow"><span>gerar()</span><span>discriminar()</span><span>treinarDiscriminador()</span><span>treinarGerador()</span></div><pre><code>// Fase 1: D aprende que real = 1 e falso = 0.
-function treinarDiscriminador(real, falso) {
-  var dReal = discriminar(real);
-  var dFalso = discriminar(falso);
-  for (var i = 0; i &lt; 49; i++) {
-    var gradiente = ((dReal - 1) * real[i] + dFalso * falso[i]) / 2;
-    pesosD[i] = pesosD[i] - taxaD * gradiente;
+    <section class="didactic-code"><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2>Treine uma mini GAN e gere um desenho 7 × 7</h2><p>O programa inicializa as duas redes, alterna o treino do Discriminador e do Gerador e imprime uma imagem sintética no console. É uma GAN mínima com uma única referência, criada para expor o fluxo matemático — não substitui uma GAN convolucional treinada com MNIST.</p><div class="code-flow"><span>iniciarRedes()</span><span>gerar()</span><span>discriminar()</span><span>treinar()</span><span>mostrarImagem()</span></div><pre><code>// ============================================================
+// MINI GAN: vetor aleatório com 3 valores → imagem 7 × 7
+// ============================================================
+var tamanhoRuido = 3;
+var quantidadePixels = 49;
+var taxaD = 0.05;
+var taxaG = 0.05;
+var pesosD = [];
+var biasD = 0;
+var pesosG = [];
+var biasG = [];
+
+// Uma imagem real simples do dígito 1.
+var linhasReais = [
+  '0011000', '0111000', '0011000', '0011000',
+  '0011000', '0011000', '0111110'
+];
+
+function converterImagem(linhas) {
+  var pixels = [];
+  for (var linha = 0; linha &lt; 7; linha++) {
+    for (var coluna = 0; coluna &lt; 7; coluna++) {
+      pixels.push(Number(linhas[linha][coluna]));
+    }
+  }
+  return pixels;
+}
+
+var imagemReal = converterImagem(linhasReais);
+
+function sigmoid(x) {
+  return 1 / (1 + Math.exp(-x));
+}
+
+function iniciarRedes() {
+  pesosD = [];
+  pesosG = [];
+  biasG = [];
+  biasD = 0;
+
+  for (var pixel = 0; pixel &lt; quantidadePixels; pixel++) {
+    pesosD[pixel] = Math.sin(pixel + 1) * 0.05;
+    biasG[pixel] = 0;
+    pesosG[pixel] = [];
+    for (var j = 0; j &lt; tamanhoRuido; j++) {
+      pesosG[pixel][j] = Math.cos((pixel + 1) * (j + 1)) * 0.05;
+    }
   }
 }
 
-// Fase 2: G tenta fazer D(G(z)) chegar a 1.
+function criarRuido(passo) {
+  return [
+    Math.sin(passo * 1.7),
+    Math.sin(passo * 2.3 + 1),
+    Math.cos(passo * 0.9)
+  ];
+}
+
+function gerar(z) {
+  var imagem = [];
+  for (var pixel = 0; pixel &lt; quantidadePixels; pixel++) {
+    var u = biasG[pixel];
+    for (var j = 0; j &lt; tamanhoRuido; j++) u += pesosG[pixel][j] * z[j];
+    imagem[pixel] = sigmoid(u);
+  }
+  return imagem;
+}
+
+function discriminar(imagem) {
+  var u = biasD;
+  for (var i = 0; i &lt; quantidadePixels; i++) u += pesosD[i] * imagem[i];
+  return sigmoid(u); // probabilidade de a imagem ser real
+}
+
+// D aprende alvo 1 para a imagem real e alvo 0 para a falsa.
+function treinarDiscriminador(real, falso) {
+  var dReal = discriminar(real);
+  var dFalso = discriminar(falso);
+
+  for (var i = 0; i &lt; quantidadePixels; i++) {
+    var gradiente = ((dReal - 1) * real[i] + dFalso * falso[i]) / 2;
+    pesosD[i] -= taxaD * gradiente;
+  }
+  biasD -= taxaD * ((dReal - 1) + dFalso) / 2;
+}
+
+// G tenta fazer D(G(z)) aproximar-se de 1.
 function treinarGerador(z) {
   var falso = gerar(z);
   var dFalso = discriminar(falso);
-  for (var i = 0; i &lt; 49; i++) {
+
+  for (var i = 0; i &lt; quantidadePixels; i++) {
     var gradientePixel = (dFalso - 1) * pesosD[i];
-    var gradienteAtivacao = gradientePixel * falso[i] * (1 - falso[i]);
-    for (var j = 0; j &lt; 3; j++) {
-      pesosG[i][j] = pesosG[i][j] - taxaG * gradienteAtivacao * z[j];
+    var gradienteU = gradientePixel * falso[i] * (1 - falso[i]);
+    for (var j = 0; j &lt; tamanhoRuido; j++) {
+      pesosG[i][j] -= taxaG * gradienteU * z[j];
     }
+    biasG[i] -= taxaG * gradienteU;
   }
-}</code></pre></section>
+}
+
+function treinar(passos) {
+  for (var passo = 1; passo &lt;= passos; passo++) {
+    var z = criarRuido(passo);
+    var falso = gerar(z);
+    treinarDiscriminador(imagemReal, falso); // fase 1
+    treinarGerador(z);                       // fase 2
+  }
+}
+
+function mostrarImagem(imagem) {
+  var desenho = '';
+  for (var i = 0; i &lt; imagem.length; i++) {
+    desenho += imagem[i] &gt;= 0.5 ? '██' : '  ';
+    if ((i + 1) % 7 === 0) desenho += '\n';
+  }
+  console.log(desenho);
+}
+
+// ----------------------- USO DO MODELO -----------------------
+iniciarRedes();
+treinar(3000);
+var imagemGerada = gerar([0.2, -0.4, 0.8]);
+console.log('D(real):', discriminar(imagemReal));
+console.log('D(gerada):', discriminar(imagemGerada));
+mostrarImagem(imagemGerada);</code></pre></section>
   </main>
   <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://arxiv.org/abs/1406.2661" target="_blank" rel="noopener">Goodfellow et al. · GANs</a> · <a href="https://yann.lecun.org/exdb/mnist/index.html" target="_blank" rel="noopener">MNIST</a> · <a href="https://img.magnific.com/vetores-premium/conjunto-vetorial-de-numeros-escritos-a-mao-numeros-desenhados-a-mao_79152-2609.jpg" target="_blank" rel="noopener">Imagem de referência indicada</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
   <script src="../../js/labs/digit-data.js"></script><script src="../../js/labs/gan-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/image-lightbox.js"></script><script src="../../js/navigation.js"></script>

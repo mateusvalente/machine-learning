@@ -107,36 +107,131 @@
     </section>
 
     <section class="tree-code-section">
-      <p class="eyebrow">04 · ALGORITMO EM JAVASCRIPT</p>
-      <h2>Funções pequenas e separadas.</h2>
-      <p>O laboratório usa arrays simples. Cada função possui uma responsabilidade: medir a impureza, criar candidatos, escolher a divisão e construir os filhos.</p>
+      <p class="eyebrow">04 · CÓDIGO COMPLETO E EXECUTÁVEL</p>
+      <h2>Treine e use uma árvore com números e textos.</h2>
+      <p>Copie o programa inteiro. Ele recebe dados mistos sem codificação numérica manual, calcula candidatos e Gini, constrói a árvore, avalia o teste e classifica um novo cliente.</p>
       <div class="code-function-list"><span>calcularGini()</span><span>criarCandidatos()</span><span>melhorDivisao()</span><span>construirNo()</span><span>classificar()</span></div>
-      <pre><code>// Mede a mistura das classes dentro de um grupo.
+      <pre><code>// ============================================================
+// ÁRVORE DE DECISÃO: [idade, visitas, plano, comprou]
+// Colunas 0 e 1 são numéricas; a coluna 2 contém texto.
+// ============================================================
+var treino = [
+  [22, 1, 'Básico', 'Não'], [25, 2, 'Básico', 'Não'],
+  [31, 4, 'Premium', 'Sim'], [35, 5, 'Premium', 'Sim'],
+  [42, 2, 'Básico', 'Não'], [45, 6, 'Premium', 'Sim'],
+  [52, 5, 'Premium', 'Sim'], [55, 1, 'Básico', 'Não']
+];
+var teste = [
+  [28, 1, 'Básico', 'Não'], [38, 5, 'Premium', 'Sim'],
+  [48, 2, 'Básico', 'Não'], [50, 6, 'Premium', 'Sim']
+];
+var profundidadeMaxima = 3;
+
+function classeMajoritaria(linhas) {
+  var quantidadeSim = 0;
+  for (var i = 0; i &lt; linhas.length; i++) {
+    if (linhas[i][3] === 'Sim') quantidadeSim++;
+  }
+  if (quantidadeSim &gt;= linhas.length - quantidadeSim) return 'Sim';
+  return 'Não';
+}
+
 function calcularGini(linhas) {
-  var sim = contarClasse(linhas, 'Sim');
-  var nao = linhas.length - sim;
-  var pSim = sim / linhas.length;
-  var pNao = nao / linhas.length;
+  if (linhas.length === 0) return 0;
+  var quantidadeSim = 0;
+  for (var i = 0; i &lt; linhas.length; i++) {
+    if (linhas[i][3] === 'Sim') quantidadeSim++;
+  }
+  var pSim = quantidadeSim / linhas.length;
+  var pNao = 1 - pSim;
   return 1 - pSim * pSim - pNao * pNao;
 }
 
-// Número: testa pontos médios. Texto: testa igualdade direta.
-function separar(linhas, candidato) {
-  if (candidato.tipo === 'numero') {
-    return dividirPorLimite(linhas, candidato.coluna, candidato.valor);
+// Candidato = [coluna, tipo, valor].
+function criarCandidatos(linhas) {
+  var candidatos = [];
+  for (var coluna = 0; coluna &lt; 3; coluna++) {
+    for (var i = 0; i &lt; linhas.length; i++) {
+      var repetido = false;
+      for (var j = 0; j &lt; candidatos.length; j++) {
+        if (candidatos[j][0] === coluna &amp;&amp; candidatos[j][2] === linhas[i][coluna]) repetido = true;
+      }
+      if (!repetido) {
+        var tipo = coluna &lt; 2 ? 'numero' : 'texto';
+        candidatos.push([coluna, tipo, linhas[i][coluna]]);
+      }
+    }
   }
-  return dividirPorCategoria(linhas, candidato.coluna, candidato.valor);
+  return candidatos;
 }
 
-// Constrói recursivamente até atingir pureza ou um limite de parada.
+function separar(linhas, candidato) {
+  var esquerda = [];
+  var direita = [];
+  for (var i = 0; i &lt; linhas.length; i++) {
+    var atende;
+    if (candidato[1] === 'numero') atende = linhas[i][candidato[0]] &lt;= candidato[2];
+    else atende = linhas[i][candidato[0]] === candidato[2];
+    if (atende) esquerda.push(linhas[i]);
+    else direita.push(linhas[i]);
+  }
+  return [esquerda, direita];
+}
+
+// Melhor divisão = [coluna, tipo, valor, esquerda, direita, ganho].
+function melhorDivisao(linhas) {
+  var candidatos = criarCandidatos(linhas);
+  var giniPai = calcularGini(linhas);
+  var melhor = null;
+
+  for (var i = 0; i &lt; candidatos.length; i++) {
+    var grupos = separar(linhas, candidatos[i]);
+    if (grupos[0].length === 0 || grupos[1].length === 0) continue;
+    var giniFilhos = (grupos[0].length * calcularGini(grupos[0])
+      + grupos[1].length * calcularGini(grupos[1])) / linhas.length;
+    var ganho = giniPai - giniFilhos;
+    if (melhor === null || ganho &gt; melhor[5]) {
+      melhor = [candidatos[i][0], candidatos[i][1], candidatos[i][2],
+        grupos[0], grupos[1], ganho];
+    }
+  }
+  return melhor;
+}
+
+// Folha = ['folha', classe]. Nó = ['no', coluna, tipo, valor, esquerda, direita].
 function construirNo(linhas, profundidade) {
   if (calcularGini(linhas) === 0 || profundidade === profundidadeMaxima) {
-    return criarFolha(linhas);
+    return ['folha', classeMajoritaria(linhas)];
   }
   var melhor = melhorDivisao(linhas);
-  return criarPergunta(melhor, construirNo(melhor.esquerda, profundidade + 1),
-    construirNo(melhor.direita, profundidade + 1));
-}</code></pre>
+  if (melhor === null || melhor[5] &lt;= 0) return ['folha', classeMajoritaria(linhas)];
+  return ['no', melhor[0], melhor[1], melhor[2],
+    construirNo(melhor[3], profundidade + 1),
+    construirNo(melhor[4], profundidade + 1)];
+}
+
+function classificar(no, entrada) {
+  if (no[0] === 'folha') return no[1];
+  var atende;
+  if (no[2] === 'numero') atende = entrada[no[1]] &lt;= no[3];
+  else atende = entrada[no[1]] === no[3];
+  if (atende) return classificar(no[4], entrada);
+  return classificar(no[5], entrada);
+}
+
+function avaliar(arvore, dados) {
+  var acertos = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    if (classificar(arvore, dados[i]) === dados[i][3]) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+var arvore = construirNo(treino, 0);
+console.log('Árvore:', JSON.stringify(arvore));
+console.log('Acurácia de teste:', avaliar(arvore, teste));
+console.log('Novo cliente:', classificar(arvore, [40, 5, 'Premium']));</code></pre>
     </section>
   </main>
   <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/tree.html" target="_blank" rel="noopener">scikit-learn · Decision Trees</a> · Breiman, Friedman, Olshen e Stone · <em>Classification and Regression Trees</em></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>

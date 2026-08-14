@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Resumo da preparação dos dados | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/ml-curriculum.css">
+</head>
+<body data-lab="resumo-preparo">
+  <header class="site-header"></header>
+  <main class="ml-study-page">
+    <section class="ml-study-hero">
+      <div><p class="eyebrow">5.2 · PREPARAÇÃO DOS DADOS</p><h1>Dos dados brutos à matriz pronta</h1><p class="lead">Preparar dados significa tornar exemplos consistentes, representáveis e disponíveis no momento da previsão. Cada transformação precisa ter uma razão, ser aprendida apenas no treino e ser repetida da mesma maneira em produção.</p></div>
+      <aside class="ml-study-badge"><i class="fa-solid fa-table-list"></i><strong>Antes × depois</strong><span>Compare a tabela recebida com a matriz numérica que finalmente será entregue ao algoritmo.</span></aside>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">MAPA DAS TÉCNICAS</p><h2>Preparação é uma sequência de decisões.</h2><p>Nem todo projeto precisa de todas as transformações. A necessidade depende da fonte, do significado das colunas e do modelo que receberá os dados.</p></header>
+      <div class="ml-technique-strip">
+        <article><b>1 · Coleta e integração</b><span>Documentar origem, período, unidade e chave usada para unir fontes.</span></article>
+        <article><b>2 · Validação e limpeza</b><span>Conferir esquema, faixas, tipos, duplicatas, grafias e incoerências.</span></article>
+        <article><b>3 · Valores ausentes</b><span>Investigar a causa; remover, imputar ou representar explicitamente a ausência.</span></article>
+        <article><b>4 · Dados categóricos</b><span>Usar One-Hot, codificação ordinal, hashing, embeddings ou suporte nativo.</span></article>
+        <article><b>5 · Escala numérica</b><span>Aplicar min–max, z-score, log ou clipping quando modelo e distribuição exigirem.</span></article>
+        <article><b>6 · Engenharia</b><span>Criar relações úteis, como ticket médio, duração, ciclos e interações.</span></article>
+        <article><b>7 · Seleção</b><span>Remover IDs, vazamentos, constantes, redundâncias e ruído após validação.</span></article>
+        <article><b>8 · Pipeline e monitoramento</b><span>Versionar regras e reaplicar o mesmo preparo no teste e em produção.</span></article>
+      </div>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">ORDEM SEGURA</p><h2>Primeiro separe; depois aprenda as transformações.</h2></header>
+      <div class="ml-flow">
+        <article class="active"><b>Dados brutos</b><span>coletar e validar</span></article>
+        <article class="active"><b>Divisão</b><span>treino · validação · teste</span></article>
+        <article class="active"><b>fit no treino</b><span>aprender mediana, escala e categorias</span></article>
+        <article class="active"><b>transform</b><span>reaplicar regras preservadas</span></article>
+        <article class="active"><b>Modelo</b><span>treinar, avaliar e monitorar</span></article>
+      </div>
+      <div class="ml-callout ml-warning"><b>Evite vazamento:</b> a mediana, os limites da normalização, o vocabulário de categorias e a seleção de atributos não podem consultar o teste. O laboratório abaixo usa uma tabela única apenas para visualizar as contas; em um projeto real, essas estatísticas viriam exclusivamente do treino.</div>
+    </section>
+
+    <section class="ml-lab">
+      <p class="eyebrow">LABORATÓRIO INTERATIVO</p><h2>Compare a tabela bruta com a tabela preparada.</h2><p class="ml-lab-intro">O objetivo é prever cancelamento. Ative e desative técnicas para observar mudanças no número de linhas, colunas e valores ausentes. O exemplo é pequeno para que cada transformação permaneça visível.</p>
+
+      <div class="ml-choice-grid">
+        <label class="ml-choice"><input class="prepare-option" id="prepararLimpeza" type="checkbox" checked><span><b>Limpeza</b><br>Padronizar cidades e remover duplicata.</span></label>
+        <label class="ml-choice"><input class="prepare-option" id="prepararImputacao" type="checkbox" checked><span><b>Valores ausentes</b><br>Preencher idade com a mediana <span id="medianaPreparacao"></span>.</span></label>
+        <label class="ml-choice"><input class="prepare-option" id="prepararCategorias" type="checkbox" checked><span><b>Codificação</b><br>One-Hot para cidade e 0/1 para o alvo.</span></label>
+        <label class="ml-choice"><input class="prepare-option" id="prepararEscala" type="checkbox" checked><span><b>Normalização</b><br>Min–max em idade, renda e compras.</span></label>
+        <label class="ml-choice"><input class="prepare-option" id="prepararEngenharia" type="checkbox" checked><span><b>Engenharia</b><br>Criar ticket médio = renda ÷ compras.</span></label>
+        <label class="ml-choice"><input class="prepare-option" id="prepararSelecao" type="checkbox" checked><span><b>Seleção</b><br>Retirar cliente_id das entradas.</span></label>
+      </div>
+
+      <div class="ml-compare-grid">
+        <article class="ml-compare-panel">
+          <h3><i class="fa-solid fa-triangle-exclamation"></i> Tabela bruta</h3><p>Contém idade ausente, ID duplicado, categorias escritas de formas diferentes e escalas incompatíveis.</p>
+          <div class="ml-table-wrap"><table class="ml-table ml-compare-table"><thead><tr><th>cliente_id</th><th>idade</th><th>cidade</th><th>renda</th><th>compras</th><th>cancelou</th></tr></thead><tbody>
+            <tr><td>C-001</td><td>22</td><td>Uberaba</td><td>1800</td><td>2</td><td>não</td></tr>
+            <tr><td>C-002</td><td class="ml-bad-cell">ausente</td><td class="ml-bad-cell">␠uberaba␠</td><td>5200</td><td>15</td><td>sim</td></tr>
+            <tr><td class="ml-bad-cell">C-002 duplicado</td><td class="ml-bad-cell">ausente</td><td class="ml-bad-cell">␠uberaba␠</td><td>5200</td><td>15</td><td>sim</td></tr>
+            <tr><td>C-004</td><td>48</td><td class="ml-bad-cell">FRANCA</td><td>3500</td><td>7</td><td>não</td></tr>
+            <tr><td>C-005</td><td>29</td><td>Goiânia</td><td>12000</td><td>3</td><td>sim</td></tr>
+            <tr><td>C-006</td><td>67</td><td class="ml-bad-cell">goiania␠</td><td>7800</td><td>22</td><td>sim</td></tr>
+          </tbody></table></div>
+        </article>
+
+        <article class="ml-compare-panel prepared">
+          <h3><i class="fa-solid fa-circle-check"></i> Tabela preparada</h3><p>O cabeçalho e os valores mudam conforme as técnicas selecionadas. Role horizontalmente quando novas colunas forem criadas.</p>
+          <div class="ml-table-wrap"><table class="ml-table ml-compare-table"><thead id="cabecalhoPreparado"></thead><tbody id="corpoPreparado"></tbody></table></div>
+        </article>
+      </div>
+
+      <div class="ml-pipeline-summary">
+        <article><b id="preparoLinhas"></b><span>linhas finais</span></article>
+        <article><b id="preparoColunas"></b><span>colunas finais</span></article>
+        <article><b id="preparoAusentes"></b><span>valores ausentes restantes</span></article>
+        <article><b id="preparoRemovidas"></b><span>duplicatas removidas</span></article>
+      </div>
+      <ul class="ml-transform-log" id="logPreparacao"></ul>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">LEITURA DA COMPARAÇÃO</p><h2>A tabela preparada não é apenas uma versão “bonita”.</h2></header>
+      <div class="ml-concept-grid">
+        <article class="ml-concept-card"><h3>Linhas confiáveis</h3><p>Duplicatas alteram frequências e podem fazer um cliente pesar duas vezes no treinamento. Removê-las depende de uma chave e de uma regra de negócio válidas.</p></article>
+        <article class="ml-concept-card"><h3>Colunas computáveis</h3><p>Texto categórico vira representação numérica; valores passam a uma escala comparável; o alvo fica separado das entradas.</p></article>
+        <article class="ml-concept-card"><h3>Sinais úteis</h3><p>Engenharia pode revelar relações como ticket médio. Seleção remove identificadores e atributos que só acrescentam custo, ruído ou vazamento.</p></article>
+      </div>
+      <div class="ml-callout"><b>Mais colunas não significam necessariamente mais qualidade.</b> One-Hot e engenharia aumentam a dimensão; seleção pode reduzi-la. A decisão final deve comparar desempenho, estabilidade, custo e explicabilidade em validação.</div>
+    </section>
+
+    <section class="ml-study-section">
+      <header class="narrative-head"><p class="eyebrow">APROFUNDE CADA ETAPA</p><h2>Use esta página como mapa do módulo.</h2></header>
+      <div class="ml-concept-grid">
+        <article class="ml-concept-card"><h3>Origem e qualidade</h3><p><a href="./coleta-integracao.html">Coleta e integração →</a></p><p><a href="./qualidade-dados.html">Limpeza e seleção →</a></p></article>
+        <article class="ml-concept-card"><h3>Representação</h3><p><a href="./valores-ausentes.html">Valores ausentes →</a></p><p><a href="./codificacao-categorias.html">Dados categóricos →</a></p></article>
+        <article class="ml-concept-card"><h3>Transformação</h3><p><a href="./normalizacao-padronizacao.html">Normalização e padronização →</a></p><p><a href="./engenharia-atributos.html">Engenharia de atributos →</a></p></article>
+      </div>
+    </section>
+
+    <section class="ml-sources"><strong>Fontes:</strong> <a href="https://developers.google.com/machine-learning/crash-course/overfitting/data-characteristics" target="_blank" rel="noopener">Google ML · características dos dados</a> · <a href="https://scikit-learn.org/stable/common_pitfalls.html" target="_blank" rel="noopener">scikit-learn · vazamento e pré-processamento</a> · <a href="https://scikit-learn.org/stable/getting_started.html" target="_blank" rel="noopener">scikit-learn · pipelines</a>.</section>
+    <section class="ml-next"><h2>Comece pela origem.</h2><p>Agora aprofunde como diferentes fontes são coletadas e integradas antes da limpeza.</p><a href="./coleta-integracao.html">Abrir coleta e integração →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/ml-curriculum.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

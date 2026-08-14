@@ -131,17 +131,25 @@
 
     <section class="algorithm-section" aria-labelledby="config-code-title">
       <header>
-        <p class="eyebrow">CÓDIGO DIDÁTICO</p>
-        <h2 id="config-code-title">A essência da rede configurável em JavaScript</h2>
-        <p>O exemplo usa matrizes, arrays e laços <span class="mono">for</span>. As funções ficam separadas para deixar claro onde acontecem o forward, o backpropagation e o ajuste.</p>
-        <div class="algorithm-flow"><span>sigmoid()</span><span>criarRede()</span><span>forward()</span><span>calcularDeltas()</span><span>ajustarPesos()</span><span>treinarAmostra()</span></div>
+        <p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p>
+        <h2 id="config-code-title">Configure, treine, avalie e use a rede</h2>
+        <p>O exemplo usa matrizes, arrays e laços <span class="mono">for</span>. Além do forward e do backpropagation, há dataset, épocas, custo, previsão e avaliação.</p>
+        <div class="algorithm-flow"><span>criarRede()</span><span>forward()</span><span>backpropagation()</span><span>treinar()</span><span>prever()</span><span>avaliar()</span></div>
       </header>
       <div class="code-window">
-        <div class="code-window-bar"><span>rede-configuravel.js</span><i>versão simples e comentada</i></div>
+        <div class="code-window-bar"><span>rede-configuravel-completa.js</span><i>execute do início ao fim</i></div>
 <pre><code>// Quantidade de neurônios em cada camada: 3 entradas, 4 ocultos e 2 saídas.
 var tamanhos = [3, 4, 2];
 var pesos = [];
 var biases = [];
+
+// As saídas usam one-hot: classe A = [1,0] e classe B = [0,1].
+var dados = [
+  [[0,0,0], [1,0]], [[0,0,1], [1,0]],
+  [[0,1,0], [1,0]], [[1,0,0], [1,0]],
+  [[0,1,1], [0,1]], [[1,0,1], [0,1]],
+  [[1,1,0], [0,1]], [[1,1,1], [0,1]]
+];
 
 // A função Sigmoid será usada nas camadas ocultas e na saída.
 function sigmoid(u) {
@@ -244,7 +252,48 @@ function treinarAmostra(entrada, alvo, taxa) {
   ajustarPesos(ativacoes, deltas, taxa);     // 3. atualização
 }
 
-criarRede();</code></pre>
+function calcularCusto() {
+  var soma = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    var saida = forward(dados[i][0])[pesos.length];
+    for (var j = 0; j &lt; saida.length; j++) {
+      var erro = dados[i][1][j] - saida[j];
+      soma += erro * erro;
+    }
+  }
+  return soma / dados.length;
+}
+
+function treinar(epocas, taxa) {
+  for (var epoca = 0; epoca &lt; epocas; epoca++) {
+    for (var i = 0; i &lt; dados.length; i++) {
+      treinarAmostra(dados[i][0], dados[i][1], taxa);
+    }
+  }
+}
+
+function prever(entrada) {
+  var saida = forward(entrada)[pesos.length];
+  if (saida[0] &gt; saida[1]) return 'A';
+  return 'B';
+}
+
+function avaliar() {
+  var acertos = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    var esperada = dados[i][1][0] === 1 ? 'A' : 'B';
+    if (prever(dados[i][0]) === esperada) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+criarRede();
+console.log('Custo inicial:', calcularCusto());
+treinar(5000, 0.4);
+console.log('Custo final:', calcularCusto());
+console.log('Acurácia:', avaliar());
+console.log('Previsão para [1, 0, 1]:', prever([1, 0, 1]));</code></pre>
       </div>
     </section>
   </main>

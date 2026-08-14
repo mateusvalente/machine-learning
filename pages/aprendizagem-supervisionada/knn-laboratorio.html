@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Laboratório k-NN | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/classical-labs.css"><style>.model-lab-table input,.model-lab-table select{width:105px;min-height:38px;padding:6px 8px;border:1px solid #cbd2df;border-radius:7px;background:#fff;color:#172033;font:750 15px Manrope,Arial,sans-serif}</style></head>
+<body>
+  <header class="site-header"></header>
+  <main class="model-lab-page">
+    <section class="model-lab-hero">
+      <div><p class="eyebrow">LABORATÓRIO · k-NN</p><h1>Veja cada vizinho participar da decisão.</h1><p class="lead">Altere o ponto de consulta, o valor de k, a métrica, a escala e os dados. O laboratório refaz todas as distâncias, destaca os vizinhos e mostra a votação completa.</p></div>
+      <div class="model-lab-rule"><code>d₂(q,p) = √Σ(qⱼ − pⱼ)²</code><code>d₁(q,p) = Σ|qⱼ − pⱼ|</code><code>ŷ = classe com maior voto</code><p>Não há épocas nem convergência: “treinar” o k-NN significa preparar e armazenar os exemplos.</p></div>
+    </section>
+
+    <section class="model-lab-layout">
+      <aside class="model-lab-controls">
+        <h2>Consulta</h2><p>Também é possível clicar no gráfico para mover o ponto ?.</p>
+        <div class="lab-control-group"><div class="lab-control-grid"><label>x₁ · 0 a 10<input id="knnQueryX" type="number" min="0" max="10" step="0.1" value="5"></label><label>x₂ · 0 a 100<input id="knnQueryY" type="number" min="0" max="100" step="1" value="50"></label></div><label>VIZINHOS k<select id="knnK"><option>1</option><option selected>3</option><option>5</option><option>7</option><option>9</option></select></label><label>MÉTRICA<select id="knnMetric"><option value="euclidean">Euclidiana</option><option value="manhattan">Manhattan</option></select></label><label>VOTAÇÃO<select id="knnVote"><option value="uniform">Uniforme</option><option value="weighted">Ponderada pela distância</option></select></label><label class="lab-inline-check"><input id="knnNormalize" type="checkbox" checked><span>Normalizar x₁ e x₂ com min–max aprendido no treino.</span></label></div>
+        <div class="lab-control-group lab-button-stack"><button class="button" id="knnClassify" type="button">Classificar consulta</button><button class="button outline" id="knnReset" type="button">Restaurar dados</button></div>
+        <div class="lab-control-note"><b>Por que não existe “treinar até convergir”?</b><br>O k-NN não ajusta pesos iterativamente. O resultado muda quando alteramos os dados, k, a métrica ou a regra de voto.</div>
+      </aside>
+
+      <div class="model-lab-results">
+        <section class="model-lab-metrics"><article><span>PREVISÃO</span><strong id="knnPrediction">—</strong></article><article><span>VOTOS A</span><strong id="knnVotesA">0</strong></article><article><span>VOTOS B</span><strong id="knnVotesB">0</strong></article><article><span>MENOR DISTÂNCIA</span><strong id="knnNearest">—</strong></article><article><span>ERRO LOO</span><strong id="knnError">—</strong></article></section>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Espaço dos exemplos</h2><p>Eixos numerados. Linhas verdes ligam a consulta aos k vizinhos escolhidos.</p></div><span class="model-status" id="knnStatus">k = 3</span></div><canvas class="model-plot" id="knnCanvas" width="960" height="620" aria-label="Gráfico cartesiano interativo do k-NN"></canvas><div class="model-legend"><span><i></i>classe A</span><span><i class="class-b"></i>classe B</span><span><i class="query"></i>consulta</span><span><i class="neighbor"></i>vizinho selecionado</span></div></article>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Dataset editável</h2><p>Altere coordenadas ou classes. A consulta será recalculada automaticamente.</p></div></div><div class="model-table-wrap"><table class="model-lab-table" id="knnDataTable"></table></div></article>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Distâncias e votação</h2><p>A tabela já está ordenada do vizinho mais próximo para o mais distante.</p></div></div><div class="model-table-wrap"><table class="model-lab-table"><thead><tr><th>Ordem</th><th>Ponto</th><th>Classe</th><th>Conta da distância</th><th>Distância</th><th>Peso/voto</th></tr></thead><tbody id="knnDistanceBody"></tbody></table></div><div class="model-math-grid" id="knnMath"></div></article>
+
+        <article class="model-lab-card"><div class="model-card-head"><div><h2>Erro × resposta para cada k</h2><p>Validação leave-one-out: cada ponto é classificado usando todos os outros. Menor erro indica melhor desempenho nesse pequeno conjunto.</p></div></div><canvas class="model-plot" id="knnErrorCanvas" width="960" height="340" aria-label="Erro e acurácia do k-NN para diferentes valores de k"></canvas><div class="model-legend"><span><i style="border-radius:3px;background:#e35c6e"></i>erro</span><span><i style="border-radius:3px;background:#19a987"></i>acurácia</span></div></article>
+
+        <aside class="model-warning"><strong>Atenção:</strong> o leave-one-out mostrado aqui ajuda a comparar k, mas não substitui um teste final separado. A normalização também deve aprender mínimo e máximo somente no treino.</aside>
+      </div>
+    </section>
+
+    <section class="model-code-section"><header><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2>Prepare os dados, classifique e avalie o k-NN</h2><p>Este programa pode ser copiado inteiro. Ele separa treino e teste, normaliza as entradas, guarda o conjunto de treino, encontra os vizinhos e mede a acurácia.</p><div class="model-code-flow"><span>ajustarEscala()</span><span>treinar()</span><span>classificar()</span><span>avaliar()</span></div></header><div class="model-code-window"><div class="model-code-bar"><span>knn-completo.js</span><i>execute do início ao fim</i></div><pre><code class="language-javascript">// ============================================================
+// k-NN COMPLETO: 2 entradas, classificação binária e Min-Max
+// Cada linha contém [x1, x2, classe].
+// ============================================================
+var treinoBruto = [
+  [1, 15, 'A'], [2, 25, 'A'], [3, 35, 'A'], [4, 30, 'A'],
+  [6, 60, 'B'], [7, 70, 'B'], [8, 65, 'B'], [9, 85, 'B']
+];
+
+var testeBruto = [
+  [2, 20, 'A'], [4, 40, 'A'], [7, 55, 'B'], [8, 80, 'B']
+];
+
+var dadosTreino = [];
+var minimos = [0, 0];
+var maximos = [0, 0];
+
+// Aprende a escala usando SOMENTE o treino.
+function ajustarEscala(dados) {
+  minimos = [dados[0][0], dados[0][1]];
+  maximos = [dados[0][0], dados[0][1]];
+  for (var i = 1; i &lt; dados.length; i++) {
+    for (var j = 0; j &lt; 2; j++) {
+      if (dados[i][j] &lt; minimos[j]) minimos[j] = dados[i][j];
+      if (dados[i][j] &gt; maximos[j]) maximos[j] = dados[i][j];
+    }
+  }
+}
+
+function normalizarEntrada(entrada) {
+  var normalizada = [];
+  for (var j = 0; j &lt; 2; j++) {
+    normalizada[j] = (entrada[j] - minimos[j]) / (maximos[j] - minimos[j]);
+  }
+  return normalizada;
+}
+
+// No k-NN, treinar significa armazenar os exemplos preparados.
+function treinar(dados) {
+  ajustarEscala(dados);
+  dadosTreino = [];
+  for (var i = 0; i &lt; dados.length; i++) {
+    var x = normalizarEntrada(dados[i]);
+    dadosTreino[i] = [x[0], x[1], dados[i][2]];
+  }
+}
+
+function distanciaEuclidiana(a, b) {
+  var dx1 = a[0] - b[0];
+  var dx2 = a[1] - b[1];
+  return Math.sqrt(dx1 * dx1 + dx2 * dx2);
+}
+
+// Ordenação simples para deixar o algoritmo visível aos alunos.
+function ordenarPorDistancia(lista) {
+  for (var volta = 0; volta &lt; lista.length; volta++) {
+    for (var i = 0; i &lt; lista.length - 1; i++) {
+      if (lista[i][0] &gt; lista[i + 1][0]) {
+        var auxiliar = lista[i];
+        lista[i] = lista[i + 1];
+        lista[i + 1] = auxiliar;
+      }
+    }
+  }
+}
+
+function classificar(entradaBruta, k) {
+  var entrada = normalizarEntrada(entradaBruta);
+  var distancias = [];
+
+  for (var i = 0; i &lt; dadosTreino.length; i++) {
+    distancias[i] = [
+      distanciaEuclidiana(entrada, dadosTreino[i]),
+      dadosTreino[i][2]
+    ];
+  }
+  ordenarPorDistancia(distancias);
+
+  var votosA = 0;
+  for (var vizinho = 0; vizinho &lt; k; vizinho++) {
+    if (distancias[vizinho][1] === 'A') votosA++;
+  }
+  if (votosA &gt; k / 2) return 'A';
+  return 'B';
+}
+
+function avaliar(dados, k) {
+  var acertos = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    if (classificar(dados[i], k) === dados[i][2]) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+treinar(treinoBruto);
+console.log('Acurácia de teste:', avaliar(testeBruto, 3));
+console.log('Previsão para [5, 48]:', classificar([5, 48], 3));</code></pre></div></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/neighbors.html" target="_blank" rel="noopener">scikit-learn · Nearest Neighbors</a> · <a href="https://doi.org/10.1109/TIT.1967.1053964" target="_blank" rel="noopener">Cover e Hart · Nearest Neighbor Classification</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/knn-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body></html>

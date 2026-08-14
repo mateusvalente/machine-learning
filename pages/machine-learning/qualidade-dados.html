@@ -55,7 +55,7 @@
       <aside class="warning-box"><strong>É uma aproximação didática.</strong> O custo real depende do algoritmo, esparsidade, hardware, batch, implementação e comunicação de memória. Remover 55% dos valores processados também não garante treino exatamente 55% mais rápido.</aside>
     </section>
 
-    <section class="data-section">
+    <section class="data-section" id="selecao-atributos">
       <header class="data-head"><p class="eyebrow">03 · VARIÁVEIS QUE ATRAPALHAM</p><h2>Como suspeitar, testar e decidir.</h2><p>Alguns problemas são detectáveis pela tabela; outros só aparecem quando comparamos o modelo em dados de validação que não participaram das decisões.</p></header>
       <div class="table-scroll"><table class="data-table quality-guide"><thead><tr><th>Problema</th><th>Como detectar</th><th>Como pode atrapalhar</th><th>Ação possível</th><th>Confirmação</th></tr></thead><tbody>
         <tr><td>Coluna constante</td><td>variância = 0 ou um único valor</td><td>Ocupa memória e nunca separa exemplos.</td><td>Remover.</td><td>Regra direta.</td></tr>

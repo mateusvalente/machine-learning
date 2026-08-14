@@ -31,8 +31,18 @@
       </div>
     </section>
 
-    <section class="algorithm-section" aria-labelledby="lvq-code-title"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2 id="lvq-code-title">LVQ1 e LVQ2.1 em JavaScript</h2><p>O exemplo usa arrays, laços e funções separadas. A versão da página aplica exatamente as mesmas regras.</p><div class="algorithm-flow"><span>distancia()</span><span>doisMaisProximos()</span><span>treinarLVQ1()</span><span>estaNaJanela()</span><span>treinarLVQ21()</span></div></header><div class="code-window"><div class="code-window-bar"><span>lvq.js</span><i>aprendizagem competitiva supervisionada</i></div>
+    <section class="algorithm-section" aria-labelledby="lvq-code-title"><header><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2 id="lvq-code-title">Treine, avalie e use LVQ1 ou LVQ2.1</h2><p>Além das regras de movimento, o exemplo agora contém dataset, laço de épocas, redução da taxa, classificação, avaliação e uma chamada final.</p><div class="algorithm-flow"><span>iniciar()</span><span>treinar()</span><span>classificar()</span><span>avaliar()</span></div></header><div class="code-window"><div class="code-window-bar"><span>lvq-completo.js</span><i>execute do início ao fim</i></div>
 <pre><code>// Um protótipo é [x1, x2, classe].
+var treino = [
+  [-3,  3, 0], [-2,  2, 0], [-3, -2, 0], [-1, -3, 0],
+  [ 3,  3, 1], [ 2,  1, 1], [ 3, -2, 1], [ 1, -3, 1]
+];
+
+var teste = [
+  [-2.5, 1.5, 0], [-2, -2.5, 0],
+  [ 2.5, 1.5, 1], [ 2, -2.5, 1]
+];
+
 var prototipos = [
   [-2,  2, 0],
   [-1, -2, 0],
@@ -106,7 +116,47 @@ function treinarLVQ21(x, classeCorreta, taxa, largura) {
       mover(p2, x, taxa, +1);
     }
   }
-}</code></pre></div></section>
+}
+
+// A classe do protótipo mais próximo é a previsão do LVQ.
+function classificar(x) {
+  var proximos = doisMaisProximos(x);
+  return prototipos[proximos[0]][2];
+}
+
+// Apresenta todas as amostras durante várias épocas.
+function treinar(dados, algoritmo, epocas, taxaInicial, largura) {
+  for (var epoca = 0; epoca &lt; epocas; epoca++) {
+    var taxa = taxaInicial * (1 - epoca / epocas); // diminui gradualmente
+
+    for (var i = 0; i &lt; dados.length; i++) {
+      var x = [dados[i][0], dados[i][1]];
+      var classe = dados[i][2];
+
+      if (algoritmo === 'LVQ2.1') {
+        // O LVQ1 faz o ajuste geral; o LVQ2.1 refina a fronteira.
+        treinarLVQ1(x, classe, taxa);
+        treinarLVQ21(x, classe, taxa, largura);
+      } else {
+        treinarLVQ1(x, classe, taxa);
+      }
+    }
+  }
+}
+
+function avaliar(dados) {
+  var acertos = 0;
+  for (var i = 0; i &lt; dados.length; i++) {
+    if (classificar(dados[i]) === dados[i][2]) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+treinar(treino, 'LVQ2.1', 80, 0.15, 0.30);
+console.log('Protótipos aprendidos:', prototipos);
+console.log('Acurácia de teste:', avaliar(teste));
+console.log('Previsão para [2.2, 0.5]:', classificar([2.2, 0.5]));</code></pre></div></section>
   </main>
   <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://research.aalto.fi/en/publications/learning-vector-quantization/" target="_blank" rel="noopener">Kohonen · Learning Vector Quantization</a> · <a href="https://www.jmlr.org/papers/volume8/biehl07a/biehl07a.pdf" target="_blank" rel="noopener">Biehl, Ghosh e Hammer · LVQ1 e LVQ2.1</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
   <script src="../../js/labs/lvq-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>

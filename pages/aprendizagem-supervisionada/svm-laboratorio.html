@@ -29,7 +29,7 @@
       </div>
     </section>
 
-    <section class="svm-code-section"><header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2>SVM linear em JavaScript simples</h2><p>O exemplo usa somente arrays, variáveis, funções e laços. Cada função representa uma etapa matemática do laboratório.</p><div class="svm-code-flow"><span>potencial()</span><span>prever()</span><span>perdaHinge()</span><span>treinarAmostra()</span><span>treinarEpoca()</span></div></header><div class="svm-code-window"><div class="svm-code-bar"><span>svm-linear.js</span><i>margem suave com perda hinge</i></div>
+    <section class="svm-code-section"><header><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2>Treine, avalie e use uma SVM linear</h2><p>O programa contém dados de treino e teste, otimização da perda hinge, parada antecipada, avaliação e previsão de uma nova entrada.</p><div class="svm-code-flow"><span>potencial()</span><span>treinarAmostra()</span><span>treinar()</span><span>avaliar()</span><span>prever()</span></div></header><div class="svm-code-window"><div class="svm-code-bar"><span>svm-linear-completa.js</span><i>execute do início ao fim</i></div>
 <pre><code>// Cada amostra contém [x1, x2, y].
 // As classes da SVM binária são -1 e +1.
 var dados = [
@@ -37,6 +37,13 @@ var dados = [
   [-2.0,  1.0, -1],
   [ 1.0, -0.4, +1],
   [ 2.5,  0.8, +1]
+];
+
+var teste = [
+  [-2.5,  0.2, -1],
+  [-1.5, -0.8, -1],
+  [ 1.5,  0.1, +1],
+  [ 3.0,  1.2, +1]
 ];
 
 var pesos = [0, 0];
@@ -87,7 +94,41 @@ function treinarEpoca(taxa, C, lambda) {
   for (var i = 0; i &lt; dados.length; i++) {
     treinarAmostra(dados[i], taxa, C, lambda);
   }
-}</code></pre></div></section>
+}
+
+// Repete épocas e interrompe quando a perda praticamente não muda.
+function treinar(maximoEpocas, taxa, C, lambda) {
+  var perdaAnterior = Infinity;
+
+  for (var epoca = 1; epoca &lt;= maximoEpocas; epoca++) {
+    treinarEpoca(taxa, C, lambda);
+
+    var perdaAtual = 0;
+    for (var i = 0; i &lt; dados.length; i++) {
+      perdaAtual = perdaAtual + perdaHinge(dados[i]);
+    }
+    perdaAtual = perdaAtual / dados.length;
+
+    if (Math.abs(perdaAnterior - perdaAtual) &lt; 0.0001) return epoca;
+    perdaAnterior = perdaAtual;
+  }
+  return maximoEpocas;
+}
+
+function avaliar(amostras) {
+  var acertos = 0;
+  for (var i = 0; i &lt; amostras.length; i++) {
+    if (prever(amostras[i]) === amostras[i][2]) acertos++;
+  }
+  return acertos / amostras.length;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+var epocasUsadas = treinar(500, 0.02, 1, 0.01);
+console.log('Épocas:', epocasUsadas);
+console.log('Pesos e bias:', pesos, bias);
+console.log('Acurácia de teste:', avaliar(teste));
+console.log('Previsão para [2, 0.5]:', prever([2, 0.5]));</code></pre></div></section>
   </main>
   <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/svm.html" target="_blank" rel="noopener">scikit-learn · Support Vector Machines</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.metrics.hinge_loss.html" target="_blank" rel="noopener">scikit-learn · Hinge loss</a> · <a href="https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.SGDClassifier.html" target="_blank" rel="noopener">scikit-learn · SGDClassifier</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
   <script src="../../js/labs/svm-lab.js"></script><script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>k-NN · Vizinhos Mais Próximos | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/classical-models.css"></head>
+<body>
+  <header class="site-header"></header>
+  <main class="classic-page">
+    <section class="classic-hero knn">
+      <div><p class="eyebrow">APRENDIZAGEM SUPERVISIONADA · k-NN</p><h1>Decidir olhando os exemplos mais próximos.</h1><p class="lead">O k-Nearest Neighbors guarda os exemplos rotulados e, diante de uma nova entrada, mede distâncias, seleciona os k vizinhos mais próximos e combina suas respostas.</p><a class="button" href="#algoritmo-knn"><i class="fa-solid fa-arrow-down"></i> Calcular os vizinhos</a> <a class="button outline" href="./knn-laboratorio.html"><i class="fa-solid fa-flask"></i> Abrir laboratório</a></div>
+      <div class="knn-visual" aria-label="Pontos de duas classes ao redor de uma nova amostra"><i class="knn-axis x"></i><i class="knn-axis y"></i><div class="knn-radius"></div><span class="knn-point a p1">A</span><span class="knn-point a p2">A</span><span class="knn-point b p3">B</span><span class="knn-point b p4">B</span><span class="knn-point b p5">B</span><span class="knn-point a p6">A</span><span class="knn-point q">?</span><small>vizinhança local</small></div>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">01 · A IDEIA</p><h2>Exemplos parecidos tendem a ter respostas parecidas.</h2><p>O k-NN não aprende uma equação global nem constrói uma árvore durante o ajuste. Seu “treinamento” principal é armazenar os dados preparados; o trabalho pesado ocorre quando uma nova previsão solicita os vizinhos.</p></header>
+      <div class="classic-grid"><article class="classic-card"><h3>Entrada</h3><p>Uma nova amostra é representada no mesmo espaço das amostras de treino.</p><code>q = [x₁, x₂, …, xₙ]</code></article><article class="classic-card"><h3>Vizinhança</h3><p>O algoritmo calcula a distância até os exemplos conhecidos e escolhe os k menores valores.</p><code>Nₖ(q) = k mais próximos</code></article><article class="classic-card"><h3>Resposta</h3><p>Classificação usa votação; regressão usa a média dos valores próximos.</p><code>voto ou média local</code></article></div>
+      <aside class="classic-note"><strong>Aprendizagem preguiçosa · lazy learning:</strong> quase não existe uma fase de ajuste paramétrico. Isso torna o “treino” simples, mas pode deixar a predição cara, porque é necessário localizar vizinhos na base armazenada.</aside>
+    </section>
+
+    <section class="classic-section" id="algoritmo-knn">
+      <header class="classic-head"><p class="eyebrow">02 · ALGORITMO</p><h2>Medir, ordenar, selecionar e combinar.</h2></header>
+      <div class="classic-flow"><article><b>1. Preparar</b><span>Aplique a mesma codificação e escala do treino.</span><code>q no mesmo espaço</code></article><i>→</i><article><b>2. Medir</b><span>Calcule a distância de q até cada exemplo.</span><code>d(q,xᵢ)</code></article><i>→</i><article><b>3. Selecionar</b><span>Escolha os k menores valores.</span><code>Nₖ(q)</code></article><i>→</i><article><b>4. Responder</b><span>Vote nas classes ou calcule a média.</span><code>ŷ</code></article></div>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">03 · DISTÂNCIAS</p><h2>“Próximo” precisa de uma definição matemática.</h2></header>
+      <div class="classic-grid"><article class="classic-card"><h3>Euclidiana</h3><p>Distância em linha reta. É a escolha mais conhecida para variáveis numéricas.</p><code>d(x,q)=√Σ(xⱼ−qⱼ)²</code></article><article class="classic-card"><h3>Manhattan</h3><p>Soma os deslocamentos absolutos em cada dimensão.</p><code>d(x,q)=Σ|xⱼ−qⱼ|</code></article><article class="classic-card"><h3>Minkowski</h3><p>Generaliza as anteriores. Com p=2 vira Euclidiana; com p=1 vira Manhattan.</p><code>d(x,q)=(Σ|xⱼ−qⱼ|ᵖ)¹/ᵖ</code></article></div>
+      <aside class="classic-warning"><strong>Sem escala, a maior unidade domina.</strong> Comparar renda em milhares com idade em dezenas faz a renda controlar quase toda a distância. O scaler deve ser ajustado apenas no treino e aplicado sem reajuste aos dados futuros.</aside>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">04 · CONTA COMPLETA</p><h2>Classificando q = [4; 3] com k = 3.</h2></header>
+      <div class="classic-example"><article><h3>Dados rotulados</h3><div class="classic-table-wrap"><table class="classic-table"><thead><tr><th>Ponto</th><th>Coordenada</th><th>Classe</th></tr></thead><tbody><tr><td>P₁</td><td>[2;2]</td><td>A</td></tr><tr><td>P₂</td><td>[5;4]</td><td>B</td></tr><tr><td>P₃</td><td>[3;5]</td><td>A</td></tr><tr><td>P₄</td><td>[7;2]</td><td>B</td></tr></tbody></table></div></article><article><h3>Distâncias euclidianas</h3><div class="classic-steps"><code>d(q,P₁)=√((4−2)²+(3−2)²)=√5≈<strong>2,236</strong></code><code>d(q,P₂)=√((4−5)²+(3−4)²)=√2≈<strong>1,414</strong></code><code>d(q,P₃)=√((4−3)²+(3−5)²)=√5≈<strong>2,236</strong></code><code>d(q,P₄)=√((4−7)²+(3−2)²)=√10≈<strong>3,162</strong></code></div></article></div>
+      <div class="distance-bars"><div><span>1º · P₂ · B</span><i style="width:45%"></i><b>1,414</b></div><div><span>2º · P₁ · A</span><i style="width:71%"></i><b>2,236</b></div><div><span>3º · P₃ · A</span><i style="width:71%"></i><b>2,236</b></div><div><span>4º · P₄ · B</span><i style="width:100%"></i><b>3,162</b></div></div>
+      <code class="classic-formula"><strong>k = 3:</strong> vizinhos = [B, A, A] → votos(A)=2 e votos(B)=1 → <strong>ŷ = A</strong></code>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">05 · O VALOR DE k</p><h2>Uma decisão local demais ou ampla demais.</h2></header>
+      <div class="k-scale"><article><h3>k pequeno</h3><p>Fronteira muito local, sensível a ruído e outliers. Em especial, k=1 pode memorizar o treino.</p><div class="k-dots"><i></i></div><code>menor viés · maior variância</code></article><article><h3>k intermediário</h3><p>Combina exemplos próximos e costuma produzir uma decisão mais estável.</p><div class="k-dots"><i></i><i></i><i></i><i></i><i></i></div><code>escolher por validação</code></article><article><h3>k grande</h3><p>A vizinhança pode misturar regiões diferentes e favorecer a classe majoritária global.</p><div class="k-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><code>maior viés · menor variância</code></article></div>
+      <aside class="classic-note"><strong>Usar k ímpar pode reduzir empates em classificação binária, mas não garante que nunca haverá empate.</strong> Pesos, múltiplas classes e distâncias iguais ainda exigem uma regra de desempate.</aside>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">06 · VOTO UNIFORME OU PONDERADO</p><h2>Todos votam igual ou os mais próximos falam mais alto.</h2></header>
+      <div class="classic-example"><article><h3>Peso uniforme</h3><p>Cada vizinho vale um voto, independentemente da distância.</p><code class="classic-formula">voto(c) = Σ 1[yᵢ=c]</code><p>No exemplo: A recebe 2 votos e B recebe 1.</p></article><article><h3>Peso pela distância</h3><p>Um vizinho muito próximo pode contribuir mais. Adicionamos ε para evitar divisão por zero.</p><code class="classic-formula">pesoᵢ = 1 ÷ (dᵢ + ε)<br>voto(c) = Σ pesoᵢ·1[yᵢ=c]</code><div class="classic-steps"><code>B: 1÷1,414 ≈ <strong>0,707</strong></code><code>A: 1÷2,236 + 1÷2,236 ≈ <strong>0,894</strong></code><code><strong>ŷ = A</strong></code></div></article></div>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">07 · CLASSIFICAÇÃO E REGRESSÃO</p><h2>O mecanismo de busca é o mesmo; a agregação muda.</h2></header>
+      <div class="classic-grid"><article class="classic-card"><h3>k-NN Classificador</h3><p>Escolhe a classe mais frequente ou de maior peso na vizinhança.</p><code>ŷ = moda(yᵢ dos vizinhos)</code></article><article class="classic-card"><h3>k-NN Regressor</h3><p>Calcula a média simples ou ponderada das respostas contínuas.</p><code>ŷ = (1/k)Σyᵢ</code></article><article class="classic-card"><h3>Exemplo de regressão</h3><p>Consumos dos três carros mais parecidos: 10, 12 e 11 km/L.</p><code>ŷ=(10+12+11)÷3=11 km/L</code></article></div>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">08 · PREPARAÇÃO, CUSTO E LIMITES</p><h2>A qualidade do espaço define a qualidade dos vizinhos.</h2></header>
+      <div class="classic-table-wrap"><table class="classic-table"><thead><tr><th>Questão</th><th>Por que importa?</th><th>Tratamento</th></tr></thead><tbody><tr><td>Escala</td><td>Variáveis grandes dominam a distância.</td><td>Padronizar ou normalizar usando somente o treino.</td></tr><tr><td>Categorias</td><td>Distância entre códigos arbitrários não representa semelhança.</td><td>Escolher codificação e métrica coerentes.</td></tr><tr><td>Variáveis irrelevantes</td><td>Cada dimensão inútil adiciona ruído à distância.</td><td>Selecionar características com validação.</td></tr><tr><td>Muitas dimensões</td><td>Distâncias tendem a perder contraste; índices espaciais também ficam menos eficazes.</td><td>Engenharia ou redução de dimensionalidade validada.</td></tr><tr><td>Base grande</td><td>Busca bruta compara q com muitos exemplos.</td><td>KD-tree, Ball-tree ou índices aproximados conforme dimensão e escala.</td></tr></tbody></table></div>
+      <code class="classic-formula"><strong>busca bruta por consulta:</strong> custo aproximado ∝ N × D<br>N = exemplos armazenados · D = características</code>
+      <div class="classic-grid four"><article class="classic-card"><h3>Reconhecimento simples</h3><p>Classificar formas, plantas ou padrões com características comparáveis.</p></article><article class="classic-card"><h3>Recomendação</h3><p>Encontrar usuários ou itens próximos em uma representação vetorial.</p></article><article class="classic-card"><h3>Detecção local</h3><p>Sinalizar amostras muito diferentes das vizinhanças conhecidas.</p></article><article class="classic-card"><h3>Baseline didático</h3><p>Verificar se a proximidade local já explica o problema.</p></article></div>
+    </section>
+
+    <section class="algorithm-section classic-code"><header><p class="eyebrow">09 · ALGORITMO EM JAVASCRIPT</p><h2>Distância e classificação em funções separadas.</h2><p>O exemplo usa arrays simples. Primeiro mede todas as distâncias; depois seleciona os menores valores e conta os votos.</p></header><div class="code-window"><div class="code-window-bar"><span>knn-didatico.js</span><i>feito sem biblioteca</i></div><pre><code class="language-javascript">function distanciaEuclidiana(a, b) {
+  var soma = 0;
+
+  for (var i = 0; i &lt; a.length; i++) {
+    var diferenca = a[i] - b[i];
+    soma = soma + diferenca * diferenca;
+  }
+
+  return Math.sqrt(soma);
+}
+
+function ordenarPorDistancia(distancias) {
+  // Ordenação simples: compara pares vizinhos e troca suas posições.
+  for (var volta = 0; volta &lt; distancias.length; volta++) {
+    for (var i = 0; i &lt; distancias.length - 1; i++) {
+      if (distancias[i][0] &gt; distancias[i + 1][0]) {
+        var temporario = distancias[i];
+        distancias[i] = distancias[i + 1];
+        distancias[i + 1] = temporario;
+      }
+    }
+  }
+}
+
+function classificarKNN(dados, classes, consulta, k) {
+  var distancias = [];
+
+  // Guarda distância, classe e posição de cada exemplo.
+  for (var i = 0; i &lt; dados.length; i++) {
+    distancias.push([distanciaEuclidiana(dados[i], consulta), classes[i]]);
+  }
+
+  // Coloca o vizinho mais próximo na primeira posição.
+  ordenarPorDistancia(distancias);
+
+  var votosA = 0;
+  var votosB = 0;
+  for (var vizinho = 0; vizinho &lt; k; vizinho++) {
+    if (distancias[vizinho][1] === 'A') votosA = votosA + 1;
+    else votosB = votosB + 1;
+  }
+
+  if (votosA &gt; votosB) return 'A';
+  return 'B';
+}</code></pre></div></section>
+
+    <section class="classic-closing"><p class="eyebrow">MODELOS BASEADOS EM PROXIMIDADE</p><h2>Compare k-NN com protótipos aprendidos.</h2><p>O k-NN conserva todos os exemplos. O LVQ resume regiões usando poucos vetores protótipo que se movem durante o treinamento.</p><a class="button" href="./lvq.html"><i class="fa-solid fa-location-crosshairs"></i> Continuar em LVQ</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://scikit-learn.org/stable/modules/neighbors.html" target="_blank" rel="noopener">scikit-learn · Nearest Neighbors</a> · <a href="https://doi.org/10.1109/TIT.1967.1053964" target="_blank" rel="noopener">Cover e Hart · Nearest Neighbor Pattern Classification</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

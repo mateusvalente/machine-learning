@@ -55,8 +55,8 @@
     </section>
 
     <section class="algorithm-section" aria-labelledby="madaline-code-title">
-      <header><p class="eyebrow">CÓDIGO DIDÁTICO</p><h2 id="madaline-code-title">MADALINE Rule I simplificada em JavaScript</h2><p>As funções foram separadas para mostrar claramente o forward, a escolha da responsabilidade e a atualização LMS.</p><div class="algorithm-flow"><span>potencial()</span><span>sinal()</span><span>forward()</span><span>selecionarUnidades()</span><span>atualizarLMS()</span><span>treinarAmostra()</span></div></header>
-      <div class="code-window"><div class="code-window-bar"><span>madaline-simplificada.js</span><i>exemplo bipolar</i></div><pre><code>// Converte a entrada binária usada na interface para a notação bipolar.
+      <header><p class="eyebrow">CÓDIGO COMPLETO E EXECUTÁVEL</p><h2 id="madaline-code-title">Treine, avalie e use uma MADALINE no XOR</h2><p>O exemplo agora inclui a rede, a tabela XOR, o laço de treinamento, a parada por acerto total, a avaliação e uma previsão final.</p><div class="algorithm-flow"><span>forward()</span><span>selecionarUnidades()</span><span>treinarAmostra()</span><span>treinar()</span><span>avaliar()</span></div></header>
+      <div class="code-window"><div class="code-window-bar"><span>madaline-xor-completa.js</span><i>execute do início ao fim</i></div><pre><code>// Converte a entrada binária usada na interface para a notação bipolar.
 function bipolar(valorBinario) {
   return valorBinario === 1 ? +1 : -1;
 }
@@ -115,7 +115,55 @@ function treinarAmostra(rede, entradas, alvo, eta) {
   escolhidas.forEach(indice =&gt;
     atualizarLMS(rede[indice], entradas, alvo, eta)
   );
-}</code></pre></div>
+}
+
+// Tabela XOR em notação bipolar: -1 representa 0 e +1 representa 1.
+const dados = [
+  { entradas: [-1, -1], alvo: -1 },
+  { entradas: [-1, +1], alvo: +1 },
+  { entradas: [+1, -1], alvo: +1 },
+  { entradas: [+1, +1], alvo: -1 }
+];
+
+// Duas ADALINEs formam a camada oculta da MADALINE.
+const rede = [
+  { w1: 0, w2: 0, bias: 0 },
+  { w1: 0, w2: 0, bias: 0 }
+];
+
+function treinar(rede, dados, maximoEpocas, taxa) {
+  for (let epoca = 1; epoca &lt;= maximoEpocas; epoca++) {
+    let erros = 0;
+
+    for (let i = 0; i &lt; dados.length; i++) {
+      const antes = forward(rede, dados[i].entradas).saida;
+      if (antes !== dados[i].alvo) erros++;
+      treinarAmostra(rede, dados[i].entradas, dados[i].alvo, taxa);
+    }
+    if (erros === 0) return epoca;
+  }
+  return maximoEpocas;
+}
+
+function avaliar(rede, dados) {
+  let acertos = 0;
+  for (let i = 0; i &lt; dados.length; i++) {
+    if (forward(rede, dados[i].entradas).saida === dados[i].alvo) acertos++;
+  }
+  return acertos / dados.length;
+}
+
+function preverBinario(rede, x1, x2) {
+  const entradas = [bipolar(x1), bipolar(x2)];
+  return forward(rede, entradas).saida === +1 ? 1 : 0;
+}
+
+// ----------------------- USO DO MODELO -----------------------
+const epocas = treinar(rede, dados, 500, 0.08);
+console.log('Épocas:', epocas);
+console.log('Acurácia:', avaliar(rede, dados));
+console.log('XOR(1, 0):', preverBinario(rede, 1, 0));
+console.log('Pesos aprendidos:', rede);</code></pre></div>
     </section>
 
     <section class="deep-closing madaline-closing"><p class="eyebrow">CONTINUE PRATICANDO</p><h2>Compare MADALINE, Perceptron e MLP.</h2><p>Observe como cada arquitetura atribui responsabilidade pelo erro e constrói suas fronteiras.</p><a class="button" href="./laboratorios.html">Ver todos os laboratórios →</a></section>

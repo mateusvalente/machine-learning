@@ -17,28 +17,31 @@
     {
       titulo: 'MACHINE LEARNING',
       itens: [
-        { icone: 'fa-house', titulo: 'Introdução', caminho: 'pages/machine-learning/introducao.html' },
-        { icone: 'fa-graduation-cap', titulo: 'Aprendizagem', caminho: 'pages/machine-learning/aprendizagem.html' },
-        { icone: 'fa-dumbbell', titulo: 'Treino', caminho: 'pages/machine-learning/treino.html' },
         {
-          icone: 'fa-chart-simple', titulo: 'Regressão', filhos: [
-            { icone: 'fa-slash', titulo: 'Regressão linear', caminho: 'pages/machine-learning/regressao-linear.html' },
-            { icone: 'fa-bezier-curve', titulo: 'Regressão não linear', caminho: 'pages/machine-learning/regressao-nao-linear.html' }
+          icone: 'fa-book-open', titulo: '5.1 Fundamentos', filhos: [
+            { icone: 'fa-house', titulo: 'Introdução', caminho: 'pages/machine-learning/introducao.html' },
+            { icone: 'fa-shapes', titulo: 'Regressão, classificação e previsão', caminho: 'pages/machine-learning/regressao-classificacao-previsao.html' },
+            { icone: 'fa-table-columns', titulo: 'Dados, atributos e rótulos', caminho: 'pages/machine-learning/dados-atributos-rotulos.html' },
+            { icone: 'fa-list-ol', titulo: 'Tipos de variáveis e análises', caminho: 'pages/machine-learning/tipos-variaveis.html' },
+            { icone: 'fa-scissors', titulo: 'Treino, validação e teste', caminho: 'pages/machine-learning/divisao-dados.html' },
+            { icone: 'fa-earth-americas', titulo: 'Generalização', caminho: 'pages/machine-learning/generalizacao.html' },
+            { icone: 'fa-chart-area', titulo: 'Underfitting e overfitting', caminho: 'pages/machine-learning/generalizacao.html#tres-situacoes' },
+            { icone: 'fa-scale-unbalanced-flip', titulo: 'Viés e variância', caminho: 'pages/machine-learning/vies-variancia.html' },
+            { icone: 'fa-chart-line', titulo: 'Convergência', caminho: 'pages/machine-learning/convergencia.html' },
+            { icone: 'fa-diagram-project', titulo: 'Pipeline de Machine Learning', caminho: 'pages/machine-learning/pipeline-machine-learning.html' }
           ]
         },
-        { icone: 'fa-tags', titulo: 'Classificação', caminho: 'pages/machine-learning/classificacao.html' },
-        { icone: 'fa-chart-line', titulo: 'Convergência', caminho: 'pages/machine-learning/convergencia.html' },
         {
-          icone: 'fa-database', titulo: 'Preparação de dados', filhos: [
-            { icone: 'fa-table', titulo: 'Visão geral', caminho: 'pages/machine-learning/preparacao-dados.html' },
-            { icone: 'fa-shield-halved', titulo: 'Qualidade dos dados', caminho: 'pages/machine-learning/qualidade-dados.html' },
-            { icone: 'fa-vector-square', titulo: 'Embeddings, vetores e grafos', caminho: 'pages/machine-learning/preparacao-dados.html#embeddings-vetores-grafos' },
-            { icone: 'fa-list-ol', titulo: 'Tipos de variáveis', caminho: 'pages/machine-learning/tipos-variaveis.html' },
-            { icone: 'fa-sliders', titulo: 'Codificação de categorias', caminho: 'pages/machine-learning/codificacao-categorias.html' }
+          icone: 'fa-database', titulo: '5.2 Preparação dos Dados', filhos: [
+            { icone: 'fa-table-list', titulo: 'Resumo e comparação', caminho: 'pages/machine-learning/resumo-preparacao-dados.html' },
+            { icone: 'fa-plug-circle-plus', titulo: 'Coleta e integração', caminho: 'pages/machine-learning/coleta-integracao.html' },
+            { icone: 'fa-broom', titulo: 'Limpeza dos dados', caminho: 'pages/machine-learning/qualidade-dados.html' },
+            { icone: 'fa-circle-question', titulo: 'Valores ausentes', caminho: 'pages/machine-learning/valores-ausentes.html' },
+            { icone: 'fa-font', titulo: 'Dados categóricos', caminho: 'pages/machine-learning/codificacao-categorias.html' },
+            { icone: 'fa-arrows-left-right-to-line', titulo: 'Normalização e padronização', caminho: 'pages/machine-learning/normalizacao-padronizacao.html' },
+            { icone: 'fa-wand-magic-sparkles', titulo: 'Engenharia de atributos', caminho: 'pages/machine-learning/engenharia-atributos.html' }
           ]
-        },
-        { icone: 'fa-scale-balanced', titulo: 'Generalização', caminho: 'pages/machine-learning/generalizacao.html' },
-        { icone: 'fa-cubes', titulo: 'Modelos de IA', caminho: 'pages/machine-learning/modelos-ia.html' }
+        }
       ]
     },
     {
@@ -46,13 +49,29 @@
       itens: [
         { icone: 'fa-chalkboard-user', titulo: 'Visão geral', caminho: 'pages/aprendizagem-supervisionada/introducao.html' },
         {
+          icone: 'fa-chart-simple', titulo: 'Regressão', filhos: [
+            { icone: 'fa-slash', titulo: 'Regressão linear', caminho: 'pages/aprendizagem-supervisionada/regressao-linear.html' },
+            { icone: 'fa-bezier-curve', titulo: 'Regressão não linear', caminho: 'pages/aprendizagem-supervisionada/regressao-nao-linear.html' }
+          ]
+        },
+        {
           icone: 'fa-code-branch', titulo: 'Árvore de decisão', filhos: [
             { icone: 'fa-book-open', titulo: 'Teoria · Gini e divisões', caminho: 'pages/aprendizagem-supervisionada/arvore-decisao.html' },
             { icone: 'fa-flask', titulo: 'Laboratório · Dados mistos', caminho: 'pages/aprendizagem-supervisionada/arvore-decisao.html#laboratorio-arvore' }
           ]
         },
-        { icone: 'fa-tree', titulo: 'Random Forest · Ensemble', caminho: 'pages/aprendizagem-supervisionada/random-forest.html' },
-        { icone: 'fa-people-arrows', titulo: 'k-NN · Vizinhos próximos', caminho: 'pages/aprendizagem-supervisionada/knn.html' },
+        {
+          icone: 'fa-tree', titulo: 'Random Forest · Ensemble', filhos: [
+            { icone: 'fa-book-open', titulo: 'Teoria Random Forest', caminho: 'pages/aprendizagem-supervisionada/random-forest.html' },
+            { icone: 'fa-flask', titulo: 'Laboratório Random Forest', caminho: 'pages/aprendizagem-supervisionada/random-forest-laboratorio.html' }
+          ]
+        },
+        {
+          icone: 'fa-people-arrows', titulo: 'k-NN · Vizinhos próximos', filhos: [
+            { icone: 'fa-book-open', titulo: 'Teoria k-NN', caminho: 'pages/aprendizagem-supervisionada/knn.html' },
+            { icone: 'fa-flask', titulo: 'Laboratório k-NN', caminho: 'pages/aprendizagem-supervisionada/knn-laboratorio.html' }
+          ]
+        },
         {
           icone: 'fa-maximize', titulo: 'SVM · Margem máxima', filhos: [
             { icone: 'fa-book-open', titulo: 'Teoria SVM', caminho: 'pages/aprendizagem-supervisionada/svm.html' },
@@ -109,6 +128,15 @@
                 { icone: 'fa-chart-line', titulo: 'Regressão linear', caminho: 'pages/redes-neurais/regressao-linear.html' }
               ]
             }
+          ]
+        },
+        {
+          icone: 'fa-chart-pie', titulo: 'Avaliação de modelos', filhos: [
+            { icone: 'fa-table-cells', titulo: 'Matriz de confusão', caminho: 'pages/aprendizagem-supervisionada/matriz-confusao.html' },
+            { icone: 'fa-bullseye', titulo: 'Acurácia', caminho: 'pages/aprendizagem-supervisionada/acuracia.html' },
+            { icone: 'fa-crosshairs', titulo: 'Precisão', caminho: 'pages/aprendizagem-supervisionada/precisao.html' },
+            { icone: 'fa-magnifying-glass', titulo: 'Recall', caminho: 'pages/aprendizagem-supervisionada/recall.html' },
+            { icone: 'fa-scale-balanced', titulo: 'F1-score', caminho: 'pages/aprendizagem-supervisionada/f1-score.html' }
           ]
         }
       ]

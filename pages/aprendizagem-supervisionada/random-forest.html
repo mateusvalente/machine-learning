@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Random Forest · Ensemble | Machine Learning Lab</title><link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/classical-models.css"></head>
+<body>
+  <header class="site-header"></header>
+  <main class="classic-page">
+    <section class="classic-hero">
+      <div><p class="eyebrow">APRENDIZAGEM SUPERVISIONADA · RANDOM FOREST</p><h1>Várias árvores diferentes decidem melhor juntas.</h1><p class="lead">Random Forest é um método de ensemble: treina muitas árvores de decisão com amostras e características sorteadas e combina suas respostas para reduzir a instabilidade de uma árvore isolada.</p><a class="button" href="#como-funciona"><i class="fa-solid fa-arrow-down"></i> Entrar na floresta</a> <a class="button outline" href="./random-forest-laboratorio.html"><i class="fa-solid fa-flask"></i> Abrir laboratório</a></div>
+      <div class="forest-visual" aria-label="Três árvores votando em uma classe"><div class="mini-tree"><i></i><b></b><span>Sim</span></div><div class="mini-tree"><i></i><b></b><span>Não</span></div><div class="mini-tree"><i></i><b></b><span>Sim</span></div><div class="forest-vote">2 votos em 3 → <strong>classe Sim</strong></div></div>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">01 · POR QUE ELA EXISTE?</p><h2>Uma árvore entende regras; uma floresta reduz sua variância.</h2><p>Uma árvore profunda pode mudar bastante quando pequenas alterações são feitas no conjunto de treino. A floresta cria árvores diferentes e agrega suas respostas, fazendo com que parte dos erros individuais se cancele.</p></header>
+      <div class="classic-grid"><article class="classic-card"><h3>Árvore individual</h3><p>É fácil de visualizar, mas pode memorizar detalhes e ruídos do treinamento.</p><code>pequena mudança → outra árvore</code></article><article class="classic-card"><h3>Diversidade</h3><p>Cada árvore recebe uma visão diferente das linhas e das características disponíveis.</p><code>erros menos correlacionados</code></article><article class="classic-card"><h3>Agregação</h3><p>Votação na classificação ou média na regressão torna a resposta mais estável.</p><code>muitas respostas → previsão final</code></article></div>
+      <aside class="classic-note"><strong>Ensemble não significa simplesmente duplicar a mesma árvore.</strong> Árvores idênticas cometeriam os mesmos erros. O ganho vem da combinação entre árvores úteis e diferentes.</aside>
+    </section>
+
+    <section class="classic-section" id="como-funciona">
+      <header class="classic-head"><p class="eyebrow">02 · TREINAMENTO</p><h2>Bootstrap, características aleatórias e árvores.</h2></header>
+      <div class="classic-flow"><article><b>1. Bootstrap</b><span>Sorteie N linhas com reposição.</span><code>uma linha pode repetir</code></article><i>→</i><article><b>2. Subespaço</b><span>Em cada divisão, sorteie características candidatas.</span><code>max_features</code></article><i>→</i><article><b>3. Árvore</b><span>Escolha as melhores divisões entre as candidatas.</span><code>Gini ou erro</code></article><i>→</i><article><b>4. Repetição</b><span>Construa M árvores e agregue as previsões.</span><code>M = n_estimators</code></article></div>
+      <div class="classic-example" style="margin-top:18px"><article><h3>O que significa “com reposição”?</h3><p>Partindo das linhas 1 a 6, uma árvore pode receber:</p><div class="bootstrap-row"><span>2</span><span class="repeat">2</span><span>5</span><span>1</span><span class="repeat">5</span><span>4</span></div><p>As linhas 2 e 5 repetiram. As linhas 3 e 6 não participaram desta árvore.</p></article><article><h3>Amostras Out-of-Bag · OOB</h3><p>As linhas não sorteadas podem avaliar aquela árvore. Reunindo as previsões feitas somente por árvores que não viram cada amostra, obtemos uma estimativa OOB.</p><div class="bootstrap-row"><span class="oob">3</span><span class="oob">6</span></div><code class="classic-formula">erro OOB = erros nas previsões fora da amostra ÷ previsões OOB</code></article></div>
+      <aside class="classic-warning"><strong>OOB não transforma treino em teste final.</strong> É uma estimativa interna útil quando há bootstrap, mas um conjunto de teste separado continua necessário para a avaliação final do projeto.</aside>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">03 · VOTAÇÃO COMPLETA</p><h2>Classificação escolhe a classe; regressão calcula a média.</h2></header>
+      <div class="forest-voting"><article><b>Árvore 1</b><span>✓</span><code>Sim</code></article><article><b>Árvore 2</b><span>✓</span><code>Sim</code></article><article><b>Árvore 3</b><span>✕</span><code>Não</code></article><article><b>Árvore 4</b><span>✓</span><code>Sim</code></article><article class="final"><b>Votação</b><span>3 × 1</span><code>ŷ = Sim</code></article></div>
+      <code class="classic-formula"><strong>classificação:</strong> ŷ = moda(T₁(x), T₂(x), …, Tₘ(x))<br><strong>regressão:</strong> ŷ = (1/M) Σ Tⱼ(x)</code>
+      <div class="classic-example"><article><h3>Exemplo de regressão</h3><p>Quatro árvores estimaram o preço de um imóvel em milhares de reais.</p><div class="classic-formula">T₁=280 · T₂=310 · T₃=295 · T₄=315</div></article><article><h3>Média da floresta</h3><div class="classic-steps"><code>ŷ = (280 + 310 + 295 + 315) ÷ 4</code><code>ŷ = 1.200 ÷ 4</code><code><strong>ŷ = 300 mil reais</strong></code></div></article></div>
+      <aside class="classic-note"><strong>Detalhe de implementação:</strong> a votação por classe apresenta a ideia clássica. Algumas bibliotecas, como o scikit-learn, calculam a média das probabilidades produzidas pelas árvores e escolhem a classe com a maior média.</aside>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">04 · DUAS FONTES DE ALEATORIEDADE</p><h2>Linhas e características tornam as árvores diferentes.</h2></header>
+      <div class="classic-grid"><article class="classic-card"><h3>Bootstrap das linhas</h3><p>Cada árvore observa uma amostra diferente do conjunto de treinamento.</p><code>N sorteios com reposição</code></article><article class="classic-card"><h3>Sorteio de características</h3><p>Uma divisão avalia somente um subconjunto das colunas, evitando que a mesma variável domine todas as árvores.</p><code>candidatas ⊂ todas as colunas</code></article><article class="classic-card"><h3>Melhor divisão local</h3><p>Dentro do subconjunto sorteado, a árvore ainda escolhe a pergunta que mais reduz a impureza.</p><code>maior ganho de Gini</code></article></div>
+      <aside class="classic-note"><strong>Conexão com a página de Árvore de Decisão:</strong> cada árvore continua usando perguntas e folhas. A novidade da Random Forest está em como os dados são sorteados e como as previsões são combinadas.</aside>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">05 · HIPERPARÂMETROS</p><h2>Quantidade, diversidade e tamanho das árvores.</h2></header>
+      <div class="classic-table-wrap"><table class="classic-table"><thead><tr><th>Parâmetro</th><th>Controla</th><th>Se aumentar</th><th>Cuidado</th></tr></thead><tbody><tr><td>n_estimators</td><td>Número de árvores.</td><td>Previsão tende a estabilizar, mas custo e memória crescem.</td><td>Depois de certo ponto o ganho pode ser mínimo.</td></tr><tr><td>max_features</td><td>Características candidatas por divisão.</td><td>Árvores ficam mais parecidas.</td><td>Poucas demais podem aumentar o viés.</td></tr><tr><td>max_depth</td><td>Profundidade máxima.</td><td>Cada árvore representa regras mais específicas.</td><td>Árvores grandes consomem mais memória.</td></tr><tr><td>min_samples_leaf</td><td>Mínimo de exemplos em uma folha.</td><td>Folhas menores e regras mais locais quando reduzido.</td><td>Valor pequeno pode ajustar ruído.</td></tr><tr><td>class_weight</td><td>Peso das classes.</td><td>Aumenta o custo dos erros de classes escolhidas.</td><td>Validar com métricas adequadas ao desbalanceamento.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">06 · IMPORTÂNCIA E INTERPRETAÇÃO</p><h2>A floresta indica sinais, não prova causas.</h2></header>
+      <div class="classic-grid"><article class="classic-card"><h3>Redução de impureza · MDI</h3><p>Soma quanto cada variável reduziu a impureza nas árvores e calcula uma média.</p><code>rápida, calculada no treino</code></article><article class="classic-card"><h3>Permutation importance</h3><p>Embaralha uma variável e mede quanto o desempenho cai em dados de validação.</p><code>Iⱼ = score − score_embaralhado</code></article><article class="classic-card"><h3>Importância não é causalidade</h3><p>Uma variável pode ser útil por correlação, vazamento ou associação com outra variável.</p><code>prever ≠ causar</code></article></div>
+      <aside class="classic-warning"><strong>Cuidado com a importância baseada em impureza:</strong> ela pode favorecer características com muitos valores possíveis e descreve o ajuste no treino. Para interpretar generalização, prefira complementar com permutação em validação e conhecimento do domínio.</aside>
+    </section>
+
+    <section class="classic-section">
+      <header class="classic-head"><p class="eyebrow">07 · QUANDO USAR?</p><h2>Um baseline forte para dados tabulares.</h2></header>
+      <div class="classic-grid four"><article class="classic-card"><h3>Crédito e risco</h3><p>Classificação ou estimativa usando renda, histórico e comportamento.</p></article><article class="classic-card"><h3>Fraude</h3><p>Interações não lineares entre valores, horários, dispositivos e frequência.</p></article><article class="classic-card"><h3>Manutenção</h3><p>Falha de equipamento a partir de sensores e condições operacionais.</p></article><article class="classic-card"><h3>Preços e demanda</h3><p>Regressão tabular com relações não lineares e interações.</p></article></div>
+      <div class="classic-table-wrap" style="margin-top:18px"><table class="classic-table"><thead><tr><th>Vantagens</th><th>Limitações</th><th>Preparação</th></tr></thead><tbody><tr><td>Captura não linearidade e interações; reduz variância; funciona para classificação e regressão.</td><td>Modelo pode ficar grande; predição pode custar mais; menos transparente que uma árvore; não extrapola regressão como uma função linear.</td><td>Escala geralmente não é necessária; textos e categorias dependem da implementação e normalmente precisam de representação compatível; ausências também dependem da biblioteca.</td></tr></tbody></table></div>
+    </section>
+
+    <section class="algorithm-section classic-code"><header><p class="eyebrow">08 · ALGORITMO EM JAVASCRIPT</p><h2>A ideia da votação com arrays.</h2><p>As árvores já treinadas devolvem classes. Esta função simples conta os votos e escolhe a classe mais frequente.</p></header><div class="code-window"><div class="code-window-bar"><span>random-forest-didatico.js</span><i>votação sem bibliotecas</i></div><pre><code class="language-javascript">// Cada posição guarda a previsão de uma árvore.
+var previsoes = ['Sim', 'Sim', 'Não', 'Sim'];
+
+function votar(previsoes) {
+  var classes = [];
+  var votos = [];
+
+  for (var i = 0; i &lt; previsoes.length; i++) {
+    var posicao = classes.indexOf(previsoes[i]);
+
+    if (posicao === -1) {
+      classes.push(previsoes[i]);
+      votos.push(1);
+    } else {
+      votos[posicao] = votos[posicao] + 1;
+    }
+  }
+
+  var vencedora = 0;
+  for (var j = 1; j &lt; votos.length; j++) {
+    if (votos[j] &gt; votos[vencedora]) vencedora = j;
+  }
+
+  return classes[vencedora];
+}</code></pre></div></section>
+
+    <section class="classic-closing"><p class="eyebrow">PRÉ-REQUISITO VISUAL</p><h2>Entenda primeiro como uma árvore cria suas perguntas.</h2><p>A floresta repete o algoritmo de árvore muitas vezes. Revise Gini, candidatos e folhas no experimento editável.</p><a class="button" href="./arvore-decisao.html"><i class="fa-solid fa-code-branch"></i> Abrir Árvore de Decisão</a></section>
+  </main>
+  <footer class="site-footer"><div class="footer-sources"><strong>Fontes:</strong> <a href="https://link.springer.com/article/10.1023/A:1010933404324" target="_blank" rel="noopener">Breiman · Random Forests</a> · <a href="https://scikit-learn.org/stable/modules/ensemble.html#forest" target="_blank" rel="noopener">scikit-learn · Random Forests</a></div><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/code-highlighting.js"></script><script src="../../js/navigation.js"></script>
+</body>
+</html>

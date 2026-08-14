@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dados, atributos e rótulos | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css"><link rel="stylesheet" href="../../css/ml-curriculum.css">
+</head>
+<body data-lab="dados">
+  <header class="site-header"></header>
+  <main class="ml-study-page">
+    <section class="ml-study-hero"><div><p class="eyebrow">5.1 · FUNDAMENTOS</p><h1>Dados, atributos e rótulos</h1><p class="lead">O modelo não recebe uma “planilha inteira” de forma abstrata. Ele aprende com exemplos, representa cada exemplo por atributos e, no aprendizado supervisionado, compara sua previsão com um rótulo conhecido.</p></div><aside class="ml-study-badge"><i class="fa-solid fa-table-columns"></i><strong>Uma linha, um exemplo</strong><span>As colunas descrevem o exemplo; uma delas pode guardar a resposta que queremos prever.</span></aside></section>
+
+    <section class="ml-study-section"><header class="narrative-head"><p class="eyebrow">VOCABULÁRIO ESSENCIAL</p><h2>Da tabela para X e y.</h2><p>Em uma tabela de clientes, cada linha é um exemplo. As colunas úteis para prever formam o vetor de entrada <b>x</b>. A resposta esperada forma o rótulo <b>y</b>.</p></header><div class="ml-concept-grid"><article class="ml-concept-card"><h3>Exemplo ou amostra</h3><p>Uma observação individual: um cliente, uma casa, uma imagem ou uma medição.</p></article><article class="ml-concept-card"><h3>Atributo · feature</h3><p>Uma característica usada pelo modelo, como idade, renda ou número de compras.</p><div class="equation">x = [x₁, x₂, …, xₙ]</div></article><article class="ml-concept-card"><h3>Rótulo · label</h3><p>A resposta conhecida no treino. Pode ser uma classe, como “aprovar”, ou um número, como preço.</p><div class="equation">y = resposta esperada</div></article></div><div class="ml-callout ml-warning"><b>Identificador não é automaticamente um atributo.</b> CPF, matrícula e código do cliente normalmente identificam a linha, mas não explicam o fenômeno. Incluí-los sem justificativa pode gerar memorização, vazamento ou relações sem sentido.</div></section>
+
+    <section class="ml-study-section"><header class="narrative-head"><p class="eyebrow">EXEMPLO TABULAR</p><h2>Qual coluna entra no modelo?</h2></header><div class="ml-table-wrap"><table class="ml-table"><thead><tr><th>cliente_id</th><th>idade</th><th>renda</th><th>compras_90d</th><th>aprovado</th></tr></thead><tbody><tr><td>C-104</td><td>32</td><td>4800</td><td>5</td><td>sim</td></tr><tr><td>C-105</td><td>21</td><td>2100</td><td>1</td><td>não</td></tr></tbody></table></div><p class="ml-callout">Para prever aprovação, podemos usar <b>X = [idade, renda, compras_90d]</b> e <b>y = aprovado</b>. O identificador permanece fora de X.</p></section>
+
+    <section class="ml-lab"><p class="eyebrow">LABORATÓRIO INTERATIVO</p><h2>Monte um exemplo e veja X e y.</h2><p class="ml-lab-intro">Altere os atributos da linha. A representação abaixo mostra exatamente o que entra no modelo e qual resposta ele deveria aprender.</p><div class="ml-controls"><div class="ml-control"><label for="idadeExemplo">Idade</label><input id="idadeExemplo" type="number" value="32" min="18" max="90"></div><div class="ml-control"><label for="rendaExemplo">Renda (R$)</label><input id="rendaExemplo" type="number" value="4800" min="0" step="100"></div><div class="ml-control"><label for="comprasExemplo">Compras em 90 dias</label><input id="comprasExemplo" type="number" value="5" min="0"></div><div class="ml-control"><label for="rotuloExemplo">Rótulo aprovado</label><select id="rotuloExemplo"><option value="1 · sim">sim</option><option value="0 · não">não</option></select></div></div><div class="ml-lab-result"><h3>Representação do exemplo</h3><p class="ml-vector" id="vetorX"></p><p class="ml-vector" id="valorY"></p><p id="leituraExemplo"></p></div></section>
+
+    <section class="ml-sources"><strong>Fontes consultadas:</strong> <a href="https://developers.google.com/machine-learning/crash-course/overfitting/data-characteristics" target="_blank" rel="noopener">Google ML · características dos dados</a> · <a href="https://developers.google.com/machine-learning/crash-course/numerical-data/feature-vectors" target="_blank" rel="noopener">Google ML · vetores de atributos</a>.</section>
+    <section class="ml-next"><h2>Próximo: separar os exemplos sem contaminar a avaliação.</h2><p>Veja por que treino, validação e teste exercem papéis diferentes.</p><a href="./divisao-dados.html">Abrir treino, validação e teste →</a></section>
+  </main>
+  <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+  <script src="../../js/labs/ml-curriculum.js"></script><script src="../../js/navigation.js"></script>
+</body></html>
