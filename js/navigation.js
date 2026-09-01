@@ -206,6 +206,10 @@
     return decodeURIComponent(window.location.pathname).replace(/\\/g, '/').toLowerCase();
   }
 
+  var caminhoRaiz = decodeURIComponent(projectRoot.pathname).replace(/\\/g, '/').toLowerCase();
+  var paginaInicialAtual = caminhoAtual() === decodeURIComponent(new URL('index.html', projectRoot).pathname).toLowerCase() ||
+    caminhoAtual() === caminhoRaiz || caminhoAtual() === caminhoRaiz.replace(/\/$/, '');
+
   function existeLinkParaAncoraAtual(itens) {
     for (var i = 0; i < itens.length; i++) {
       if (itens[i].caminho) {
@@ -290,11 +294,14 @@
       var titulos = trilhaAtiva(MENU[grupo].itens, [MENU[grupo].titulo]);
       if (titulos) return titulos;
     }
-    return ['INÍCIO'];
+    var paginaInicial = decodeURIComponent(new URL('index.html', projectRoot).pathname).toLowerCase();
+    if (caminhoAtual() === paginaInicial) return [];
+    return [document.title.split('|')[0].trim() || 'Página atual'];
   }
 
   function renderizarBreadcrumb() {
     var partes = breadcrumbAtual();
+    if (!partes.length) return '<span aria-current="page">Início</span>';
     var html = '<a href="' + urlDoProjeto('index.html') + '">Início</a>';
     for (var i = 0; i < partes.length; i++) {
       html += '<i class="fa-solid fa-chevron-right" aria-hidden="true"></i>' +
@@ -370,13 +377,15 @@
         '<span class="ml-brand-mark">ML</span><span class="ml-brand-copy"><strong>machine<span>.learning</span></strong><small>Laboratório interativo · Uniube</small></span>' +
       '</a>' +
       '<nav class="ml-topbar-actions" aria-label="Navegação principal">' +
-        '<button type="button" class="ml-menu-button" aria-controls="menu-do-curso" aria-expanded="true">' + icone('fa-bars-staggered') + '<span>Conteúdo</span></button>' +
+        (paginaInicialAtual ? '' : '<button type="button" class="ml-menu-button" aria-controls="menu-do-curso" aria-expanded="true">' + icone('fa-bars-staggered') + '<span>Conteúdo</span></button>') +
         '<span class="ml-topbar-links">' +
-          '<a href="' + urlDoProjeto('pages/machine-learning/introducao.html') + '">Fundamentos</a>' +
-          '<a href="' + urlDoProjeto('pages/machine-learning/resumo-preparacao-dados.html') + '">Dados</a>' +
-          '<a href="' + urlDoProjeto('pages/aprendizagem-supervisionada/introducao.html') + '">Supervisionada</a>' +
-          '<a href="' + urlDoProjeto('pages/redes-neurais/introducao.html') + '">Redes neurais</a>' +
-          '<a href="' + urlDoProjeto('pages/atividades/desafios-integradores.html') + '">Atividades</a>' +
+          (paginaInicialAtual
+            ? '<a href="#modulos">Módulos</a><a href="#laboratorios">Laboratórios</a><a href="#metodologia">Como estudar</a><a href="#atividades">Atividades</a>'
+            : '<a href="' + urlDoProjeto('pages/machine-learning/introducao.html') + '">Fundamentos</a>' +
+              '<a href="' + urlDoProjeto('pages/machine-learning/resumo-preparacao-dados.html') + '">Dados</a>' +
+              '<a href="' + urlDoProjeto('pages/aprendizagem-supervisionada/introducao.html') + '">Supervisionada</a>' +
+              '<a href="' + urlDoProjeto('pages/redes-neurais/introducao.html') + '">Redes neurais</a>' +
+              '<a href="' + urlDoProjeto('pages/atividades/desafios-integradores.html') + '">Atividades</a>') +
         '</span>' +
         '<span class="ml-topbar-contact" aria-label="Contato e repositórios de Mateus Valente">' +
           '<a href="mailto:mateus.sousa.valente@gmail.com" aria-label="Enviar e-mail" title="E-mail">' + icone('fa-envelope') + '</a>' +
@@ -391,8 +400,11 @@
   var oldHeader = document.querySelector('.site-header');
   if (oldHeader) oldHeader.replaceWith(topbar);
   else body.insertBefore(topbar, body.firstChild);
-  body.insertBefore(sidebar, body.firstChild);
-  body.insertBefore(backdrop, topbar);
+  if (paginaInicialAtual) body.classList.add('ml-home');
+  else {
+    body.insertBefore(sidebar, body.firstChild);
+    body.insertBefore(backdrop, topbar);
+  }
 
   var rodapeAntigo = document.querySelector('.site-footer');
   var fontesAntigas = rodapeAntigo && rodapeAntigo.querySelector('.footer-sources');
@@ -430,47 +442,37 @@
   neuralCanvas.setAttribute('aria-hidden', 'true');
   body.insertBefore(neuralCanvas, body.firstChild);
 
-  var collapsed = false;
-  try {
-    collapsed = window.localStorage.getItem('ml-sidebar-collapsed') === 'true';
-  } catch (erroArmazenamento) {
-    collapsed = false;
-  }
-
-  var pinButton = sidebar.querySelector('.ml-sidebar-pin');
-
-  function atualizarEstadoDoMenu(abertoNoMobile) {
-    var mobile = window.innerWidth <= 900;
-    sidebar.classList.toggle('mobile-open', mobile && abertoNoMobile);
-    sidebar.classList.toggle('is-collapsed', !mobile && collapsed);
-    backdrop.classList.toggle('visible', mobile && abertoNoMobile);
-    body.classList.toggle('sidebar-pinned', !mobile && !collapsed);
-    body.classList.toggle('ml-sidebar-mobile-open', mobile && abertoNoMobile);
-    var expandido = mobile ? abertoNoMobile : !collapsed;
-    pinButton.innerHTML = icone(mobile ? 'fa-xmark' : collapsed ? 'fa-angles-right' : 'fa-angles-left');
-    pinButton.title = mobile ? 'Fechar o menu' : collapsed ? 'Expandir o menu' : 'Recolher o menu';
-    pinButton.setAttribute('aria-label', pinButton.title);
-    pinButton.setAttribute('aria-expanded', String(expandido));
-    topbar.querySelector('.ml-menu-button').setAttribute('aria-expanded', String(expandido));
-  }
-
-  function fecharMenuMovel() {
-    atualizarEstadoDoMenu(false);
-  }
-
-  pinButton.addEventListener('click', function () {
-    if (window.innerWidth <= 900) return fecharMenuMovel();
-    collapsed = !collapsed;
+  if (!paginaInicialAtual) {
+    var collapsed = false;
     try {
-      window.localStorage.setItem('ml-sidebar-collapsed', String(collapsed));
+      collapsed = window.localStorage.getItem('ml-sidebar-collapsed') === 'true';
     } catch (erroArmazenamento) {
-      /* O estado continua válido durante a sessão atual. */
+      collapsed = false;
     }
-    atualizarEstadoDoMenu(false);
-  });
-  topbar.querySelector('.ml-menu-button').addEventListener('click', function () {
-    if (window.innerWidth <= 900) atualizarEstadoDoMenu(!sidebar.classList.contains('mobile-open'));
-    else {
+
+    var pinButton = sidebar.querySelector('.ml-sidebar-pin');
+
+    function atualizarEstadoDoMenu(abertoNoMobile) {
+      var mobile = window.innerWidth <= 900;
+      sidebar.classList.toggle('mobile-open', mobile && abertoNoMobile);
+      sidebar.classList.toggle('is-collapsed', !mobile && collapsed);
+      backdrop.classList.toggle('visible', mobile && abertoNoMobile);
+      body.classList.toggle('sidebar-pinned', !mobile && !collapsed);
+      body.classList.toggle('ml-sidebar-mobile-open', mobile && abertoNoMobile);
+      var expandido = mobile ? abertoNoMobile : !collapsed;
+      pinButton.innerHTML = icone(mobile ? 'fa-xmark' : collapsed ? 'fa-angles-right' : 'fa-angles-left');
+      pinButton.title = mobile ? 'Fechar o menu' : collapsed ? 'Expandir o menu' : 'Recolher o menu';
+      pinButton.setAttribute('aria-label', pinButton.title);
+      pinButton.setAttribute('aria-expanded', String(expandido));
+      topbar.querySelector('.ml-menu-button').setAttribute('aria-expanded', String(expandido));
+    }
+
+    function fecharMenuMovel() {
+      atualizarEstadoDoMenu(false);
+    }
+
+    pinButton.addEventListener('click', function () {
+      if (window.innerWidth <= 900) return fecharMenuMovel();
       collapsed = !collapsed;
       try {
         window.localStorage.setItem('ml-sidebar-collapsed', String(collapsed));
@@ -478,25 +480,37 @@
         /* O estado continua válido durante a sessão atual. */
       }
       atualizarEstadoDoMenu(false);
-    }
-  });
-  sidebar.querySelector('.ml-sidebar-back').addEventListener('click', function () {
-    if (window.history.length > 1) window.history.back();
-    else window.location.href = urlDoProjeto('index.html');
-  });
-  backdrop.addEventListener('click', fecharMenuMovel);
-  sidebar.addEventListener('click', function (event) {
-    if (event.target.closest('a') && window.innerWidth <= 900) fecharMenuMovel();
-  });
-  window.addEventListener('resize', function () {
-    atualizarEstadoDoMenu(false);
-  });
-  window.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape' && sidebar.classList.contains('mobile-open')) fecharMenuMovel();
-  });
+    });
+    topbar.querySelector('.ml-menu-button').addEventListener('click', function () {
+      if (window.innerWidth <= 900) atualizarEstadoDoMenu(!sidebar.classList.contains('mobile-open'));
+      else {
+        collapsed = !collapsed;
+        try {
+          window.localStorage.setItem('ml-sidebar-collapsed', String(collapsed));
+        } catch (erroArmazenamento) {
+          /* O estado continua válido durante a sessão atual. */
+        }
+        atualizarEstadoDoMenu(false);
+      }
+    });
+    sidebar.querySelector('.ml-sidebar-back').addEventListener('click', function () {
+      if (window.history.length > 1) window.history.back();
+      else window.location.href = urlDoProjeto('index.html');
+    });
+    backdrop.addEventListener('click', fecharMenuMovel);
+    sidebar.addEventListener('click', function (event) {
+      if (event.target.closest('a') && window.innerWidth <= 900) fecharMenuMovel();
+    });
+    window.addEventListener('resize', function () {
+      atualizarEstadoDoMenu(false);
+    });
+    window.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && sidebar.classList.contains('mobile-open')) fecharMenuMovel();
+    });
 
-  montarLinksDaPagina(sidebar);
-  atualizarEstadoDoMenu(false);
+    montarLinksDaPagina(sidebar);
+    atualizarEstadoDoMenu(false);
+  }
   body.classList.add('navigation-ready');
 
   /* Fundo próprio do laboratório: uma rede neural discreta e responsiva. */
@@ -512,16 +526,18 @@
     var ponteiro = { x: -1000, y: -1000, ativo: false };
 
     function criarPontos() {
-      var quantidade = largura < 620 ? 18 : Math.min(46, Math.max(26, Math.round(largura / 38)));
+      var quantidade = largura < 620 ? 30 : Math.min(82, Math.max(52, Math.round(largura / 22)));
       pontos = [];
       for (var i = 0; i < quantidade; i++) {
+        var angulo = Math.random() * Math.PI * 2;
+        var velocidade = 0.18 + Math.random() * 0.2;
         pontos.push({
           x: Math.random() * largura,
           y: Math.random() * altura,
-          vx: (Math.random() - 0.5) * 0.18,
-          vy: (Math.random() - 0.5) * 0.18,
-          raio: 1.3 + Math.random() * 1.8,
-          destaque: i % 5 === 0
+          vx: Math.cos(angulo) * velocidade,
+          vy: Math.sin(angulo) * velocidade,
+          raio: 1.8 + Math.random() * 2.1,
+          destaque: i % 4 === 0
         });
       }
     }
@@ -552,21 +568,24 @@
         for (var j = i + 1; j < pontos.length; j++) {
           var outro = pontos[j];
           var distancia = Math.hypot(ponto.x - outro.x, ponto.y - outro.y);
-          if (distancia > 145) continue;
+          if (distancia > 185) continue;
           var proximidadeDoPonteiro = ponteiro.ativo &&
-            (Math.hypot(ponto.x - ponteiro.x, ponto.y - ponteiro.y) < 135 || Math.hypot(outro.x - ponteiro.x, outro.y - ponteiro.y) < 135);
-          var opacidade = (1 - distancia / 145) * (proximidadeDoPonteiro ? 0.28 : 0.1);
-          contexto.strokeStyle = 'rgba(78, 70, 229, ' + opacidade + ')';
-          contexto.lineWidth = proximidadeDoPonteiro ? 1.2 : 0.7;
+            (Math.hypot(ponto.x - ponteiro.x, ponto.y - ponteiro.y) < 160 || Math.hypot(outro.x - ponteiro.x, outro.y - ponteiro.y) < 160);
+          var opacidade = (1 - distancia / 185) * (proximidadeDoPonteiro ? 0.48 : 0.22);
+          var conexaoEmDestaque = ponto.destaque || outro.destaque;
+          contexto.strokeStyle = conexaoEmDestaque
+            ? 'rgba(0, 164, 203, ' + opacidade + ')'
+            : 'rgba(78, 70, 229, ' + opacidade + ')';
+          contexto.lineWidth = proximidadeDoPonteiro ? 1.55 : 0.9;
           contexto.beginPath();
           contexto.moveTo(ponto.x, ponto.y);
           contexto.lineTo(outro.x, outro.y);
           contexto.stroke();
         }
-        var perto = ponteiro.ativo && Math.hypot(ponto.x - ponteiro.x, ponto.y - ponteiro.y) < 120;
-        contexto.fillStyle = ponto.destaque ? 'rgba(0, 183, 214, ' + (perto ? 0.72 : 0.32) + ')' : 'rgba(78, 70, 229, ' + (perto ? 0.66 : 0.26) + ')';
+        var perto = ponteiro.ativo && Math.hypot(ponto.x - ponteiro.x, ponto.y - ponteiro.y) < 145;
+        contexto.fillStyle = ponto.destaque ? 'rgba(0, 164, 203, ' + (perto ? 0.9 : 0.58) + ')' : 'rgba(78, 70, 229, ' + (perto ? 0.84 : 0.48) + ')';
         contexto.beginPath();
-        contexto.arc(ponto.x, ponto.y, ponto.raio + (perto ? 1.1 : 0), 0, Math.PI * 2);
+        contexto.arc(ponto.x, ponto.y, ponto.raio + (perto ? 1.4 : 0), 0, Math.PI * 2);
         contexto.fill();
       }
     }

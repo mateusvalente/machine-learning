@@ -4,55 +4,172 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Material didático e laboratórios interativos de Machine Learning e Redes Neurais.">
+  <meta name="theme-color" content="#111a35">
   <title>Machine Learning Lab | Início</title>
   <link rel="stylesheet" href="./css/styles.css">
-  <link rel="stylesheet" href="./css/learning-theory.css">
-  <style>
-    .home-page{padding-top:18px}.home-hero{min-height:460px}.home-paths{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}.home-path{display:flex;flex-direction:column;padding:29px;background:#fff;border:1px solid var(--line);border-top:6px solid var(--indigo);border-radius:15px}.home-path:nth-child(2){border-top-color:#19a987}.home-path:nth-child(3){border-top-color:#e06c37}.home-path>i{display:grid;place-items:center;width:52px;height:52px;margin-bottom:17px;border-radius:14px;background:#ecebff;color:#4e46e5;font-size:22px}.home-path:nth-child(2)>i{background:#e2f8f2;color:#12836e}.home-path:nth-child(3)>i{background:#fff0e5;color:#b8582e}.home-path h3{margin:0 0 8px;font-size:25px}.home-path p{flex:1;color:var(--muted);font-size:17px}.home-path .button{align-self:flex-start;margin-top:10px}.home-map{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}.home-map article{padding:25px;background:#fff;border:1px solid var(--line);border-radius:13px}.home-map h3{margin:0 0 9px;font-size:23px}.home-map p{color:var(--muted)}.home-map a{color:#4e46e5;font-weight:800;text-decoration:none}.home-map a:hover{text-decoration:underline}@media(max-width:900px){.home-paths{grid-template-columns:1fr 1fr}}@media(max-width:680px){.home-paths,.home-map{grid-template-columns:1fr}.home-path{padding:23px}}
-  </style>
+  <link rel="stylesheet" href="./css/home.css">
 </head>
 <body>
   <header class="site-header"></header>
-  <main class="learning-page home-page">
-    <section class="learning-hero home-hero">
-      <div>
-        <p class="eyebrow">MACHINE LEARNING LAB · INÍCIO</p>
-        <h1>Da ideia matemática ao experimento.</h1>
-        <p>Um material didático para estudar Machine Learning, aprendizagem supervisionada e redes neurais acompanhando fórmulas, algoritmos, gráficos e laboratórios interativos.</p>
-        <a class="button" href="#trilhas"><i class="fa-solid fa-compass" aria-hidden="true"></i> Explorar as trilhas</a>
+  <main class="ml-home-page">
+    <section class="ml-home-hero" aria-labelledby="home-title">
+      <div class="ml-home-intro">
+        <p class="eyebrow">UNIUBE · TECNOLOGIA DA INFORMAÇÃO</p>
+        <h1 id="home-title"><span>Machine Learning</span><strong>da teoria ao experimento</strong></h1>
+        <p class="ml-home-lead">Um percurso de aprendizagem para compreender dados, modelos supervisionados e redes neurais acompanhando fórmulas, algoritmos, gráficos e laboratórios interativos.</p>
+        <p class="ml-teacher-line">Material preparado pelo <strong>Professor Mestre Mateus de Sousa Valente</strong>, professor dos cursos de TI da Uniube.</p>
+        <div class="ml-home-actions">
+          <a class="button" href="./pages/machine-learning/introducao.html">Iniciar pelo módulo 1 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+          <a class="button secondary" href="#modulos">Conhecer os módulos <i class="fa-solid fa-arrow-down" aria-hidden="true"></i></a>
+          <a class="button secondary" href="#laboratorios">Abrir laboratórios <i class="fa-solid fa-flask" aria-hidden="true"></i></a>
+        </div>
+        <div class="ml-course-facts" aria-label="Resumo do material">
+          <span><strong>6</strong> módulos de aprendizagem</span>
+          <span><strong>61</strong> conteúdos conectados</span>
+          <span><strong>Teoria e prática</strong> no navegador</span>
+        </div>
       </div>
-      <div class="learning-hero-visual">
-        <article><b>Entenda</b><span>Comece pelo conceito, pelas variáveis e pela notação matemática.</span></article>
-        <article><b>Calcule</b><span>Acompanhe previsões, erros, gradientes e atualizações passo a passo.</span></article>
-        <article><b>Experimente</b><span>Treine modelos e observe fronteiras, curvas e métricas nos laboratórios.</span></article>
+
+      <figure class="ml-model-visual" aria-label="Fluxo visual de uma rede neural">
+        <div class="ml-visual-toolbar"><span></span><span></span><span></span><code>perceptron.py</code></div>
+        <div class="ml-model-stage">
+          <p><i class="fa-solid fa-circle-nodes" aria-hidden="true"></i> perceptron.predict()</p>
+          <div class="ml-perceptron-wrap">
+            <svg class="ml-perceptron-diagram" viewBox="0 0 720 300" role="img" aria-labelledby="perceptron-title perceptron-description">
+              <title id="perceptron-title">Diagrama de um Perceptron</title>
+              <desc id="perceptron-description">Duas entradas e um bias são multiplicados pelos pesos, somados, processados por uma função degrau e transformados em uma saída binária.</desc>
+              <defs>
+                <marker id="perceptron-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z"></path></marker>
+              </defs>
+
+              <text class="ml-svg-label" x="72" y="24">ENTRADAS</text>
+              <text class="ml-svg-label" x="330" y="24">NEURÔNIO</text>
+              <text class="ml-svg-label" x="500" y="24">ATIVAÇÃO</text>
+              <text class="ml-svg-label" x="650" y="24">SAÍDA</text>
+
+              <circle class="ml-svg-input" cx="70" cy="78" r="30"></circle>
+              <circle class="ml-svg-input" cx="70" cy="150" r="30"></circle>
+              <circle class="ml-svg-bias" cx="70" cy="222" r="30"></circle>
+              <text class="ml-svg-node-text" x="70" y="84">x₁</text>
+              <text class="ml-svg-node-text" x="70" y="156">x₂</text>
+              <text class="ml-svg-node-text" x="70" y="228">+1</text>
+
+              <path class="ml-svg-connection" d="M101 78 L280 136" marker-end="url(#perceptron-arrow)"></path>
+              <path class="ml-svg-connection" d="M101 150 L278 150" marker-end="url(#perceptron-arrow)"></path>
+              <path class="ml-svg-bias-connection" d="M101 222 L280 164" marker-end="url(#perceptron-arrow)"></path>
+              <text class="ml-svg-weight" x="172" y="93">w₁</text>
+              <text class="ml-svg-weight" x="177" y="143">w₂</text>
+              <text class="ml-svg-weight bias" x="174" y="211">bias</text>
+
+              <circle class="ml-svg-neuron-halo" cx="330" cy="150" r="56"></circle>
+              <circle class="ml-svg-neuron" cx="330" cy="150" r="48"></circle>
+              <text class="ml-svg-sigma" x="330" y="148">Σ</text>
+              <text class="ml-svg-formula" x="330" y="171">u = w·x + b</text>
+
+              <path class="ml-svg-main-arrow" d="M379 150 L437 150" marker-end="url(#perceptron-arrow)"></path>
+              <rect class="ml-svg-activation" x="452" y="108" width="106" height="84" rx="20"></rect>
+              <text class="ml-svg-activation-text" x="505" y="145">f(u)</text>
+              <text class="ml-svg-activation-name" x="505" y="168">degrau</text>
+
+              <path class="ml-svg-main-arrow" d="M560 150 L606 150" marker-end="url(#perceptron-arrow)"></path>
+              <circle class="ml-svg-output-halo" cx="650" cy="150" r="48"></circle>
+              <circle class="ml-svg-output" cx="650" cy="150" r="38"></circle>
+              <text class="ml-svg-output-text" x="650" y="157">ŷ</text>
+              <text class="ml-svg-binary" x="650" y="214">0 ou 1</text>
+            </svg>
+          </div>
+          <div class="ml-model-result"><span>previsão</span><strong>ŷ = 1 · classe positiva</strong><small>u: 1,42 · limiar: 0</small></div>
+        </div>
+        <figcaption><code>status: modelo treinado</code><span>Entenda, configure, treine e avalie.</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="ml-home-section" id="modulos" aria-labelledby="modules-title" data-index="01">
+      <header class="ml-home-heading">
+        <div><p class="eyebrow">TRILHA DE APRENDIZAGEM</p><h2 id="modules-title">Módulos do curso</h2></div>
+        <p>Os módulos formam uma sequência sugerida, mas cada trilha também pode ser consultada separadamente durante os estudos.</p>
+      </header>
+
+      <div class="ml-module-grid">
+        <a class="ml-module-card module-foundations" href="./pages/machine-learning/introducao.html">
+          <div class="ml-module-meta"><span class="ml-module-number">01</span><span>10 conteúdos</span></div>
+          <h3>Fundamentos de Machine Learning</h3>
+          <p>Aprendizagem com dados, variáveis, treino, validação, generalização, convergência, viés e variância.</p>
+          <span class="ml-module-topics">conceitos · dados · treino · generalização</span>
+          <strong class="ml-module-action">Abrir módulo <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></strong>
+        </a>
+
+        <a class="ml-module-card module-data" href="./pages/machine-learning/resumo-preparacao-dados.html">
+          <div class="ml-module-meta"><span class="ml-module-number">02</span><span>7 conteúdos</span></div>
+          <h3>Preparação dos dados</h3>
+          <p>Coleta, qualidade, valores ausentes, categorias, normalização, padronização e engenharia de atributos.</p>
+          <span class="ml-module-topics">limpeza · encoding · escala · atributos</span>
+          <strong class="ml-module-action">Abrir módulo <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></strong>
+        </a>
+
+        <a class="ml-module-card module-supervised" href="./pages/aprendizagem-supervisionada/introducao.html">
+          <div class="ml-module-meta"><span class="ml-module-number">03</span><span>7 famílias de modelos</span></div>
+          <h3>Aprendizagem supervisionada</h3>
+          <p>Regressão, árvores de decisão, Random Forest, k-NN, SVM e LVQ aplicados a dados rotulados.</p>
+          <span class="ml-module-topics">regressão · classificação · ensembles</span>
+          <strong class="ml-module-action">Abrir módulo <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></strong>
+        </a>
+
+        <a class="ml-module-card module-neural" href="./pages/redes-neurais/introducao.html">
+          <div class="ml-module-meta"><span class="ml-module-number">04</span><span>Arquiteturas e laboratórios</span></div>
+          <h3>Redes neurais</h3>
+          <p>Perceptron, MLP, ADALINE, MADALINE, RBF, Transformers, GANs e CNNs com treinamento visual.</p>
+          <span class="ml-module-topics">neurônios · backpropagation · deep learning</span>
+          <strong class="ml-module-action">Abrir módulo <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></strong>
+        </a>
+
+        <a class="ml-module-card module-evaluation" href="./pages/aprendizagem-supervisionada/matriz-confusao.html">
+          <div class="ml-module-meta"><span class="ml-module-number">05</span><span>5 métricas</span></div>
+          <h3>Avaliação de modelos</h3>
+          <p>Matriz de confusão, acurácia, precisão, recall e F1-score para interpretar acertos e erros.</p>
+          <span class="ml-module-topics">matriz · acurácia · precisão · recall · F1</span>
+          <strong class="ml-module-action">Abrir módulo <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></strong>
+        </a>
+
+        <a class="ml-module-card module-activities" href="./pages/atividades/desafios-integradores.html">
+          <div class="ml-module-meta"><span class="ml-module-number">06</span><span>4 desafios</span></div>
+          <h3>Atividades integradoras</h3>
+          <p>Uma sequência prática que conecta MLP, preparação de dados, WAF com IA e avaliação final.</p>
+          <span class="ml-module-topics">implementar · testar · medir · justificar</span>
+          <strong class="ml-module-action">Abrir módulo <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></strong>
+        </a>
       </div>
     </section>
 
-    <section class="learning-section" id="trilhas">
-      <header class="narrative-head"><p class="eyebrow">01 · TRILHAS DE ESTUDO</p><h2>Escolha por onde começar.</h2><p>Cada botão abre diretamente a página definitiva do conteúdo, sem páginas intermediárias ou redirecionamentos.</p></header>
-      <div class="home-paths">
-        <article class="home-path"><i class="fa-solid fa-database" aria-hidden="true"></i><h3>Machine Learning</h3><p>Fundamentos, tipos de aprendizagem, preparação de dados, treino, regressão, convergência e generalização.</p><a class="button" href="./pages/machine-learning/introducao.html">Abrir introdução</a></article>
-        <article class="home-path"><i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i><h3>Aprendizagem supervisionada</h3><p>Classificação, regressão, árvores de decisão, SVM, LVQ e exemplos de aplicações com dados rotulados.</p><a class="button" href="./pages/aprendizagem-supervisionada/introducao.html">Abrir aprendizagem supervisionada</a></article>
-        <article class="home-path"><i class="fa-solid fa-brain" aria-hidden="true"></i><h3>Redes neurais</h3><p>Perceptron, MLP, ADALINE, MADALINE, RBF, Transformers, GANs, CNNs e seus processos de treinamento.</p><a class="button" href="./pages/redes-neurais/introducao.html">Abrir redes neurais</a></article>
+    <section class="ml-home-section ml-labs-section" id="laboratorios" aria-labelledby="labs-title" data-index="02">
+      <header class="ml-home-heading">
+        <div><p class="eyebrow">APRENDIZAGEM INTERATIVA</p><h2 id="labs-title">Laboratórios em destaque</h2></div>
+        <p>Altere parâmetros, acompanhe cálculos e observe como cada decisão modifica o comportamento do modelo.</p>
+      </header>
+      <div class="ml-portal-labs">
+        <a href="./pages/redes-neurais/rede-configuravel.html"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span><small>Rede neural</small><strong>MLP configurável</strong><em>Entradas, camadas, neurônios e saídas.</em></span><b>→</b></a>
+        <a href="./pages/aprendizagem-supervisionada/arvore-decisao.html#laboratorio-arvore"><i class="fa-solid fa-tree" aria-hidden="true"></i><span><small>Dados tabulares</small><strong>Árvore de decisão</strong><em>Gini, divisões e fronteiras.</em></span><b>→</b></a>
+        <a href="./pages/redes-neurais/transformer-laboratorio.html"><i class="fa-solid fa-language" aria-hidden="true"></i><span><small>Deep Learning</small><strong>Mini Transformer</strong><em>Tokens, atenção e previsão.</em></span><b>→</b></a>
+        <a href="./pages/redes-neurais/cnn-laboratorio.html"><i class="fa-solid fa-eye" aria-hidden="true"></i><span><small>Visão computacional</small><strong>Mini CNN</strong><em>Convolução, pooling e classificação.</em></span><b>→</b></a>
       </div>
     </section>
 
-    <section class="learning-section">
-      <header class="narrative-head"><p class="eyebrow">02 · ACESSOS DIRETOS</p><h2>Conceitos e prática permanecem conectados.</h2></header>
-      <div class="home-map">
-        <article><h3>Preparação de dados</h3><p>Tipos de variáveis, limpeza, transformação e codificação de categorias.</p><a href="./pages/machine-learning/preparacao-dados.html">Estudar preparação de dados →</a></article>
-        <article><h3>Regressão</h3><p>Compare OLS, gradiente descendente, polinômios, árvores e redes neurais.</p><a href="./pages/aprendizagem-supervisionada/regressao-linear.html">Começar pela regressão linear →</a></article>
-        <article><h3>Perceptron e MLP</h3><p>Entenda o neurônio artificial e avance para redes capazes de resolver relações não lineares.</p><a href="./pages/redes-neurais/perceptron-introducao.html">Estudar o Perceptron →</a></article>
-        <article><h3>Laboratórios</h3><p>Execute os modelos, altere entradas e acompanhe cálculos, erros e resultados.</p><a href="./pages/redes-neurais/laboratorios.html">Abrir todos os laboratórios →</a></article>
+    <section class="ml-home-section" id="metodologia" aria-labelledby="method-title" data-index="03">
+      <header class="ml-home-heading">
+        <div><p class="eyebrow">COMO ESTUDAR</p><h2 id="method-title">Conceito, cálculo e experimento</h2></div>
+        <p>Cada conteúdo aproxima a explicação matemática do comportamento que pode ser observado no navegador.</p>
+      </header>
+      <div class="ml-method-grid">
+        <article><span>01</span><i class="fa-solid fa-book-open" aria-hidden="true"></i><h3>Entenda</h3><p>Comece pelo problema, pelas variáveis e pela notação usada pelo modelo.</p></article>
+        <article><span>02</span><i class="fa-solid fa-calculator" aria-hidden="true"></i><h3>Calcule</h3><p>Acompanhe previsões, erros, gradientes e atualizações passo a passo.</p></article>
+        <article><span>03</span><i class="fa-solid fa-flask" aria-hidden="true"></i><h3>Experimente</h3><p>Modifique entradas, treine modelos e interprete curvas, fronteiras e métricas.</p></article>
       </div>
     </section>
 
-    <section class="learning-section">
-      <header class="narrative-head"><p class="eyebrow">03 · ATIVIDADES INTEGRADORAS</p><h2>Conecte o estudo a uma entrega completa.</h2><p>Pratique arquitetura de redes, limpeza de dados, segurança defensiva e avaliação em uma sequência de quatro desafios.</p></header>
-      <div class="home-map"><article><h3>Da MLP ao WAF</h3><p>Baixe datasets, implemente seu algoritmo, execute o ambiente Docker e justifique o resultado pelas métricas.</p><a href="./pages/atividades/desafios-integradores.html">Abrir atividades integradoras →</a></article></div>
+    <section class="ml-activities-callout" id="atividades">
+      <div><p class="eyebrow">ATIVIDADES INTEGRADORAS</p><h2>Conecte o estudo a uma entrega completa.</h2><p>Implemente uma MLP, prepare um dataset, proteja uma aplicação com um WAF inteligente e defenda os resultados pelas métricas.</p></div>
+      <a class="button" href="./pages/atividades/desafios-integradores.html">Abrir desafios 01–04 <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
     </section>
-
-    <section class="deep-closing learning-closing"><p class="eyebrow">PONTO DE PARTIDA RECOMENDADO</p><h2>Comece entendendo o que significa aprender com dados.</h2><p>A introdução apresenta as diferenças entre regras programadas e modelos que ajustam parâmetros usando exemplos.</p><a class="button" href="./pages/machine-learning/introducao.html"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Iniciar o conteúdo</a></section>
   </main>
   <footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
   <script src="./js/navigation.js"></script>
