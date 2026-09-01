@@ -13,6 +13,44 @@
   var scriptUrl = document.currentScript && document.currentScript.src;
   var projectRoot = scriptUrl ? new URL('../', scriptUrl) : new URL('../', window.location.href);
 
+  function escaparHtml(valor) {
+    return String(valor)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* Rastreabilidade compartilhada com o portal de Maratona de Programação. */
+  function carregarRastreabilidade() {
+    if (window.__mlTrackingReady) return;
+    window.__mlTrackingReady = true;
+    var measurementId = 'G-8ZHFY5QQQG';
+    var source = 'https://www.googletagmanager.com/gtag/js?id=' + measurementId;
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId, {
+      page_title: document.title,
+      page_path: window.location.pathname + window.location.hash
+    });
+    if (!document.querySelector('script[src="' + source + '"]')) {
+      var tag = document.createElement('script');
+      tag.async = true;
+      tag.src = source;
+      document.head.appendChild(tag);
+    }
+    window.addEventListener('hashchange', function () {
+      window.gtag('event', 'page_view', {
+        page_title: document.title,
+        page_location: window.location.href,
+        page_path: window.location.pathname + window.location.hash
+      });
+    });
+  }
+
+  carregarRastreabilidade();
+
   var MENU = [
     {
       titulo: 'MACHINE LEARNING',
@@ -146,10 +184,6 @@
       itens: [
         {
           icone: 'fa-list-check', titulo: 'Atividades integradoras', filhos: [
-            { icone: 'fa-diagram-project', titulo: 'Roteiro e desafios', caminho: 'pages/atividades/desafios-integradores.html' },
-            { icone: 'fa-code-compare', titulo: 'Diagramas · MPA e SPA', caminho: 'pages/atividades/mpa-spa.html' },
-            { icone: 'fa-clock-rotate-left', titulo: 'História da IA', caminho: 'pages/atividades/historia.html' },
-            { icone: 'fa-fingerprint', titulo: 'Padrões nos dados', caminho: 'pages/atividades/padroes.html' },
             { icone: 'fa-brain', titulo: '01 · MLP configurável', caminho: 'pages/atividades/desafios-integradores.html#atividade-mlp' },
             { icone: 'fa-broom', titulo: '02 · Dataset sujo', caminho: 'pages/atividades/desafios-integradores.html#atividade-limpeza' },
             { icone: 'fa-shield-halved', titulo: '03 · WAF com IA', caminho: 'pages/atividades/desafios-integradores.html#atividade-waf' },
@@ -230,13 +264,75 @@
     return html;
   }
 
-  /* Font Awesome e o CSS da navegação são carregados uma única vez por página. */
-  var fontAwesome = document.createElement('link');
-  fontAwesome.rel = 'stylesheet';
-  fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
-  fontAwesome.crossOrigin = 'anonymous';
-  fontAwesome.referrerPolicy = 'no-referrer';
-  document.head.appendChild(fontAwesome);
+  function contarPaginas(itens) {
+    var total = 0;
+    for (var i = 0; i < itens.length; i++) {
+      if (itens[i].caminho) total++;
+      if (itens[i].filhos) total += contarPaginas(itens[i].filhos);
+    }
+    return total;
+  }
+
+  function trilhaAtiva(itens, titulos) {
+    for (var i = 0; i < itens.length; i++) {
+      var proximaTrilha = titulos.concat(itens[i].titulo);
+      if (itens[i].caminho && itemAtivo(itens[i])) return proximaTrilha;
+      if (itens[i].filhos) {
+        var encontrada = trilhaAtiva(itens[i].filhos, proximaTrilha);
+        if (encontrada) return encontrada;
+      }
+    }
+    return null;
+  }
+
+  function breadcrumbAtual() {
+    for (var grupo = 0; grupo < MENU.length; grupo++) {
+      var titulos = trilhaAtiva(MENU[grupo].itens, [MENU[grupo].titulo]);
+      if (titulos) return titulos;
+    }
+    return ['INÍCIO'];
+  }
+
+  function renderizarBreadcrumb() {
+    var partes = breadcrumbAtual();
+    var html = '<a href="' + urlDoProjeto('index.html') + '">Início</a>';
+    for (var i = 0; i < partes.length; i++) {
+      html += '<i class="fa-solid fa-chevron-right" aria-hidden="true"></i>' +
+        '<span' + (i === partes.length - 1 ? ' aria-current="page"' : '') + '>' + escaparHtml(partes[i]) + '</span>';
+    }
+    return html;
+  }
+
+  function montarLinksDaPagina(sidebar) {
+    var grupo = sidebar.querySelector('.ml-sidebar-page-group');
+    var alvo = sidebar.querySelector('.ml-sidebar-page-links');
+    if (!grupo || !alvo) return;
+    var secoes = document.querySelectorAll('main section[id], main article[id]');
+    var vistos = {};
+    var quantidade = 0;
+    for (var i = 0; i < secoes.length && quantidade < 10; i++) {
+      var secao = secoes[i];
+      var titulo = secao.querySelector('h2, h3');
+      if (!titulo || vistos[secao.id]) continue;
+      vistos[secao.id] = true;
+      var link = document.createElement('a');
+      link.href = '#' + secao.id;
+      link.textContent = titulo.textContent.trim();
+      alvo.appendChild(link);
+      quantidade++;
+    }
+    if (!quantidade) grupo.hidden = true;
+  }
+
+  /* Dependências visuais e shell compartilhado, carregados uma única vez. */
+  if (!document.querySelector('link[href*="font-awesome"], link[href*="fontawesome"]')) {
+    var fontAwesome = document.createElement('link');
+    fontAwesome.rel = 'stylesheet';
+    fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css';
+    fontAwesome.crossOrigin = 'anonymous';
+    fontAwesome.referrerPolicy = 'no-referrer';
+    document.head.appendChild(fontAwesome);
+  }
 
   var style = document.createElement('link');
   style.rel = 'stylesheet';
@@ -245,14 +341,23 @@
 
   var sidebar = document.createElement('aside');
   sidebar.className = 'ml-sidebar';
+  sidebar.id = 'menu-do-curso';
   sidebar.setAttribute('aria-label', 'Navegação principal');
   sidebar.innerHTML =
     '<div class="ml-sidebar-head">' +
-      '<div class="ml-sidebar-logo"><img src="' + urlDoProjeto('assets/images/logo.png') + '" alt=""></div>' +
-      '<div class="ml-sidebar-name">Machine Learning Lab</div>' +
-      '<button class="ml-sidebar-pin" type="button" title="Fixar a barra lateral" aria-label="Fixar a barra lateral">' + icone('fa-thumbtack') + '</button>' +
+      '<a class="ml-sidebar-brand" href="' + urlDoProjeto('index.html') + '">' +
+        '<span class="ml-sidebar-logo">' + icone('fa-brain') + '</span>' +
+        '<span class="ml-sidebar-name"><small>Trilha de aprendizagem</small><strong>Machine Learning Lab</strong></span>' +
+      '</a>' +
+      '<button class="ml-sidebar-pin" type="button" title="Recolher o menu" aria-label="Recolher o menu" aria-expanded="true">' + icone('fa-angles-left') + '</button>' +
     '</div>' +
-    '<div class="ml-sidebar-scroll">' + renderizarGrupos() + '</div>';
+    '<div class="ml-sidebar-scroll">' +
+      '<div class="ml-sidebar-trail"><button class="ml-sidebar-back" type="button" title="Voltar" aria-label="Voltar">' + icone('fa-arrow-left') + '</button><nav class="ml-sidebar-breadcrumb" aria-label="Localização atual">' + renderizarBreadcrumb() + '</nav></div>' +
+      '<div class="ml-sidebar-shortcuts"><a href="' + urlDoProjeto('index.html') + '">' + icone('fa-house') + '<span>Menu principal</span></a><a href="' + urlDoProjeto('pages/atividades/desafios-integradores.html') + '">' + icone('fa-list-check') + '<span>Desafios 01–04</span></a></div>' +
+      '<div class="ml-sidebar-menu">' + renderizarGrupos() + '</div>' +
+      '<div class="ml-sidebar-page-group"><p>Nesta página</p><nav class="ml-sidebar-page-links" aria-label="Seções desta página"></nav></div>' +
+    '</div>' +
+    '<div class="ml-sidebar-footer">' + icone('fa-graduation-cap') + '<span><strong>' + contarPaginas([].concat.apply([], MENU.map(function (grupo) { return grupo.itens; }))) + ' conteúdos</strong><small>' + MENU.length + ' trilhas de aprendizagem</small></span></div>';
 
   var backdrop = document.createElement('div');
   backdrop.className = 'ml-sidebar-backdrop';
@@ -260,14 +365,28 @@
   var topbar = document.createElement('header');
   topbar.className = 'ml-topbar';
   topbar.innerHTML =
-    '<a class="ml-topbar-title" href="' + urlDoProjeto('index.html') + '" aria-label="Prof. Mateus Valente · Machine Learning Lab">' +
-      '<span class="ml-topbar-brand-crop"><img src="' + urlDoProjeto('assets/images/logo.png') + '" alt="Prof. Mateus Valente · Machine Learning"></span>' +
-    '</a>' +
-    '<nav class="ml-topbar-actions" aria-label="Ações da página">' +
-      '<button type="button" class="ml-menu-button" aria-label="Abrir menu lateral">' + icone('fa-bars') + '<span class="ml-action-text">Menu</span></button>' +
-      '<button type="button" class="ml-back-button">' + icone('fa-arrow-left') + '<span class="ml-action-text">Voltar</span></button>' +
-      '<a href="' + urlDoProjeto('index.html') + '">' + icone('fa-house') + '<span class="ml-action-text">Home</span></a>' +
-    '</nav>';
+    '<div class="ml-topbar-inner">' +
+      '<a class="ml-topbar-title" href="' + urlDoProjeto('index.html') + '" aria-label="Página inicial do Machine Learning Lab">' +
+        '<span class="ml-brand-mark">ML</span><span class="ml-brand-copy"><strong>machine<span>.learning</span></strong><small>Laboratório interativo · Uniube</small></span>' +
+      '</a>' +
+      '<nav class="ml-topbar-actions" aria-label="Navegação principal">' +
+        '<button type="button" class="ml-menu-button" aria-controls="menu-do-curso" aria-expanded="true">' + icone('fa-bars-staggered') + '<span>Conteúdo</span></button>' +
+        '<span class="ml-topbar-links">' +
+          '<a href="' + urlDoProjeto('pages/machine-learning/introducao.html') + '">Fundamentos</a>' +
+          '<a href="' + urlDoProjeto('pages/machine-learning/resumo-preparacao-dados.html') + '">Dados</a>' +
+          '<a href="' + urlDoProjeto('pages/aprendizagem-supervisionada/introducao.html') + '">Supervisionada</a>' +
+          '<a href="' + urlDoProjeto('pages/redes-neurais/introducao.html') + '">Redes neurais</a>' +
+          '<a href="' + urlDoProjeto('pages/atividades/desafios-integradores.html') + '">Atividades</a>' +
+        '</span>' +
+        '<span class="ml-topbar-contact" aria-label="Contato e repositórios de Mateus Valente">' +
+          '<a href="mailto:mateus.sousa.valente@gmail.com" aria-label="Enviar e-mail" title="E-mail">' + icone('fa-envelope') + '</a>' +
+          '<a href="https://br.linkedin.com/in/mateus-valente-b6978a173" target="_blank" rel="noreferrer" aria-label="Abrir LinkedIn" title="LinkedIn"><i class="fa-brands fa-linkedin-in" aria-hidden="true"></i></a>' +
+          '<a href="https://github.com/mateusvalente" target="_blank" rel="noreferrer" aria-label="Abrir GitHub" title="GitHub"><i class="fa-brands fa-github" aria-hidden="true"></i></a>' +
+          '<a class="ml-course-repository" href="https://github.com/mateusvalente/machine-learning" target="_blank" rel="noreferrer" aria-label="Abrir repositório do curso" title="Repositório do curso">' + icone('fa-code-branch') + '</a>' +
+        '</span>' +
+        '<a class="ml-profile-link" href="https://mateusvalente.dev" target="_blank" rel="noreferrer">Portfólio ' + icone('fa-arrow-up-right-from-square') + '</a>' +
+      '</nav>' +
+    '</div>';
 
   var oldHeader = document.querySelector('.site-header');
   if (oldHeader) oldHeader.replaceWith(topbar);
@@ -275,44 +394,93 @@
   body.insertBefore(sidebar, body.firstChild);
   body.insertBefore(backdrop, topbar);
 
-  var pinned = window.localStorage.getItem('ml-sidebar-pinned') === 'true';
-  if (pinned && window.innerWidth > 900) {
-    sidebar.classList.add('is-pinned');
-    body.classList.add('sidebar-pinned');
+  var rodapeAntigo = document.querySelector('.site-footer');
+  var fontesAntigas = rodapeAntigo && rodapeAntigo.querySelector('.footer-sources');
+  var htmlFontes = fontesAntigas ? fontesAntigas.innerHTML : '';
+  if (rodapeAntigo) rodapeAntigo.remove();
+
+  var footer = document.createElement('footer');
+  footer.className = 'ml-site-footer';
+  footer.innerHTML =
+    '<div class="ml-footer-inner">' +
+      '<div class="ml-footer-identity"><strong>machine-learning.mateusvalente.dev</strong><small>Material didático e laboratórios interativos · Uniube</small></div>' +
+      '<nav class="ml-footer-contact-grid" aria-label="Contato e repositórios">' +
+        '<a href="mailto:mateus.sousa.valente@gmail.com"><i class="ml-footer-service-icon fa-solid fa-envelope" aria-hidden="true"></i><span><small>Fale por e-mail</small><strong>E-mail</strong></span><i class="ml-footer-arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>' +
+        '<a href="https://br.linkedin.com/in/mateus-valente-b6978a173" target="_blank" rel="noreferrer"><i class="ml-footer-service-icon fa-brands fa-linkedin-in" aria-hidden="true"></i><span><small>Perfil profissional</small><strong>LinkedIn</strong></span><i class="ml-footer-arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>' +
+        '<a href="https://github.com/mateusvalente" target="_blank" rel="noreferrer"><i class="ml-footer-service-icon fa-brands fa-github" aria-hidden="true"></i><span><small>Código e projetos</small><strong>GitHub principal</strong></span><i class="ml-footer-arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>' +
+        '<a href="https://github.com/mateusvalente/machine-learning" target="_blank" rel="noreferrer"><i class="ml-footer-service-icon fa-solid fa-code-branch" aria-hidden="true"></i><span><small>Material desta disciplina</small><strong>Repositório do curso</strong></span><i class="ml-footer-arrow fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i></a>' +
+      '</nav>' +
+      (htmlFontes ? '<div class="ml-footer-sources"><strong>Fontes desta página</strong><div>' + htmlFontes + '</div></div>' : '') +
+      '<p class="ml-footer-legal">Material de autoria do Professor Mestre Mateus de Sousa Valente, dos cursos de TI da Uniube. Todos os direitos reservados &copy; ' + new Date().getFullYear() + '.</p>' +
+    '</div>';
+  body.appendChild(footer);
+
+  var skipLink = document.createElement('a');
+  var main = document.querySelector('main');
+  if (main) {
+    if (!main.id) main.id = 'conteudo-pagina';
+    skipLink.className = 'ml-skip-link';
+    skipLink.href = '#' + main.id;
+    skipLink.textContent = 'Ir para o conteúdo';
+    body.insertBefore(skipLink, body.firstChild);
+  }
+
+  var neuralCanvas = document.createElement('canvas');
+  neuralCanvas.id = 'ml-neural-background';
+  neuralCanvas.setAttribute('aria-hidden', 'true');
+  body.insertBefore(neuralCanvas, body.firstChild);
+
+  var collapsed = false;
+  try {
+    collapsed = window.localStorage.getItem('ml-sidebar-collapsed') === 'true';
+  } catch (erroArmazenamento) {
+    collapsed = false;
   }
 
   var pinButton = sidebar.querySelector('.ml-sidebar-pin');
 
-  function atualizarBotaoFixacao(fixado) {
-    pinButton.innerHTML = fixado ? icone('fa-angles-left') : icone('fa-thumbtack');
-    pinButton.title = fixado ? 'Recolher a barra lateral' : 'Fixar a barra lateral';
+  function atualizarEstadoDoMenu(abertoNoMobile) {
+    var mobile = window.innerWidth <= 900;
+    sidebar.classList.toggle('mobile-open', mobile && abertoNoMobile);
+    sidebar.classList.toggle('is-collapsed', !mobile && collapsed);
+    backdrop.classList.toggle('visible', mobile && abertoNoMobile);
+    body.classList.toggle('sidebar-pinned', !mobile && !collapsed);
+    body.classList.toggle('ml-sidebar-mobile-open', mobile && abertoNoMobile);
+    var expandido = mobile ? abertoNoMobile : !collapsed;
+    pinButton.innerHTML = icone(mobile ? 'fa-xmark' : collapsed ? 'fa-angles-right' : 'fa-angles-left');
+    pinButton.title = mobile ? 'Fechar o menu' : collapsed ? 'Expandir o menu' : 'Recolher o menu';
     pinButton.setAttribute('aria-label', pinButton.title);
+    pinButton.setAttribute('aria-expanded', String(expandido));
+    topbar.querySelector('.ml-menu-button').setAttribute('aria-expanded', String(expandido));
   }
 
-  atualizarBotaoFixacao(pinned && window.innerWidth > 900);
-
   function fecharMenuMovel() {
-    sidebar.classList.remove('mobile-open');
-    backdrop.classList.remove('visible');
+    atualizarEstadoDoMenu(false);
   }
 
   pinButton.addEventListener('click', function () {
-    var fixado = !sidebar.classList.contains('is-pinned');
-    sidebar.classList.toggle('is-pinned', fixado);
-    sidebar.classList.toggle('is-collapsing', !fixado);
-    body.classList.toggle('sidebar-pinned', fixado);
-    window.localStorage.setItem('ml-sidebar-pinned', String(fixado));
-    atualizarBotaoFixacao(fixado);
-  });
-  sidebar.addEventListener('mouseleave', function () {
-    /* Depois que o recolhimento termina, o hover volta a poder abrir o menu. */
-    sidebar.classList.remove('is-collapsing');
+    if (window.innerWidth <= 900) return fecharMenuMovel();
+    collapsed = !collapsed;
+    try {
+      window.localStorage.setItem('ml-sidebar-collapsed', String(collapsed));
+    } catch (erroArmazenamento) {
+      /* O estado continua válido durante a sessão atual. */
+    }
+    atualizarEstadoDoMenu(false);
   });
   topbar.querySelector('.ml-menu-button').addEventListener('click', function () {
-    sidebar.classList.toggle('mobile-open');
-    backdrop.classList.toggle('visible');
+    if (window.innerWidth <= 900) atualizarEstadoDoMenu(!sidebar.classList.contains('mobile-open'));
+    else {
+      collapsed = !collapsed;
+      try {
+        window.localStorage.setItem('ml-sidebar-collapsed', String(collapsed));
+      } catch (erroArmazenamento) {
+        /* O estado continua válido durante a sessão atual. */
+      }
+      atualizarEstadoDoMenu(false);
+    }
   });
-  topbar.querySelector('.ml-back-button').addEventListener('click', function () {
+  sidebar.querySelector('.ml-sidebar-back').addEventListener('click', function () {
     if (window.history.length > 1) window.history.back();
     else window.location.href = urlDoProjeto('index.html');
   });
@@ -321,10 +489,123 @@
     if (event.target.closest('a') && window.innerWidth <= 900) fecharMenuMovel();
   });
   window.addEventListener('resize', function () {
-    if (window.innerWidth > 900) fecharMenuMovel();
+    atualizarEstadoDoMenu(false);
+  });
+  window.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && sidebar.classList.contains('mobile-open')) fecharMenuMovel();
   });
 
+  montarLinksDaPagina(sidebar);
+  atualizarEstadoDoMenu(false);
   body.classList.add('navigation-ready');
+
+  /* Fundo próprio do laboratório: uma rede neural discreta e responsiva. */
+  function iniciarFundoNeural(canvas) {
+    var contexto = canvas.getContext('2d');
+    if (!contexto) return;
+    var movimentoReduzido = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var largura = 0;
+    var altura = 0;
+    var pontos = [];
+    var quadro = 0;
+    var ultimoQuadro = 0;
+    var ponteiro = { x: -1000, y: -1000, ativo: false };
+
+    function criarPontos() {
+      var quantidade = largura < 620 ? 18 : Math.min(46, Math.max(26, Math.round(largura / 38)));
+      pontos = [];
+      for (var i = 0; i < quantidade; i++) {
+        pontos.push({
+          x: Math.random() * largura,
+          y: Math.random() * altura,
+          vx: (Math.random() - 0.5) * 0.18,
+          vy: (Math.random() - 0.5) * 0.18,
+          raio: 1.3 + Math.random() * 1.8,
+          destaque: i % 5 === 0
+        });
+      }
+    }
+
+    function redimensionar() {
+      var proporcao = Math.min(window.devicePixelRatio || 1, 1.5);
+      largura = window.innerWidth;
+      altura = window.innerHeight;
+      canvas.width = Math.floor(largura * proporcao);
+      canvas.height = Math.floor(altura * proporcao);
+      canvas.style.width = largura + 'px';
+      canvas.style.height = altura + 'px';
+      contexto.setTransform(proporcao, 0, 0, proporcao, 0, 0);
+      criarPontos();
+      desenhar(true);
+    }
+
+    function desenhar(estatico) {
+      contexto.clearRect(0, 0, largura, altura);
+      for (var i = 0; i < pontos.length; i++) {
+        var ponto = pontos[i];
+        if (!estatico) {
+          ponto.x += ponto.vx;
+          ponto.y += ponto.vy;
+          if (ponto.x < -10 || ponto.x > largura + 10) ponto.vx *= -1;
+          if (ponto.y < -10 || ponto.y > altura + 10) ponto.vy *= -1;
+        }
+        for (var j = i + 1; j < pontos.length; j++) {
+          var outro = pontos[j];
+          var distancia = Math.hypot(ponto.x - outro.x, ponto.y - outro.y);
+          if (distancia > 145) continue;
+          var proximidadeDoPonteiro = ponteiro.ativo &&
+            (Math.hypot(ponto.x - ponteiro.x, ponto.y - ponteiro.y) < 135 || Math.hypot(outro.x - ponteiro.x, outro.y - ponteiro.y) < 135);
+          var opacidade = (1 - distancia / 145) * (proximidadeDoPonteiro ? 0.28 : 0.1);
+          contexto.strokeStyle = 'rgba(78, 70, 229, ' + opacidade + ')';
+          contexto.lineWidth = proximidadeDoPonteiro ? 1.2 : 0.7;
+          contexto.beginPath();
+          contexto.moveTo(ponto.x, ponto.y);
+          contexto.lineTo(outro.x, outro.y);
+          contexto.stroke();
+        }
+        var perto = ponteiro.ativo && Math.hypot(ponto.x - ponteiro.x, ponto.y - ponteiro.y) < 120;
+        contexto.fillStyle = ponto.destaque ? 'rgba(0, 183, 214, ' + (perto ? 0.72 : 0.32) + ')' : 'rgba(78, 70, 229, ' + (perto ? 0.66 : 0.26) + ')';
+        contexto.beginPath();
+        contexto.arc(ponto.x, ponto.y, ponto.raio + (perto ? 1.1 : 0), 0, Math.PI * 2);
+        contexto.fill();
+      }
+    }
+
+    function animar(timestamp) {
+      quadro = window.requestAnimationFrame(animar);
+      if (document.hidden || timestamp - ultimoQuadro < 34) return;
+      ultimoQuadro = timestamp;
+      desenhar(false);
+    }
+
+    function atualizarAnimacao() {
+      window.cancelAnimationFrame(quadro);
+      if (movimentoReduzido.matches) desenhar(true);
+      else quadro = window.requestAnimationFrame(animar);
+    }
+
+    window.addEventListener('pointermove', function (event) {
+      ponteiro.x = event.clientX;
+      ponteiro.y = event.clientY;
+      ponteiro.ativo = true;
+    }, { passive: true });
+    window.addEventListener('pointerout', function (event) {
+      if (!event.relatedTarget) ponteiro.ativo = false;
+    });
+    var quadroDeRedimensionamento = 0;
+    window.addEventListener('resize', function () {
+      window.cancelAnimationFrame(quadroDeRedimensionamento);
+      quadroDeRedimensionamento = window.requestAnimationFrame(function () {
+        redimensionar();
+        atualizarAnimacao();
+      });
+    }, { passive: true });
+    if (movimentoReduzido.addEventListener) movimentoReduzido.addEventListener('change', atualizarAnimacao);
+    redimensionar();
+    atualizarAnimacao();
+  }
+
+  iniciarFundoNeural(neuralCanvas);
 
   /*
      Ícones de ações comuns. Este aprimoramento também alcança botões que os
