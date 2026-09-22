@@ -3,159 +3,208 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PCA Visual — entendendo autovetores, autovalores e a redução 3D → 2D</title>
-  <link rel="stylesheet" href="../../css/styles.css">
-  <link rel="stylesheet" href="../../css/classical-models.css">
+  <title>PCA — Redução de Dimensionalidade</title>
   <style>
     :root{
-      --pca-bg:#f5f7fb;--pca-surface:#fff;--pca-text:#142033;--pca-muted:#607086;
-      --pca-line:#dbe4ef;--pca-soft:#f8fafc;--pca-blue:#2563eb;--pca-blue-soft:#eaf2ff;
-      --pca-violet:#7c3aed;--pca-green:#059669;--pca-orange:#d97706;--pca-red:#dc2626;
-      --pca-cyan:#0891b2;--pca-shadow:0 14px 38px rgba(31,44,72,.07)
+      --bg:#f5f7fb;
+      --surface:#ffffff;
+      --surface-2:#f8fbff;
+      --text:#132238;
+      --muted:#66758a;
+      --line:#dce5ef;
+      --blue:#2563eb;
+      --blue-soft:#eaf2ff;
+      --violet:#7c3aed;
+      --green:#059669;
+      --orange:#d97706;
+      --shadow:0 18px 50px rgba(25,45,80,.08);
     }
+
     *{box-sizing:border-box}
     html{scroll-behavior:smooth}
-    body{background:var(--pca-bg);color:var(--pca-text)}
-    .pca-page{width:min(1180px,calc(100% - 32px));margin:0 auto;padding:28px 0 72px}
-    .pca-hero{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:24px;padding:40px;border:1px solid var(--pca-line);border-radius:28px;background:linear-gradient(135deg,#fff,#f5f8ff);box-shadow:var(--pca-shadow)}
-    .pca-eyebrow{margin:0 0 8px;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--pca-blue)}
-    .pca-hero h1{margin:0;font-size:clamp(40px,7vw,70px);line-height:1;letter-spacing:-.055em;color:#10203a}
-    .pca-lead{margin:18px 0 0;max-width:790px;font-size:clamp(17px,2vw,21px);line-height:1.65;color:#42516a}
-    .pca-hero-side{display:grid;align-content:center;gap:10px;padding:22px;border:1px solid #dbe4f1;border-radius:22px;background:rgba(255,255,255,.8)}
-    .pca-mini{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;color:#40516a;font-size:14px}.pca-mini b{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--pca-blue-soft);color:var(--pca-blue)}
-    .pca-section{margin-top:34px}.pca-head{max-width:900px;margin-bottom:17px}.pca-head h2{margin:0;font-size:clamp(28px,4vw,40px);line-height:1.12;letter-spacing:-.035em;color:#14233c}.pca-head p{margin:10px 0 0;line-height:1.7;color:var(--pca-muted)}
-    .pca-grid-2,.pca-grid-3{display:grid;gap:16px}.pca-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.pca-grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .pca-card,.pca-panel{background:var(--pca-surface);border:1px solid var(--pca-line);border-radius:20px}.pca-card{padding:22px}.pca-panel{padding:24px;box-shadow:0 8px 28px rgba(31,44,72,.04)}
-    .pca-card h3,.pca-panel h3{margin:0 0 9px;color:#17263e}.pca-card p,.pca-panel p{color:var(--pca-muted);line-height:1.67}
-    .pca-key{padding:16px 18px;border-left:4px solid var(--pca-blue);border-radius:0 14px 14px 0;background:#f1f6ff;color:#334a6b;line-height:1.65}.pca-key strong{color:#183866}
-    .pca-warn{padding:16px 18px;border-left:4px solid var(--pca-orange);border-radius:0 14px 14px 0;background:#fff8eb;color:#714b15;line-height:1.65}
-    .pca-formula{margin:14px 0;padding:15px 17px;border:1px solid #dce5f1;border-radius:14px;background:#f8fbff;color:#1f3657;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.7;overflow:auto}
-    .pca-big-answer{display:grid;grid-template-columns:1fr 1fr;gap:14px}.pca-answer{padding:22px;border:1px solid var(--pca-line);border-radius:18px;background:#fff}.pca-answer .word{font-size:clamp(28px,4vw,40px);font-weight:900;letter-spacing:-.04em}.pca-answer.yes .word{color:var(--pca-green)}.pca-answer.no .word{color:var(--pca-violet)}.pca-answer code{font-size:16px;color:#264365}
-    .pca-diagram{padding:18px;border:1px solid var(--pca-line);border-radius:18px;background:#fcfdff;overflow:hidden}.pca-diagram svg{display:block;width:100%;height:auto}.pca-caption{margin:10px 0 0;color:#64748b;font-size:13px;line-height:1.55;text-align:center}
-    .pca-compare{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}.pca-vs{font-weight:900;color:#94a3b8;font-size:14px}
-    .pca-table-wrap{overflow-x:auto;border:1px solid var(--pca-line);border-radius:17px;background:#fff}.pca-table{width:100%;border-collapse:collapse;min-width:680px}.pca-table th,.pca-table td{padding:12px 14px;border-bottom:1px solid #e8edf4;text-align:center}.pca-table th{background:#f8fafc;color:#405069;font-size:13px}.pca-table tbody th{text-align:left}.pca-table tr:last-child td,.pca-table tr:last-child th{border-bottom:0}.pca-matrix td{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:800;transition:.18s}.pca-matrix td.diag{background:#edf6ff;color:#174b86}.pca-matrix td.off{color:#43566e}.pca-matrix td.active{outline:3px solid rgba(37,99,235,.28);outline-offset:-3px;background:#e7f0ff;color:#153f76}.pca-matrix th.axis{background:#eef3fa;color:#1d3557;font-weight:900}.pca-rowcol-note{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.pca-small-note{padding:12px 14px;border:1px solid var(--pca-line);border-radius:12px;background:#fafbfd;color:#5b6b80;font-size:14px;line-height:1.55}
-    .pca-controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.pca-btn{appearance:none;border:1px solid #cad6e6;background:#fff;color:#314866;padding:9px 12px;border-radius:10px;font-weight:800;cursor:pointer}.pca-btn:hover{background:#f6f9fd}.pca-btn.active{border-color:#9bb8f5;background:#edf4ff;color:#17498b}.pca-btn:focus-visible{outline:3px solid rgba(37,99,235,.22);outline-offset:2px}
-    .pca-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border-radius:999px;background:#eff5ff;color:#21518f;font-size:12px;font-weight:850}.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
-    .pca-eigen-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;align-items:stretch}.pca-eigen-def{display:grid;gap:12px}.pca-eigen-item{padding:16px;border:1px solid var(--pca-line);border-radius:15px;background:#fff}.pca-eigen-item strong{display:block;margin-bottom:6px;color:#1b365d}.pca-eigen-item .type{font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#7b8799}
-    .pca-eigen-roadmap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.pca-road-step{position:relative;padding:16px 14px;border:1px solid var(--pca-line);border-radius:14px;background:#fff;min-height:126px}.pca-road-step:not(:last-child)::after{content:'→';position:absolute;right:-19px;top:50%;transform:translateY(-50%);z-index:2;width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--pca-line);border-radius:50%;background:var(--pca-bg);color:#64748b;font-weight:900}.pca-road-step b{display:block;margin-bottom:7px;color:#17375f}.pca-road-step span{display:block;color:#66768b;font-size:13px;line-height:1.55}.pca-road-step code{display:block;margin-top:8px;color:#1f4e89;font-size:13px;font-weight:800;white-space:normal}
-    .pca-eigen-lab{margin-top:18px;padding:24px;border:1px solid var(--pca-line);border-radius:20px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:0 10px 30px rgba(31,44,72,.04)}.pca-lab-head{display:flex;gap:18px;align-items:flex-start;justify-content:space-between}.pca-lab-head h3{margin:0 0 6px;font-size:24px}.pca-lab-head p{margin:0;color:var(--pca-muted);line-height:1.6;max-width:760px}.pca-pc-tabs{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.pca-pc-tab{appearance:none;border:1px solid #cbd8e8;background:#fff;color:#415772;padding:9px 12px;border-radius:999px;font-weight:900;cursor:pointer}.pca-pc-tab.active{background:#eaf2ff;border-color:#9db9ef;color:#1e4f95}.pca-pc-tab:focus-visible{outline:3px solid rgba(37,99,235,.2);outline-offset:2px}
-    .pca-solver{display:grid;grid-template-columns:1fr;gap:12px;margin-top:18px}.pca-solver-step{display:grid;grid-template-columns:42px minmax(0,1fr);gap:13px;padding:15px;border:1px solid var(--pca-line);border-radius:14px;background:#fff}.pca-solver-num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#edf4ff;color:#1e52a0;font-weight:950}.pca-solver-step h4{margin:0 0 5px;color:#1f3554}.pca-solver-step p{margin:0;color:#617187;line-height:1.58}.pca-solver-math{margin-top:9px;padding:11px 13px;border-radius:11px;background:#f7f9fc;border:1px solid #e3e9f1;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#213b60;line-height:1.65;overflow:auto}.pca-solver-result{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px}.pca-result-chip{padding:7px 10px;border-radius:999px;background:#eef7ff;color:#1a4d8d;font-weight:850;font-size:13px}
-    .pca-mult-grid{display:grid;grid-template-columns:minmax(350px,1.4fr) 52px minmax(150px,.55fr) 52px minmax(150px,.55fr);gap:12px;align-items:center;margin-top:18px}.pca-matrix-box,.pca-vector-box,.pca-result-box{border:1px solid var(--pca-line);border-radius:16px;background:#fff;padding:15px}.pca-matrix-box h4,.pca-vector-box h4,.pca-result-box h4{margin:0 0 10px;font-size:14px;color:#465a74}.pca-mult-symbol{display:grid;place-items:center;font-size:28px;font-weight:900;color:#748399}.pca-matrix-live{width:100%;border-collapse:separate;border-spacing:5px}.pca-matrix-live td{padding:11px 8px;text-align:center;border-radius:8px;background:#f5f8fc;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:850;color:#2d496e;transition:.18s}.pca-matrix-live tr.active td{background:#dceaff;color:#144886;box-shadow:inset 0 0 0 2px #a6c4f2}.pca-matrix-live td.active-col{background:#eef3ff}.pca-vector-list{display:grid;gap:6px}.pca-vector-item{padding:9px 8px;border-radius:9px;background:#f5f8fc;text-align:center;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:850;color:#2d496e;transition:.18s}.pca-vector-item.active{background:#fff2d9;color:#8b5708;box-shadow:inset 0 0 0 2px #f2c66d}.pca-result-item{padding:9px 8px;border-radius:9px;background:#eef8f4;text-align:center;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:900;color:#176245}.pca-row-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.pca-row-tab{appearance:none;border:1px solid #cfdae7;background:#fff;color:#40536e;padding:8px 11px;border-radius:10px;font-weight:850;cursor:pointer}.pca-row-tab.active{background:#edf4ff;border-color:#a9c2ee;color:#174d91}.pca-row-calc{margin-top:12px;padding:16px;border:1px solid #d9e4f1;border-radius:14px;background:#f9fbfe}.pca-row-calc h4{margin:0 0 8px;color:#1d3e69}.pca-row-calc .eq{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;line-height:1.8;color:#243d5e;overflow:auto}.pca-row-calc .eq strong{color:#174e93}.pca-row-calc p{margin:9px 0 0;color:#63748a;line-height:1.55}.pca-eigen-check{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-top:14px}.pca-check-side{padding:14px;border:1px solid var(--pca-line);border-radius:13px;background:#fff}.pca-check-side small{display:block;margin-bottom:7px;color:#718096;font-weight:900}.pca-check-side code{font-size:14px;font-weight:850;color:#1f436f;white-space:normal}.pca-check-eq{font-size:22px;font-weight:950;color:#16805b}.pca-direction-line{margin-top:14px;padding:14px;border-left:4px solid var(--pca-green);border-radius:0 12px 12px 0;background:#eefaf5;color:#315b4b;line-height:1.6}
-    .pca-pair{display:grid;grid-template-columns:1fr 110px;gap:14px;align-items:center;padding:16px;border:1px solid var(--pca-line);border-radius:15px;background:#fff}.pca-pair h4{margin:0 0 8px}.pca-pair p{margin:0}.pca-lambda{display:grid;place-items:center;min-height:92px;border-radius:14px;background:#f5f7fb;text-align:center}.pca-lambda b{display:block;font-size:26px;color:#1e3f70}.pca-lambda small{color:#69788d;font-weight:800}
-    .pca-bars{display:grid;gap:10px;margin-top:14px}.pca-bar-row{display:grid;grid-template-columns:70px 1fr 80px;gap:10px;align-items:center}.pca-bar-row strong{font-size:13px}.pca-bar{height:16px;border-radius:999px;background:#edf1f6;overflow:hidden}.pca-bar span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2563eb,#7c3aed)}.pca-bar-row em{font-style:normal;text-align:right;font-size:13px;font-weight:800;color:#42536a}
-    .pca-stepper{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.65fr);gap:16px}.pca-stage{min-height:470px}.pca-stage-panel{display:none}.pca-stage-panel.active{display:block}.pca-step-list{display:grid;gap:8px;margin-top:12px}.pca-step-item{padding:11px 12px;border:1px solid var(--pca-line);border-radius:11px;color:#6a788c;background:#fbfcfe;font-size:13px}.pca-step-item.active{background:#eef5ff;border-color:#b9cef8;color:#204c87}.pca-step-item.done{color:#334155}.pca-stage-title{font-size:20px;margin:0 0 7px}.pca-stage-copy{margin:0;color:#617187;line-height:1.65}
-    .pca-score-table td,.pca-score-table th{font-size:13px}.pca-score-table td.pos{color:#17603d;font-weight:800}.pca-score-table td.neg{color:#8a3552;font-weight:800}
-    .pca-code{overflow:auto;border-radius:16px;background:#111827;color:#dbe7f4}.pca-code-head{padding:10px 14px;background:#0a1120;color:#9fb1c7;font-size:12px}.pca-code pre{margin:0;padding:18px;min-width:800px;font-size:13px;line-height:1.6}.pca-code code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-    .pca-ref{font-size:13px;color:#64748b;line-height:1.7}.pca-ref a{color:#245ea8}
-    .pca-quiz{display:grid;gap:10px}.pca-q{padding:14px;border:1px solid var(--pca-line);border-radius:13px;background:#fff}.pca-q summary{cursor:pointer;font-weight:850;color:#203a5f}.pca-q p{margin:10px 0 0;color:#637286;line-height:1.6}
-    @media(max-width:900px){.pca-hero,.pca-grid-2,.pca-grid-3,.pca-eigen-grid,.pca-stepper{grid-template-columns:1fr}.pca-big-answer{grid-template-columns:1fr}.pca-compare{grid-template-columns:1fr}.pca-vs{text-align:center}.pca-stage{min-height:auto}.pca-eigen-roadmap{grid-template-columns:1fr 1fr}.pca-road-step:not(:last-child)::after{display:none}.pca-mult-grid{grid-template-columns:1fr}.pca-mult-symbol{transform:rotate(90deg);height:28px}.pca-eigen-check{grid-template-columns:1fr}.pca-check-eq{text-align:center}.pca-lab-head{display:grid}.pca-pc-tabs{justify-content:flex-start}}
-    @media(max-width:600px){.pca-page{width:min(100% - 20px,1180px)}.pca-hero{padding:24px}.pca-panel,.pca-card{padding:18px}.pca-rowcol-note{grid-template-columns:1fr}.pca-pair{grid-template-columns:1fr}.pca-lambda{min-height:72px}.pca-bar-row{grid-template-columns:55px 1fr 65px}.pca-eigen-roadmap{grid-template-columns:1fr}.pca-eigen-lab{padding:17px}.pca-solver-step{grid-template-columns:34px 1fr;gap:9px}}
+    body{
+      margin:0;
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    button,input{font:inherit}
+    .page{width:min(1160px,calc(100% - 32px));margin:0 auto;padding:30px 0 72px}
+
+    .hero{
+      display:grid;
+      grid-template-columns:minmax(0,1.25fr) minmax(310px,.75fr);
+      gap:26px;
+      padding:42px;
+      border:1px solid var(--line);
+      border-radius:30px;
+      background:linear-gradient(135deg,#fff 0%,#f5f9ff 62%,#f2efff 100%);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .eyebrow{margin:0 0 9px;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+    h1{margin:0;font-size:clamp(42px,7vw,74px);line-height:.98;letter-spacing:-.055em;color:#10203a}
+    .lead{margin:20px 0 0;max-width:760px;font-size:clamp(18px,2vw,22px);line-height:1.62;color:#44546b}
+    .hero-card{align-self:center;padding:22px;border:1px solid #d7e2f0;border-radius:22px;background:rgba(255,255,255,.85)}
+    .hero-card h3{margin:0 0 14px;font-size:17px}
+    .flow-mini{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .pill{padding:9px 12px;border-radius:999px;background:#eef4ff;color:#244d84;font-weight:800;font-size:13px}
+    .arrow{color:#94a3b8;font-weight:900}
+    .hero-card p{margin:14px 0 0;color:var(--muted);line-height:1.6;font-size:14px}
+
+    section{margin-top:38px}
+    .head{max-width:900px;margin-bottom:18px}
+    .head h2{margin:0;font-size:clamp(29px,4vw,42px);letter-spacing:-.035em;line-height:1.1}
+    .head p{margin:10px 0 0;color:var(--muted);line-height:1.72;font-size:16px}
+
+    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .card,.panel{background:var(--surface);border:1px solid var(--line);border-radius:20px}
+    .card{padding:22px}
+    .panel{padding:24px;box-shadow:0 8px 28px rgba(31,44,72,.04)}
+    .card h3,.panel h3{margin:0 0 9px}
+    .card p,.panel p{color:var(--muted);line-height:1.66}
+    .big-number{font-size:42px;font-weight:950;letter-spacing:-.05em;color:var(--blue);margin-bottom:3px}
+    .tag{display:inline-flex;padding:6px 9px;border-radius:999px;background:var(--blue-soft);color:#225399;font-size:12px;font-weight:900}
+
+    .key{
+      margin-top:16px;
+      padding:17px 19px;
+      border-left:4px solid var(--blue);
+      border-radius:0 14px 14px 0;
+      background:#eef5ff;
+      color:#355070;
+      line-height:1.65;
+    }
+    .key strong{color:#173c70}
+
+    .problem-strip{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center}
+    .dataset-box{padding:22px;border:1px solid var(--line);border-radius:20px;background:#fff}
+    .dataset-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px}
+    .dataset-title strong{font-size:18px}
+    .cols{display:flex;gap:8px;flex-wrap:wrap}
+    .col-chip{padding:9px 11px;border-radius:10px;background:#f1f5f9;color:#42536a;font-weight:800;font-size:13px}
+    .col-chip.pc1{background:#eaf2ff;color:#1e4f94}.col-chip.pc2{background:#f1eafe;color:#6533a9}
+    .center-arrow{font-size:34px;color:#9aa8ba;font-weight:900;text-align:center}
+
+    .why-item{position:relative;padding-top:58px}
+    .why-icon{position:absolute;top:18px;left:22px;width:30px;height:30px;border-radius:10px;background:#eef4ff;color:var(--blue);display:grid;place-items:center;font-weight:950}
+
+    .visual-shell{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:16px}
+    .visual{min-height:500px}
+    .tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+    .btn{border:1px solid #cad6e6;background:#fff;color:#334b68;padding:9px 13px;border-radius:10px;font-weight:850;cursor:pointer}
+    .btn:hover{background:#f6f9fd}.btn.active{background:#eaf2ff;border-color:#9ab9f3;color:#17498b}
+    .stage{display:none}.stage.active{display:block}
+    .stage svg{display:block;width:100%;height:auto;border:1px solid #e2e8f0;border-radius:18px;background:#fbfdff}
+    .caption{margin:12px 0 0;text-align:center;color:#66758a;font-size:14px;line-height:1.55}
+    .side-step{display:grid;gap:10px}
+    .step{padding:14px;border:1px solid var(--line);border-radius:14px;background:#fbfcfe;color:#65758a;line-height:1.5}
+    .step.active{background:#eef5ff;border-color:#b9cef8;color:#244d84}
+    .step strong{display:block;margin-bottom:3px;color:#26466f}
+
+    .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:680px}
+    th,td{padding:12px 14px;border-bottom:1px solid #e8edf4;text-align:center}
+    th{background:#f8fafc;color:#405069;font-size:13px}
+    tbody th{text-align:left}
+    tr:last-child td,tr:last-child th{border-bottom:0}
+    td.pc1{font-weight:850;color:#1d4ed8}td.pc2{font-weight:850;color:#6d28d9}
+
+    .compression{
+      display:grid;
+      grid-template-columns:1fr auto 1fr auto 1fr;
+      gap:12px;
+      align-items:center;
+      margin-top:16px;
+    }
+    .compress-card{padding:18px;border:1px solid var(--line);border-radius:16px;background:#fff;text-align:center}
+    .compress-card b{display:block;font-size:27px;margin-bottom:4px}
+    .compress-card span{color:var(--muted);font-size:13px}
+    .compress-arrow{font-size:24px;color:#94a3b8;font-weight:900}
+
+    .variance-box{padding:24px;border:1px solid var(--line);border-radius:20px;background:#fff}
+    .bar-row{display:grid;grid-template-columns:60px 1fr 90px;gap:12px;align-items:center;margin-top:13px}
+    .bar{height:18px;border-radius:999px;background:#edf1f6;overflow:hidden}
+    .bar span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#2563eb,#7c3aed)}
+    .bar-row strong{font-size:13px}.bar-row em{font-style:normal;text-align:right;font-weight:850;color:#41536b;font-size:13px}
+    .total{margin-top:18px;padding:15px;border-radius:14px;background:#eef9f4;color:#216147;line-height:1.55}
+
+    .algorithm{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .algo-step{padding:18px;border:1px solid var(--line);border-radius:17px;background:#fff}
+    .algo-n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#eaf2ff;color:var(--blue);font-weight:950;margin-bottom:13px}
+    .algo-step h3{font-size:16px;margin:0 0 7px}.algo-step p{font-size:14px;margin:0;color:var(--muted);line-height:1.55}
+
+    .code{border-radius:18px;overflow:hidden;background:#0f172a;color:#dbeafe}
+    .code-head{display:flex;justify-content:space-between;gap:12px;padding:11px 15px;background:#0a1120;color:#9fb1c7;font-size:12px}
+    pre{margin:0;padding:20px;overflow:auto;line-height:1.62;font-size:13px}
+    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .out{margin-top:14px;padding:17px;border:1px solid var(--line);border-radius:16px;background:#f8fbff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2d4566;line-height:1.65}
+
+    .dont{border-left-color:var(--orange);background:#fff8ec;color:#715020}.dont strong{color:#8a5300}
+    .footer{margin-top:42px;padding:24px 0 8px;text-align:center;color:#7a8798;font-size:13px}
+
+    @media(max-width:900px){
+      .hero,.grid-2,.grid-3,.visual-shell{grid-template-columns:1fr}
+      .algorithm{grid-template-columns:1fr 1fr}
+      .problem-strip{grid-template-columns:1fr}.center-arrow{transform:rotate(90deg)}
+      .compression{grid-template-columns:1fr}.compress-arrow{transform:rotate(90deg)}
+    }
+    @media(max-width:600px){
+      .page{width:min(100% - 20px,1160px)}
+      .hero{padding:26px}
+      .panel,.card{padding:18px}
+      .algorithm{grid-template-columns:1fr}
+      .bar-row{grid-template-columns:52px 1fr 72px}
+    }
   </style>
 </head>
 <body>
-<header class="site-header"></header>
-<main class="pca-page">
+<main class="page">
 
-  <section class="pca-hero">
+  <section class="hero">
     <div>
-      <p class="pca-eyebrow">PCA · PRINCIPAL COMPONENT ANALYSIS</p>
-      <h1>PCA começando pela imagem mental</h1>
-      <p class="pca-lead">Antes de calcular qualquer coisa, vamos entender quatro objetos diferentes: <strong>dados</strong>, <strong>matriz de covariância</strong>, <strong>autovetor</strong> e <strong>autovalor</strong>. Depois veremos como eles permitem transformar três dimensões em duas.</p>
+      <p class="eyebrow">PCA · REDUÇÃO DE DIMENSIONALIDADE</p>
+      <h1>Como transformar muitas colunas em poucas</h1>
+      <p class="lead">O objetivo do PCA não é “apagar colunas”. Ele cria <strong>novas dimensões</strong> que resumem as variáveis originais e tenta preservar o máximo possível da informação contida nos dados.</p>
     </div>
-    <aside class="pca-hero-side">
-      <div class="pca-mini"><b>1</b><span>Entender o que é <strong>vetor</strong> e o que é <strong>número</strong>.</span></div>
-      <div class="pca-mini"><b>2</b><span>Ler a <strong>matriz de covariância</strong> linha por linha.</span></div>
-      <div class="pca-mini"><b>3</b><span>Descobrir as <strong>direções especiais</strong> da nuvem.</span></div>
-      <div class="pca-mini"><b>4</b><span>Projetar 3D em um <strong>plano 2D</strong>.</span></div>
+    <aside class="hero-card">
+      <h3>A ideia em uma linha</h3>
+      <div class="flow-mini">
+        <span class="pill">3 variáveis</span><span class="arrow">→</span>
+        <span class="pill">PCA</span><span class="arrow">→</span>
+        <span class="pill">2 componentes</span>
+      </div>
+      <p>Menos dimensões para representar praticamente o mesmo padrão dos dados.</p>
     </aside>
   </section>
 
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">PRIMEIRO: TIRE ESTA DÚVIDA</p>
-      <h2>Autovetor é vetor? E autovalor?</h2>
-      <p>Sim: <strong>autovetor é realmente um vetor</strong>. Já <strong>autovalor não é vetor</strong>: é um único número, um escalar, associado àquele autovetor.</p>
+  <section>
+    <header class="head">
+      <p class="eyebrow">1 · O PROBLEMA</p>
+      <h2>Por que reduzir dimensionalidade?</h2>
+      <p>Em Machine Learning, cada coluna pode representar uma dimensão. Com poucas colunas isso é simples; com dezenas, centenas ou milhares, analisar, visualizar e processar os dados pode ficar mais difícil.</p>
     </header>
 
-    <div class="pca-big-answer">
-      <article class="pca-answer yes">
-        <div class="word">Autovetor = vetor</div>
-        <p>Ele tem componentes. Em três dimensões, por exemplo:</p>
-        <div class="pca-formula">v₁ = [0,638 ; 0,443 ; 0,630]</div>
-        <p>Esses três números descrevem uma <strong>direção no espaço 3D</strong>.</p>
-      </article>
-      <article class="pca-answer no">
-        <div class="word">Autovalor = número</div>
-        <p>Ele é um valor associado ao autovetor:</p>
-        <div class="pca-formula">λ₁ = 20,31</div>
-        <p>No PCA, para um autovetor unitário da matriz de covariância, esse número representa a <strong>variância existente naquela direção</strong>.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">ANTES DO PCA: ENTENDA O “AUTO”</p>
-      <h2>O que torna um vetor um <em>autovetor</em>?</h2>
-      <p>Uma matriz pode ser vista como uma transformação. Ela recebe um vetor e devolve outro. A maior parte dos vetores muda de tamanho <strong>e de direção</strong>. Um autovetor é especial: depois da transformação, ele continua sobre a mesma linha.</p>
-    </header>
-
-    <div class="pca-compare">
-      <article class="pca-diagram">
-        <span class="pca-badge"><i class="dot"></i> Vetor comum</span>
-        <svg viewBox="0 0 470 290" role="img" aria-label="Um vetor comum muda de direção após uma transformação">
-          <defs>
-            <marker id="arrowGray" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/></marker>
-            <marker id="arrowRed" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#dc2626"/></marker>
-          </defs>
-          <line x1="65" y1="230" x2="410" y2="230" stroke="#d5dde8" stroke-width="2"/>
-          <line x1="110" y1="260" x2="110" y2="30" stroke="#d5dde8" stroke-width="2"/>
-          <circle cx="110" cy="230" r="5" fill="#334155"/>
-          <line x1="110" y1="230" x2="245" y2="115" stroke="#64748b" stroke-width="5" marker-end="url(#arrowGray)"/>
-          <text x="208" y="103" fill="#475569" font-size="17" font-weight="800">u</text>
-          <line x1="110" y1="230" x2="342" y2="168" stroke="#dc2626" stroke-width="5" marker-end="url(#arrowRed)"/>
-          <text x="314" y="153" fill="#b91c1c" font-size="17" font-weight="800">A·u</text>
-          <path d="M190 166 Q240 195 281 188" fill="none" stroke="#d97706" stroke-width="2.5" stroke-dasharray="6 5"/>
-          <text x="198" y="208" fill="#9a6512" font-size="14">mudou de direção</text>
-        </svg>
-        <p class="pca-caption">O resultado <strong>A·u</strong> não está na mesma linha de <strong>u</strong>. Portanto, u não é autovetor de A.</p>
-      </article>
-
-      <div class="pca-vs">VERSUS</div>
-
-      <article class="pca-diagram">
-        <span class="pca-badge"><i class="dot"></i> Autovetor</span>
-        <svg viewBox="0 0 470 290" role="img" aria-label="Um autovetor permanece na mesma direção após uma transformação">
-          <defs>
-            <marker id="arrowBlue" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#2563eb"/></marker>
-            <marker id="arrowGreen" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#059669"/></marker>
-          </defs>
-          <line x1="65" y1="230" x2="410" y2="230" stroke="#d5dde8" stroke-width="2"/>
-          <line x1="110" y1="260" x2="110" y2="30" stroke="#d5dde8" stroke-width="2"/>
-          <line x1="75" y1="260" x2="390" y2="55" stroke="#b9c8dd" stroke-width="2" stroke-dasharray="7 6"/>
-          <circle cx="110" cy="230" r="5" fill="#334155"/>
-          <line x1="110" y1="230" x2="240" y2="145" stroke="#2563eb" stroke-width="6" marker-end="url(#arrowBlue)"/>
-          <text x="202" y="138" fill="#1d4ed8" font-size="17" font-weight="800">v</text>
-          <line x1="110" y1="230" x2="345" y2="77" stroke="#059669" stroke-width="5" marker-end="url(#arrowGreen)"/>
-          <text x="315" y="66" fill="#047857" font-size="17" font-weight="800">A·v = λv</text>
-          <text x="196" y="247" fill="#52657d" font-size="14">mesma linha / mesma direção</text>
-        </svg>
-        <p class="pca-caption">A transformação apenas <strong>escala</strong> v. Por isso vale <strong>A·v = λv</strong>. v é o autovetor; λ é o número que diz o quanto ele foi escalado.</p>
-      </article>
+    <div class="grid-3">
+      <article class="card why-item"><div class="why-icon">1</div><h3>Visualização</h3><p>É fácil desenhar dados em 2D ou 3D. Com 50 variáveis, não existe uma visualização espacial direta.</p></article>
+      <article class="card why-item"><div class="why-icon">2</div><h3>Redundância</h3><p>Variáveis diferentes podem carregar informações parecidas. O PCA tenta concentrar padrões relacionados em menos componentes.</p></article>
+      <article class="card why-item"><div class="why-icon">3</div><h3>Processamento</h3><p>Menos dimensões podem significar menos dados para armazenar, transmitir e fornecer a outros algoritmos.</p></article>
     </div>
 
-    <div class="pca-key" style="margin-top:16px"><strong>Agora faça a ponte com PCA:</strong> no nosso caso, a matriz <strong>A</strong> será a <strong>matriz de covariância Σ</strong>. Os autovetores de Σ fornecem as direções principais da nuvem. Os autovalores dizem quanta variância existe em cada uma dessas direções.</div>
+    <div class="key"><strong>Ideia central:</strong> reduzir dimensionalidade significa representar os mesmos objetos usando menos números, tentando perder o mínimo possível da estrutura dos dados.</div>
   </section>
 
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">NOSSO EXEMPLO · 3 DIMENSÕES</p>
-      <h2>Matemática, Física e Programação</h2>
-      <p>Cada aluno possui três números, então cada aluno é um ponto em um espaço 3D. Como as três notas tendem a crescer juntas, a nuvem possui bastante redundância.</p>
+  <section>
+    <header class="head">
+      <p class="eyebrow">2 · EXEMPLO</p>
+      <h2>Três notas para representar cada aluno</h2>
+      <p>Vamos usar três variáveis na mesma escala: Matemática, Física e Programação. Cada aluno precisa inicialmente de <strong>três números</strong> para ser representado.</p>
     </header>
-    <div class="pca-table-wrap">
-      <table class="pca-table">
-        <thead><tr><th>Aluno</th><th>Matemática (M)</th><th>Física (F)</th><th>Programação (P)</th></tr></thead>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Aluno</th><th>Matemática</th><th>Física</th><th>Programação</th></tr></thead>
         <tbody>
           <tr><th>A</th><td>9</td><td>8</td><td>9</td></tr>
           <tr><th>B</th><td>8</td><td>8</td><td>7</td></tr>
@@ -166,648 +215,262 @@
         </tbody>
       </table>
     </div>
-    <div class="pca-key" style="margin-top:14px"><strong>Importante:</strong> o PCA não vai escolher “Matemática e Programação” e jogar Física fora. Ele criará <strong>novos eixos</strong> que são combinações de M, F e P.</div>
+
+    <div class="problem-strip" style="margin-top:16px">
+      <div class="dataset-box">
+        <div class="dataset-title"><strong>Antes do PCA</strong><span class="tag">3 dimensões</span></div>
+        <div class="cols"><span class="col-chip">Matemática</span><span class="col-chip">Física</span><span class="col-chip">Programação</span></div>
+      </div>
+      <div class="center-arrow">→</div>
+      <div class="dataset-box">
+        <div class="dataset-title"><strong>Depois do PCA</strong><span class="tag">2 dimensões</span></div>
+        <div class="cols"><span class="col-chip pc1">PC1</span><span class="col-chip pc2">PC2</span></div>
+      </div>
+    </div>
+
+    <div class="key"><strong>Importante:</strong> PC1 e PC2 não são duas colunas escolhidas entre as três. Eles são <strong>novos valores</strong> construídos a partir das três notas.</div>
   </section>
 
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">PASSO 1 · CENTRALIZAR</p>
-      <h2>Antes de procurar direções, levamos a média para a origem</h2>
-      <p>Calculamos a média de cada coluna e subtraímos essa média de cada observação. Isso não altera o formato da nuvem; apenas muda onde fica o zero.</p>
-    </header>
-    <div class="pca-grid-2">
-      <article class="pca-card">
-        <h3>Médias</h3>
-        <div class="pca-formula">M̄ = 5,50<br>F̄ = 5,67<br>P̄ = 5,50</div>
-        <p>Esse ponto <strong>(5,50; 5,67; 5,50)</strong> é o centro da nuvem original.</p>
-      </article>
-      <article class="pca-card">
-        <h3>Exemplo com o aluno A</h3>
-        <div class="pca-formula">A = (9; 8; 9)<br><br>A<sub>c</sub> = (9−5,50 ; 8−5,67 ; 9−5,50)<br>A<sub>c</sub> = (3,50 ; 2,33 ; 3,50)</div>
-        <p>Agora o ponto médio de toda a base está em <strong>(0,0,0)</strong>.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">PASSO 2 · MATRIZ DE COVARIÂNCIA</p>
-      <h2>Agora leia a matriz como uma tabela, não como um bloco de números</h2>
-      <p><strong>Cada linha e cada coluna representa uma variável.</strong> A célula na interseção responde: “como a variável da linha varia em conjunto com a variável da coluna?”</p>
+  <section>
+    <header class="head">
+      <p class="eyebrow">3 · VEJA A REDUÇÃO</p>
+      <h2>O mesmo conjunto de alunos: de 3D para 2D</h2>
+      <p>Use os botões para acompanhar a transformação. O objetivo aqui não é mostrar a matemática interna, mas visualizar o que significa reduzir a dimensão.</p>
     </header>
 
-    <div class="pca-grid-2">
-      <article class="pca-panel">
-        <div class="pca-table-wrap">
-          <table class="pca-table pca-matrix" id="covTable">
-            <thead>
-              <tr><th class="axis">Linha ↓ / Coluna →</th><th class="axis">Matemática</th><th class="axis">Física</th><th class="axis">Programação</th></tr>
-            </thead>
-            <tbody>
-              <tr><th class="axis">Matemática</th><td class="diag" data-cell="MM">8,30</td><td class="off" data-cell="MF">5,80</td><td class="off" data-cell="MP">8,10</td></tr>
-              <tr><th class="axis">Física</th><td class="off" data-cell="FM">5,80</td><td class="diag" data-cell="FF">4,27</td><td class="off" data-cell="FP">5,40</td></tr>
-              <tr><th class="axis">Programação</th><td class="off" data-cell="PM">8,10</td><td class="off" data-cell="PF">5,40</td><td class="diag" data-cell="PP">8,30</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="pca-controls" aria-label="Explorar células da matriz de covariância">
-          <button class="pca-btn active" type="button" data-cov="MM">M × M</button>
-          <button class="pca-btn" type="button" data-cov="MF">M × F</button>
-          <button class="pca-btn" type="button" data-cov="MP">M × P</button>
-          <button class="pca-btn" type="button" data-cov="FP">F × P</button>
-        </div>
-      </article>
-
-      <article class="pca-panel">
-        <p class="pca-eyebrow">COMO LER A CÉLULA SELECIONADA</p>
-        <h3 id="covTitle">Matemática × Matemática = 8,30</h3>
-        <p id="covText">É uma variável comparada com ela mesma. Por isso esta célula é a <strong>variância de Matemática</strong>: mede o quanto as notas de Matemática se espalham em torno da média.</p>
-        <div class="pca-rowcol-note">
-          <div class="pca-small-note"><strong>Diagonal:</strong><br>variância da própria variável.</div>
-          <div class="pca-small-note"><strong>Fora da diagonal:</strong><br>covariância entre duas variáveis diferentes.</div>
-        </div>
-        <p style="margin-bottom:0">A matriz é simétrica: <strong>Cov(M,F) = Cov(F,M)</strong>. Por isso os valores se repetem espelhados.</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">PASSO 3 · DA MATRIZ PARA AUTOVALORES E AUTOVETORES</p>
-      <h2>Como a matriz de covariância produz os novos eixos do PCA?</h2>
-      <p>Aqui está a ponte que normalmente fica escondida. A matriz de covariância <strong>não se transforma diretamente em um vetor</strong>. Nós fazemos duas buscas matemáticas: primeiro encontramos os <strong>autovalores λ</strong>; depois, para cada λ, encontramos o <strong>autovetor v</strong> que satisfaz <strong>Σv = λv</strong>.</p>
-    </header>
-
-    <div class="pca-key"><strong>Leia assim:</strong> Σ contém as variâncias e covariâncias das três variáveis. Procuramos uma direção <strong>v = [vM, vF, vP]</strong> que, ao ser multiplicada por Σ, continue apontando para a mesma direção. Quando isso acontece, v é um autovetor e o fator de aumento/redução é o autovalor λ.</div>
-
-    <div class="pca-eigen-roadmap" aria-label="Caminho da matriz de covariância até os componentes principais">
-      <article class="pca-road-step"><b>1 · Começamos com Σ</b><span>As linhas e colunas são Matemática, Física e Programação.</span><code>Σ = matriz 3 × 3</code></article>
-      <article class="pca-road-step"><b>2 · Encontramos λ</b><span>Buscamos os valores que tornam a matriz Σ − λI singular.</span><code>det(Σ − λI) = 0</code></article>
-      <article class="pca-road-step"><b>3 · Encontramos v</b><span>Para cada λ, resolvemos o sistema que encontra uma direção não nula.</span><code>(Σ − λI)v = 0</code></article>
-      <article class="pca-road-step"><b>4 · Conferimos</b><span>A multiplicação linha × coluna deve gerar o mesmo vetor apenas escalado.</span><code>Σv = λv</code></article>
-    </div>
-
-    <div class="pca-eigen-lab">
-      <div class="pca-lab-head">
-        <div>
-          <p class="pca-eyebrow">LABORATÓRIO INTERATIVO</p>
-          <h3>Veja a matriz gerar cada componente de Σv</h3>
-          <p>Escolha um componente principal e depois clique em uma linha. A página mostra exatamente quais células da matriz participam da conta.</p>
-        </div>
-        <div class="pca-pc-tabs" aria-label="Selecionar componente principal">
-          <button class="pca-pc-tab active" type="button" data-eigen-pc="0">PC1</button>
-          <button class="pca-pc-tab" type="button" data-eigen-pc="1">PC2</button>
-          <button class="pca-pc-tab" type="button" data-eigen-pc="2">PC3</button>
-        </div>
-      </div>
-
-      <div class="pca-solver">
-        <article class="pca-solver-step">
-          <div class="pca-solver-num">1</div>
-          <div>
-            <h4>Da matriz para os autovalores</h4>
-            <p>Subtraímos λ da diagonal principal e procuramos os valores de λ para os quais o determinante fica zero.</p>
-            <div class="pca-solver-math">det(Σ − λI) = 0<br>λ³ − 20,8667λ² + 11,3067λ − 0,1387 = 0</div>
-            <div class="pca-solver-result"><span class="pca-result-chip">λ₁ ≈ 20,310</span><span class="pca-result-chip">λ₂ ≈ 0,544</span><span class="pca-result-chip">λ₃ ≈ 0,013</span></div>
-          </div>
-        </article>
-
-        <article class="pca-solver-step">
-          <div class="pca-solver-num">2</div>
-          <div>
-            <h4>Do autovalor selecionado para o autovetor</h4>
-            <p id="eigenSolveText">Agora colocamos λ₁ na equação (Σ − λI)v = 0. O sistema encontra as proporções entre vM, vF e vP.</p>
-            <div class="pca-solver-math" id="eigenLinearSystem">−12,010x + 5,800y + 8,100z = 0<br>5,800x − 16,044y + 5,400z = 0<br>8,100x + 5,400y − 12,010z = 0</div>
-            <div class="pca-solver-result"><span class="pca-result-chip" id="eigenVectorChip">v₁ ≈ [0,638; 0,443; 0,630]</span><span class="pca-result-chip">normalizado: ‖v‖ = 1</span></div>
-          </div>
-        </article>
-      </div>
-
-      <div class="pca-mult-grid" aria-label="Multiplicação da matriz de covariância pelo autovetor">
-        <div class="pca-matrix-box">
-          <h4>Σ · matriz de covariância</h4>
-          <table class="pca-matrix-live" id="eigenMatrix">
-            <tbody>
-              <tr data-eigen-row="0"><td>8,30</td><td>5,80</td><td>8,10</td></tr>
-              <tr data-eigen-row="1"><td>5,80</td><td>4,27</td><td>5,40</td></tr>
-              <tr data-eigen-row="2"><td>8,10</td><td>5,40</td><td>8,30</td></tr>
-            </tbody>
-          </table>
-          <div class="pca-caption">Linha 1 = Matemática · Linha 2 = Física · Linha 3 = Programação</div>
+    <div class="visual-shell">
+      <article class="panel visual">
+        <div class="tabs">
+          <button class="btn active" data-stage="0">1. Dados 3D</button>
+          <button class="btn" data-stage="1">2. Encontrar plano</button>
+          <button class="btn" data-stage="2">3. Projetar</button>
+          <button class="btn" data-stage="3">4. Resultado 2D</button>
         </div>
 
-        <div class="pca-mult-symbol">×</div>
-
-        <div class="pca-vector-box">
-          <h4 id="eigenVectorTitle">v₁ · direção</h4>
-          <div class="pca-vector-list" id="eigenVectorList">
-            <div class="pca-vector-item" data-eigen-vector="0">0,638</div>
-            <div class="pca-vector-item" data-eigen-vector="1">0,443</div>
-            <div class="pca-vector-item" data-eigen-vector="2">0,630</div>
-          </div>
-          <div class="pca-caption">M · F · P</div>
-        </div>
-
-        <div class="pca-mult-symbol">=</div>
-
-        <div class="pca-result-box">
-          <h4 id="eigenResultTitle">Σv₁</h4>
-          <div class="pca-vector-list" id="eigenResultList">
-            <div class="pca-result-item">12,968</div>
-            <div class="pca-result-item">8,994</div>
-            <div class="pca-result-item">12,789</div>
-          </div>
-          <div class="pca-caption">resultado de cada linha</div>
-        </div>
-      </div>
-
-      <div class="pca-row-tabs" aria-label="Selecionar linha da multiplicação">
-        <button class="pca-row-tab active" type="button" data-eigen-row-btn="0">Linha Matemática</button>
-        <button class="pca-row-tab" type="button" data-eigen-row-btn="1">Linha Física</button>
-        <button class="pca-row-tab" type="button" data-eigen-row-btn="2">Linha Programação</button>
-      </div>
-
-      <div class="pca-row-calc" id="eigenRowCalc">
-        <h4>Linha Matemática × vetor v₁</h4>
-        <div class="eq">(<strong>8,30 × 0,638</strong>) + (5,80 × 0,443) + (8,10 × 0,630)<br>= 5,295 + 2,569 + 5,103 = <strong>12,968</strong></div>
-        <p>Esta conta produz <strong>somente a primeira posição</strong> do vetor Σv. As outras duas posições vêm das linhas Física e Programação.</p>
-      </div>
-
-      <div class="pca-eigen-check">
-        <div class="pca-check-side"><small>RESULTADO DA MATRIZ</small><code id="eigenLeftCheck">Σv₁ ≈ [12,968; 8,994; 12,789]</code></div>
-        <div class="pca-check-eq">≈</div>
-        <div class="pca-check-side"><small>AUTOVALOR × O MESMO VETOR</small><code id="eigenRightCheck">20,310 × v₁ ≈ [12,958; 8,997; 12,795]</code></div>
-      </div>
-      <div class="pca-direction-line" id="eigenDirectionNote"><strong>O ponto-chave:</strong> os números aumentaram muito, mas a proporção entre as três componentes permaneceu praticamente a mesma. Portanto a direção não mudou. É por isso que v₁ é um autovetor de Σ, e 20,310 é seu autovalor.</div>
-    </div>
-
-    <div class="pca-grid-2" style="margin-top:16px">
-      <article class="pca-panel">
-        <h3>O que cada posição do autovetor significa?</h3>
-        <p>Em <strong>v₁ = [0,638; 0,443; 0,630]</strong>, a primeira posição pertence à coluna Matemática, a segunda à Física e a terceira à Programação. O vetor não pertence a uma única célula da matriz: ele é uma <strong>direção que combina todas as variáveis</strong>.</p>
-        <div class="pca-formula">v = [ peso de M ; peso de F ; peso de P ]</div>
-      </article>
-      <article class="pca-panel">
-        <h3>E por que λ vira “variância explicada”?</h3>
-        <p>Como Σ é uma matriz de covariância e usamos autovetores de comprimento 1, o autovalor associado mede a <strong>variância dos dados quando olhamos exatamente naquela direção</strong>. Por isso λ₁ grande significa que PC1 captura muito mais espalhamento que PC2 ou PC3.</p>
-        <div class="pca-formula">variância na direção v = vᵀΣv = λ, quando ‖v‖ = 1</div>
-      </article>
-    </div>
-  </section>
-
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">PASSO 4 · O PAR AUTOVETOR + AUTOVALOR</p>
-      <h2>Cada direção vem acompanhada de um número</h2>
-      <p>No nosso exemplo 3D existem três autovetores ortogonais e, portanto, três autovalores. Ordenamos os pares do maior λ para o menor.</p>
-    </header>
-
-    <div class="pca-grid-3">
-      <article class="pca-pair" style="grid-column:span 1">
-        <div>
-          <h4>PC1 / v₁</h4>
-          <div class="pca-formula">[0,638; 0,443; 0,630]</div>
-          <p>Aponta positivamente para as três notas. É uma direção de <strong>desempenho geral</strong>.</p>
-        </div>
-        <div class="pca-lambda"><div><small>AUTOVALOR</small><b>λ₁=20,31</b></div></div>
-      </article>
-      <article class="pca-pair" style="grid-column:span 1">
-        <div>
-          <h4>PC2 / v₂</h4>
-          <div class="pca-formula">[0,165; 0,721; −0,674]</div>
-          <p>É outra direção, perpendicular à primeira. Captura um contraste residual entre as notas.</p>
-        </div>
-        <div class="pca-lambda"><div><small>AUTOVALOR</small><b>λ₂=0,544</b></div></div>
-      </article>
-      <article class="pca-pair" style="grid-column:span 1">
-        <div>
-          <h4>PC3 / v₃</h4>
-          <div class="pca-formula">[−0,752; 0,534; 0,387]</div>
-          <p>É a terceira direção. Quase não existe espalhamento dos dados nessa direção.</p>
-        </div>
-        <div class="pca-lambda"><div><small>AUTOVALOR</small><b>λ₃=0,013</b></div></div>
-      </article>
-    </div>
-
-    <div class="pca-panel" style="margin-top:16px">
-      <h3>Transformando autovalor em “percentual de informação”</h3>
-      <div class="pca-formula">variância explicada(PCᵢ) = λᵢ / (λ₁ + λ₂ + λ₃)</div>
-      <div class="pca-bars">
-        <div class="pca-bar-row"><strong>PC1</strong><div class="pca-bar"><span style="width:97.33%"></span></div><em>97,33%</em></div>
-        <div class="pca-bar-row"><strong>PC2</strong><div class="pca-bar"><span style="width:2.61%"></span></div><em>2,61%</em></div>
-        <div class="pca-bar-row"><strong>PC3</strong><div class="pca-bar"><span style="width:.6%;min-width:3px"></span></div><em>0,06%</em></div>
-      </div>
-      <div class="pca-key" style="margin-top:15px"><strong>A decisão de reduzir 3D → 2D aparece aqui:</strong> PC1 + PC2 preservam aproximadamente <strong>99,94%</strong> da variância. PC3 carrega somente cerca de <strong>0,06%</strong>. Por isso podemos descartá-lo neste exemplo.</div>
-    </div>
-  </section>
-
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">PASSO 5 · 3D → 2D</p>
-      <h2>Não apagamos uma coluna: projetamos os pontos em um novo plano</h2>
-      <p>Agora use os botões para acompanhar a mesma nuvem desde os eixos originais até o plano PC1 × PC2.</p>
-    </header>
-
-    <div class="pca-stepper">
-      <article class="pca-panel pca-stage">
-        <div class="pca-stage-panel active" data-stage="0">
-          <svg viewBox="0 0 760 430" role="img" aria-label="Pontos no espaço tridimensional original">
-            <defs><marker id="axisArr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#52657d"/></marker></defs>
-            <line x1="155" y1="330" x2="635" y2="330" stroke="#64748b" stroke-width="3" marker-end="url(#axisArr)"/><text x="610" y="356" font-size="16" font-weight="800" fill="#40536d">Matemática</text>
-            <line x1="155" y1="330" x2="155" y2="55" stroke="#64748b" stroke-width="3" marker-end="url(#axisArr)"/><text x="88" y="53" font-size="16" font-weight="800" fill="#40536d">Programação</text>
-            <line x1="155" y1="330" x2="75" y2="395" stroke="#64748b" stroke-width="3" marker-end="url(#axisArr)"/><text x="20" y="412" font-size="16" font-weight="800" fill="#40536d">Física</text>
-            <g fill="#2563eb" stroke="#fff" stroke-width="3"><circle cx="538" cy="91" r="10"/><circle cx="494" cy="120" r="10"/><circle cx="442" cy="142" r="10"/><circle cx="301" cy="244" r="10"/><circle cx="250" cy="273" r="10"/><circle cx="200" cy="300" r="10"/></g>
-            <g font-size="14" font-weight="900" fill="#24466f"><text x="552" y="89">A</text><text x="508" y="118">B</text><text x="456" y="140">C</text><text x="315" y="242">D</text><text x="264" y="271">E</text><text x="214" y="298">F</text></g>
-            <text x="405" y="382" font-size="15" fill="#607086">Cada aluno precisa de 3 coordenadas.</text>
-          </svg>
-        </div>
-
-        <div class="pca-stage-panel" data-stage="1">
-          <svg viewBox="0 0 760 430" role="img" aria-label="Novos eixos PC1 PC2 PC3 sobre a nuvem tridimensional">
-            <defs><marker id="blueArr2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2563eb"/></marker><marker id="vioArr2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#7c3aed"/></marker><marker id="orgArr2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#d97706"/></marker></defs>
-            <polygon points="130,312 536,100 655,191 248,402" fill="#eaf2ff" opacity=".65" stroke="#9dbcf0" stroke-width="2"/>
-            <g fill="#3d5b7e"><circle cx="535" cy="112" r="9"/><circle cx="492" cy="140" r="9"/><circle cx="444" cy="159" r="9"/><circle cx="309" cy="247" r="9"/><circle cx="263" cy="278" r="9"/><circle cx="218" cy="301" r="9"/></g>
-            <circle cx="382" cy="231" r="6" fill="#14233c"/>
-            <line x1="382" y1="231" x2="616" y2="109" stroke="#2563eb" stroke-width="5" marker-end="url(#blueArr2)"/><text x="608" y="89" fill="#1d4ed8" font-size="17" font-weight="900">PC1 / v₁</text>
-            <line x1="382" y1="231" x2="541" y2="351" stroke="#7c3aed" stroke-width="4" marker-end="url(#vioArr2)"/><text x="548" y="366" fill="#6d28d9" font-size="17" font-weight="900">PC2 / v₂</text>
-            <line x1="382" y1="231" x2="345" y2="73" stroke="#d97706" stroke-width="4" marker-end="url(#orgArr2)"/><text x="282" y="59" fill="#b86108" font-size="17" font-weight="900">PC3 / v₃</text>
-            <text x="154" y="385" fill="#48627e" font-size="14">PC1 e PC2 formam um plano. PC3 é perpendicular a ele.</text>
-          </svg>
-        </div>
-
-        <div class="pca-stage-panel" data-stage="2">
-          <svg viewBox="0 0 760 430" role="img" aria-label="Projeção dos pontos tridimensionais sobre o plano PC1 PC2">
-            <polygon points="115,322 535,96 665,194 244,417" fill="#edf4ff" stroke="#9bb9e9" stroke-width="2"/>
-            <g stroke="#b26a1b" stroke-width="2" stroke-dasharray="6 5">
-              <line x1="525" y1="75" x2="525" y2="111"/><line x1="487" y1="123" x2="487" y2="140"/><line x1="438" y1="138" x2="438" y2="160"/><line x1="302" y1="222" x2="302" y2="246"/><line x1="259" y1="259" x2="259" y2="277"/><line x1="213" y1="286" x2="213" y2="301"/>
-            </g>
-            <g fill="#d97706" opacity=".75"><circle cx="525" cy="75" r="7"/><circle cx="487" cy="123" r="7"/><circle cx="438" cy="138" r="7"/><circle cx="302" cy="222" r="7"/><circle cx="259" cy="259" r="7"/><circle cx="213" cy="286" r="7"/></g>
-            <g fill="#2563eb" stroke="#fff" stroke-width="2"><circle cx="525" cy="111" r="9"/><circle cx="487" cy="140" r="9"/><circle cx="438" cy="160" r="9"/><circle cx="302" cy="246" r="9"/><circle cx="259" cy="277" r="9"/><circle cx="213" cy="301" r="9"/></g>
-            <line x1="185" y1="360" x2="588" y2="143" stroke="#2563eb" stroke-width="4"/><text x="593" y="140" fill="#1d4ed8" font-size="17" font-weight="900">PC1</text>
-            <line x1="360" y1="235" x2="513" y2="349" stroke="#7c3aed" stroke-width="4"/><text x="518" y="365" fill="#6d28d9" font-size="17" font-weight="900">PC2</text>
-            <text x="143" y="393" fill="#52677f" font-size="14">A linha tracejada mostra a informação perdida na direção PC3.</text>
-          </svg>
-        </div>
-
-        <div class="pca-stage-panel" data-stage="3">
-          <svg viewBox="0 0 760 430" role="img" aria-label="Dados finais em duas dimensões PC1 e PC2">
-            <defs><marker id="axis2d" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#52657d"/></marker></defs>
-            <line x1="90" y1="220" x2="680" y2="220" stroke="#607086" stroke-width="3" marker-end="url(#axis2d)"/><text x="644" y="248" fill="#40536d" font-size="17" font-weight="900">PC1</text>
-            <line x1="375" y1="375" x2="375" y2="45" stroke="#607086" stroke-width="3" marker-end="url(#axis2d)"/><text x="390" y="61" fill="#40536d" font-size="17" font-weight="900">PC2</text>
+        <div class="stage active" data-panel="0">
+          <svg viewBox="0 0 760 430" role="img" aria-label="Dados originais em três dimensões">
+            <defs><marker id="a0" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#607086"/></marker></defs>
+            <line x1="150" y1="330" x2="650" y2="330" stroke="#607086" stroke-width="3" marker-end="url(#a0)"/>
+            <line x1="150" y1="330" x2="150" y2="55" stroke="#607086" stroke-width="3" marker-end="url(#a0)"/>
+            <line x1="150" y1="330" x2="73" y2="395" stroke="#607086" stroke-width="3" marker-end="url(#a0)"/>
+            <text x="610" y="356" font-size="16" font-weight="800" fill="#40536d">Matemática</text>
+            <text x="74" y="48" font-size="16" font-weight="800" fill="#40536d">Programação</text>
+            <text x="18" y="414" font-size="16" font-weight="800" fill="#40536d">Física</text>
             <g fill="#2563eb" stroke="#fff" stroke-width="3">
-              <circle cx="611" cy="213" r="11"/><circle cx="529" cy="296" r="11"/><circle cx="491" cy="132" r="11"/><circle cx="280" cy="240" r="11"/><circle cx="208" cy="225" r="11"/><circle cx="133" cy="210" r="11"/>
+              <circle cx="545" cy="87" r="11"/><circle cx="499" cy="120" r="11"/><circle cx="449" cy="141" r="11"/>
+              <circle cx="306" cy="242" r="11"/><circle cx="254" cy="274" r="11"/><circle cx="204" cy="301" r="11"/>
             </g>
-            <g fill="#24466f" font-size="14" font-weight="900"><text x="625" y="208">A</text><text x="543" y="291">B</text><text x="505" y="127">C</text><text x="294" y="235">D</text><text x="222" y="220">E</text><text x="147" y="205">F</text></g>
-            <text x="111" y="405" fill="#52677f" font-size="14">Agora cada aluno é representado somente por duas coordenadas: (PC1, PC2).</text>
+            <g font-size="14" font-weight="900" fill="#24466f"><text x="561" y="84">A</text><text x="515" y="117">B</text><text x="465" y="138">C</text><text x="322" y="239">D</text><text x="270" y="271">E</text><text x="220" y="298">F</text></g>
+            <text x="390" y="395" font-size="15" fill="#607086">Cada ponto precisa de 3 coordenadas.</text>
           </svg>
+          <p class="caption">Antes: cada aluno é representado por (Matemática, Física, Programação).</p>
         </div>
 
-        <div class="pca-controls">
-          <button class="pca-btn" type="button" id="stagePrev">← Voltar</button>
-          <button class="pca-btn active" type="button" id="stageNext">Avançar →</button>
-          <button class="pca-btn" type="button" id="stageReset">Reiniciar</button>
+        <div class="stage" data-panel="1">
+          <svg viewBox="0 0 760 430" role="img" aria-label="Plano que preserva a maior parte da variação dos dados">
+            <polygon points="110,320 525,88 670,192 252,418" fill="#eaf2ff" stroke="#9bb9e9" stroke-width="2"/>
+            <g fill="#d97706" stroke="#fff" stroke-width="3">
+              <circle cx="535" cy="82" r="10"/><circle cx="493" cy="125" r="10"/><circle cx="447" cy="137" r="10"/>
+              <circle cx="307" cy="225" r="10"/><circle cx="258" cy="264" r="10"/><circle cx="211" cy="289" r="10"/>
+            </g>
+            <line x1="185" y1="359" x2="592" y2="139" stroke="#2563eb" stroke-width="5"/>
+            <line x1="362" y1="233" x2="516" y2="349" stroke="#7c3aed" stroke-width="4"/>
+            <text x="596" y="133" fill="#1d4ed8" font-size="17" font-weight="900">PC1</text>
+            <text x="523" y="365" fill="#6d28d9" font-size="17" font-weight="900">PC2</text>
+            <text x="126" y="390" fill="#52677f" font-size="15">O PCA encontra um novo plano que acompanha o padrão principal da nuvem.</text>
+          </svg>
+          <p class="caption">O PCA procura novos eixos que preservem o máximo possível da variação existente nos dados.</p>
+        </div>
+
+        <div class="stage" data-panel="2">
+          <svg viewBox="0 0 760 430" role="img" aria-label="Pontos sendo projetados sobre o plano PCA">
+            <polygon points="110,320 525,88 670,192 252,418" fill="#edf4ff" stroke="#9bb9e9" stroke-width="2"/>
+            <g stroke="#c77a21" stroke-width="2.5" stroke-dasharray="7 6">
+              <line x1="535" y1="62" x2="529" y2="101"/><line x1="493" y1="110" x2="489" y2="130"/><line x1="447" y1="119" x2="442" y2="145"/>
+              <line x1="307" y1="207" x2="303" y2="232"/><line x1="258" y1="247" x2="254" y2="270"/><line x1="211" y1="271" x2="207" y2="296"/>
+            </g>
+            <g fill="#d97706"><circle cx="535" cy="62" r="7"/><circle cx="493" cy="110" r="7"/><circle cx="447" cy="119" r="7"/><circle cx="307" cy="207" r="7"/><circle cx="258" cy="247" r="7"/><circle cx="211" cy="271" r="7"/></g>
+            <g fill="#2563eb" stroke="#fff" stroke-width="2.5"><circle cx="529" cy="101" r="10"/><circle cx="489" cy="130" r="10"/><circle cx="442" cy="145" r="10"/><circle cx="303" cy="232" r="10"/><circle cx="254" cy="270" r="10"/><circle cx="207" cy="296" r="10"/></g>
+            <text x="126" y="393" fill="#52677f" font-size="15">Cada ponto é “encostado” no plano. A pequena distância até o plano é a informação perdida.</text>
+          </svg>
+          <p class="caption">Reduzir dimensão = projetar os pontos em um espaço menor.</p>
+        </div>
+
+        <div class="stage" data-panel="3">
+          <svg viewBox="0 0 760 430" role="img" aria-label="Resultado final em duas dimensões">
+            <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#607086"/></marker></defs>
+            <line x1="90" y1="220" x2="680" y2="220" stroke="#607086" stroke-width="3" marker-end="url(#a2)"/>
+            <line x1="375" y1="375" x2="375" y2="45" stroke="#607086" stroke-width="3" marker-end="url(#a2)"/>
+            <text x="648" y="247" fill="#40536d" font-size="17" font-weight="900">PC1</text>
+            <text x="393" y="60" fill="#40536d" font-size="17" font-weight="900">PC2</text>
+            <g fill="#2563eb" stroke="#fff" stroke-width="3">
+              <circle cx="611" cy="213" r="11"/><circle cx="529" cy="296" r="11"/><circle cx="491" cy="132" r="11"/>
+              <circle cx="280" cy="240" r="11"/><circle cx="208" cy="225" r="11"/><circle cx="133" cy="210" r="11"/>
+            </g>
+            <g fill="#24466f" font-size="14" font-weight="900"><text x="626" y="208">A</text><text x="544" y="291">B</text><text x="506" y="127">C</text><text x="295" y="235">D</text><text x="223" y="220">E</text><text x="148" y="205">F</text></g>
+            <text x="110" y="405" fill="#52677f" font-size="15">Agora cada aluno precisa somente de duas coordenadas: (PC1, PC2).</text>
+          </svg>
+          <p class="caption">Depois: 3 números por aluno viraram 2 números por aluno.</p>
         </div>
       </article>
 
-      <aside class="pca-panel">
-        <p class="pca-eyebrow" id="stageEyebrow">ETAPA 1 DE 4</p>
-        <h3 class="pca-stage-title" id="stageTitle">1. Espaço original</h3>
-        <p class="pca-stage-copy" id="stageText">Matemática, Física e Programação são os eixos. Cada aluno precisa de três coordenadas para existir nesse espaço.</p>
-        <div class="pca-step-list">
-          <div class="pca-step-item active" data-step-label="0"><strong>1 · 3D original</strong><br>M, F e P.</div>
-          <div class="pca-step-item" data-step-label="1"><strong>2 · Novos eixos</strong><br>PC1, PC2 e PC3.</div>
-          <div class="pca-step-item" data-step-label="2"><strong>3 · Projeção</strong><br>Eliminar a direção PC3.</div>
-          <div class="pca-step-item" data-step-label="3"><strong>4 · 2D final</strong><br>Somente PC1 e PC2.</div>
+      <aside class="panel">
+        <p class="eyebrow">O QUE ESTÁ ACONTECENDO?</p>
+        <div class="side-step">
+          <div class="step active" data-step="0"><strong>1 · Espaço original</strong>Três variáveis = três dimensões.</div>
+          <div class="step" data-step="1"><strong>2 · Novo plano</strong>O PCA encontra duas novas direções que concentram a maior parte da variação.</div>
+          <div class="step" data-step="2"><strong>3 · Projeção</strong>Os pontos são representados nesse plano de duas dimensões.</div>
+          <div class="step" data-step="3"><strong>4 · Dados reduzidos</strong>Cada observação passa de três valores para dois componentes.</div>
         </div>
       </aside>
     </div>
   </section>
 
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">PASSO 6 · A CONTA DA PROJEÇÃO</p>
-      <h2>Como três números viram dois?</h2>
-      <p>Depois de centralizado, cada ponto é projetado nos autovetores que decidimos manter. O produto escalar fornece a nova coordenada.</p>
+  <section>
+    <header class="head">
+      <p class="eyebrow">4 · O QUE FOI PRESERVADO?</p>
+      <h2>Reduzir é útil quando a perda é pequena</h2>
+      <p>O PCA informa quanto da variação dos dados cada componente consegue representar. Isso ajuda a decidir quantas dimensões vale a pena manter.</p>
     </header>
-    <div class="pca-grid-2">
-      <article class="pca-card">
-        <h3>Aluno A centralizado</h3>
-        <div class="pca-formula">A<sub>c</sub> = [3,50 ; 2,33 ; 3,50]</div>
-        <p>Ele ainda possui três dimensões.</p>
+
+    <div class="grid-2">
+      <article class="variance-box">
+        <h3 style="margin-top:0">Variância explicada</h3>
+        <div class="bar-row"><strong>PC1</strong><div class="bar"><span style="width:97.33%"></span></div><em>97,33%</em></div>
+        <div class="bar-row"><strong>PC2</strong><div class="bar"><span style="width:2.61%"></span></div><em>2,61%</em></div>
+        <div class="bar-row"><strong>PC3</strong><div class="bar"><span style="width:.6%;min-width:3px"></span></div><em>0,06%</em></div>
+        <div class="total"><strong>PC1 + PC2 ≈ 99,94%</strong><br>Ao manter somente duas dimensões, este exemplo preserva praticamente toda a variação observada.</div>
       </article>
-      <article class="pca-card">
-        <h3>Projetar em PC1 e PC2</h3>
-        <div class="pca-formula">PC1(A) = A<sub>c</sub> · v₁ ≈ 5,471<br>PC2(A) = A<sub>c</sub> · v₂ ≈ −0,100</div>
-        <p>Então A deixa de ser representado por três notas e passa a ter as coordenadas <strong>(5,471 ; −0,100)</strong> no plano PCA.</p>
+
+      <article class="panel">
+        <span class="tag">A decisão</span>
+        <h3 style="margin-top:13px">Vale a pena descartar PC3?</h3>
+        <p>Neste conjunto, PC3 representa cerca de <strong>0,06%</strong> da variação. Por isso, usar apenas PC1 e PC2 é uma compressão muito eficiente.</p>
+        <div class="compression">
+          <div class="compress-card"><b>3</b><span>números por aluno</span></div>
+          <div class="compress-arrow">→</div>
+          <div class="compress-card"><b>2</b><span>números por aluno</span></div>
+          <div class="compress-arrow">→</div>
+          <div class="compress-card"><b>99,94%</b><span>da variância mantida</span></div>
+        </div>
       </article>
     </div>
+  </section>
 
-    <div class="pca-table-wrap" style="margin-top:16px">
-      <table class="pca-table pca-score-table">
-        <thead><tr><th>Aluno</th><th>Matemática</th><th>Física</th><th>Programação</th><th>→</th><th>PC1</th><th>PC2</th></tr></thead>
-        <tbody>
-          <tr><th>A</th><td>9</td><td>8</td><td>9</td><td>→</td><td class="pos">5,471</td><td class="neg">−0,100</td></tr>
-          <tr><th>B</th><td>8</td><td>8</td><td>7</td><td>→</td><td class="pos">3,573</td><td class="pos">1,082</td></tr>
-          <tr><th>C</th><td>7</td><td>6</td><td>8</td><td>→</td><td class="pos">2,679</td><td class="neg">−1,197</td></tr>
-          <tr><th>D</th><td>4</td><td>5</td><td>4</td><td>→</td><td class="neg">−2,197</td><td class="pos">0,283</td></tr>
-          <tr><th>E</th><td>3</td><td>4</td><td>3</td><td>→</td><td class="neg">−3,908</td><td class="pos">0,071</td></tr>
-          <tr><th>F</th><td>2</td><td>3</td><td>2</td><td>→</td><td class="neg">−5,619</td><td class="neg">−0,140</td></tr>
-        </tbody>
-      </table>
+  <section>
+    <header class="head">
+      <p class="eyebrow">5 · COMO O PCA FAZ ISSO?</p>
+      <h2>Visão superficial do algoritmo</h2>
+      <p>Não precisamos fazer as contas manualmente para entender o processo. Conceitualmente, o PCA faz quatro coisas.</p>
+    </header>
+
+    <div class="algorithm">
+      <article class="algo-step"><div class="algo-n">1</div><h3>Centraliza os dados</h3><p>Move o conjunto para ficar centrado em torno da média.</p></article>
+      <article class="algo-step"><div class="algo-n">2</div><h3>Encontra os padrões principais</h3><p>Descobre as direções em que os dados apresentam maior variação.</p></article>
+      <article class="algo-step"><div class="algo-n">3</div><h3>Ordena por importância</h3><p>PC1 preserva mais variação, depois PC2, depois PC3 e assim por diante.</p></article>
+      <article class="algo-step"><div class="algo-n">4</div><h3>Projeta os dados</h3><p>Mantém apenas a quantidade de componentes escolhida e gera uma nova tabela reduzida.</p></article>
     </div>
+
+    <div class="key"><strong>Para esta aula, basta guardar:</strong> o PCA procura novos eixos que resumam os dados. Nós escolhemos quantos desses eixos queremos manter.</div>
   </section>
 
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">EM UMA FRASE</p>
-      <h2>O que o PCA fez?</h2>
+  <section>
+    <header class="head">
+      <p class="eyebrow">6 · USANDO UMA BIBLIOTECA</p>
+      <h2>Fazendo 3D → 2D com scikit-learn</h2>
+      <p>A biblioteca executa a parte matemática. Nós informamos os dados e dizemos que queremos apenas <strong>2 componentes</strong>.</p>
     </header>
-    <div class="pca-key"><strong>Ele não testou 50 colunas “uma contra a outra” para escolher vencedoras.</strong> Ele usou as relações entre todas as variáveis para encontrar um novo sistema de eixos. Os autovetores definem esses eixos; os autovalores dizem quanta variância cada eixo carrega; então mantemos os eixos mais informativos e projetamos os dados neles.</div>
-  </section>
 
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">CHECAGEM DE ENTENDIMENTO</p>
-      <h2>Quatro perguntas que devem estar claras agora</h2>
-    </header>
-    <div class="pca-quiz">
-      <details class="pca-q"><summary>1. O autovalor é um vetor?</summary><p>Não. O autovalor λ é um único número. O autovetor v é o vetor.</p></details>
-      <details class="pca-q"><summary>2. O que cada linha e coluna da covariância representa?</summary><p>Uma variável original. A célula (linha Matemática, coluna Física), por exemplo, é Cov(Matemática,Física). Na diagonal, uma variável é comparada com ela mesma e obtemos sua variância.</p></details>
-      <details class="pca-q"><summary>3. Por que o maior autovalor vira PC1?</summary><p>Porque, para a matriz de covariância, o autovalor associado a um autovetor unitário é a variância dos dados naquela direção. O maior λ identifica a direção de maior variância.</p></details>
-      <details class="pca-q"><summary>4. Reduzir 3D para 2D significa excluir uma coluna original?</summary><p>Não. Significa trocar o sistema de coordenadas original por PC1, PC2 e PC3 e depois manter apenas PC1 e PC2.</p></details>
-    </div>
-  </section>
+    <div class="code">
+      <div class="code-head"><span>Python · scikit-learn</span><span>PCA(n_components=2)</span></div>
+<pre><code>import numpy as np
+from sklearn.decomposition import PCA
 
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">DEPOIS DA INTUIÇÃO · CÓDIGO DIDÁTICO</p>
-      <h2>Implementação sem chamar uma função PCA pronta</h2>
-      <p>Abaixo, o código constrói a covariância manualmente e usa o método da potência para aproximar autovetores. O objetivo é mostrar as etapas, não substituir bibliotecas numéricas de produção.</p>
-    </header>
-    <details class="pca-panel">
-      <summary style="cursor:pointer;font-weight:900;color:#203a5f">Abrir implementação Python do zero</summary>
-      <div class="pca-code" style="margin-top:14px">
-        <div class="pca-code-head">pca_do_zero.py · sem sklearn / sem PCA()</div>
-<pre><code>def media_colunas(dados):
-    n = len(dados)
-    p = len(dados[0])
-    medias = []
-
-    for j in range(p):
-        soma = 0.0
-        for i in range(n):
-            soma += dados[i][j]
-        medias.append(soma / n)
-
-    return medias
-
-
-def centralizar(dados, medias):
-    resultado = []
-
-    for linha in dados:
-        nova = []
-        for j in range(len(linha)):
-            nova.append(linha[j] - medias[j])
-        resultado.append(nova)
-
-    return resultado
-
-
-def covariancia(dados_centralizados):
-    n = len(dados_centralizados)
-    p = len(dados_centralizados[0])
-    matriz = [[0.0 for _ in range(p)] for _ in range(p)]
-
-    for a in range(p):
-        for b in range(p):
-            soma = 0.0
-            for i in range(n):
-                soma += dados_centralizados[i][a] * dados_centralizados[i][b]
-            matriz[a][b] = soma / (n - 1)
-
-    return matriz
-
-
-def multiplicar_matriz_vetor(A, v):
-    resultado = []
-    for linha in A:
-        soma = 0.0
-        for j in range(len(v)):
-            soma += linha[j] * v[j]
-        resultado.append(soma)
-    return resultado
-
-
-def normalizar(v):
-    norma = sum(x*x for x in v) ** 0.5
-    return [x / norma for x in v]
-
-
-def produto_escalar(a, b):
-    return sum(a[i] * b[i] for i in range(len(a)))
-
-
-def autovetor_dominante(A, iteracoes=200):
-    # Palpite inicial: qualquer vetor não nulo.
-    v = normalizar([1.0 for _ in range(len(A))])
-
-    # Repetir A·v e normalizar faz v convergir
-    # para a direção associada ao maior autovalor.
-    for _ in range(iteracoes):
-        Av = multiplicar_matriz_vetor(A, v)
-        v = normalizar(Av)
-
-    Av = multiplicar_matriz_vetor(A, v)
-    autovalor = produto_escalar(v, Av)
-
-    return autovalor, v
-
-
-def projetar(ponto_centralizado, autovetor):
-    return produto_escalar(ponto_centralizado, autovetor)
-
-
-dados = [
+# 6 alunos × 3 variáveis
+X = np.array([
     [9, 8, 9],
     [8, 8, 7],
     [7, 6, 8],
     [4, 5, 4],
     [3, 4, 3],
     [2, 3, 2]
-]
+])
 
-medias = media_colunas(dados)
-X = centralizar(dados, medias)
-Sigma = covariancia(X)
+# Quero reduzir de 3 dimensões para 2
+pca = PCA(n_components=2)
 
-lambda1, v1 = autovetor_dominante(Sigma)
+# Aprende os componentes e já transforma os dados
+X_reduzido = pca.fit_transform(X)
 
-print("Médias:", medias)
-print("Matriz de covariância:", Sigma)
-print("Maior autovalor:", lambda1)
-print("Primeiro autovetor / PC1:", v1)
-
-for ponto in X:
-    print("score PC1 =", projetar(ponto, v1))</code></pre>
-      </div>
-    </details>
-  </section>
-
-  <section class="pca-section">
-    <header class="pca-head">
-      <p class="pca-eyebrow">REFERÊNCIAS DIDÁTICAS</p>
-      <h2>De onde veio esta forma de explicar?</h2>
-    </header>
-    <div class="pca-panel pca-ref">
-      <p><strong>Victor Powell & Lewis Lehe — Explained Visually: Principal Component Analysis.</strong> A ideia de visualizar PCA como um novo sistema de coordenadas e, em 3D, como encontrar o melhor “ângulo” para projetar os dados.</p>
-      <p><strong>3Blue1Brown — Eigenvectors and Eigenvalues.</strong> A interpretação de autovetores como direções que permanecem sobre a mesma linha durante uma transformação, com λ atuando como fator escalar.</p>
-      <p><strong>scikit-learn — PCA.</strong> Os componentes são eixos no espaço das features ordenados por variância explicada; os maiores autovalores da covariância correspondem à variância explicada.</p>
-      <p><strong>Built In — PCA step-by-step.</strong> Interpretação da matriz de covariância: diagonal como variâncias e elementos fora da diagonal como covariâncias entre pares.</p>
+print(X_reduzido)
+print(pca.explained_variance_ratio_)
+print(pca.explained_variance_ratio_.sum())</code></pre>
     </div>
+
+    <div class="grid-2" style="margin-top:16px">
+      <article class="panel">
+        <h3>Nova tabela</h3>
+        <div class="table-wrap">
+          <table style="min-width:0">
+            <thead><tr><th>Aluno</th><th>PC1</th><th>PC2</th></tr></thead>
+            <tbody>
+              <tr><th>A</th><td class="pc1">5,471</td><td class="pc2">−0,100</td></tr>
+              <tr><th>B</th><td class="pc1">3,573</td><td class="pc2">1,082</td></tr>
+              <tr><th>C</th><td class="pc1">2,679</td><td class="pc2">−1,197</td></tr>
+              <tr><th>D</th><td class="pc1">−2,197</td><td class="pc2">0,283</td></tr>
+              <tr><th>E</th><td class="pc1">−3,908</td><td class="pc2">0,071</td></tr>
+              <tr><th>F</th><td class="pc1">−5,619</td><td class="pc2">−0,140</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h3>O que ler do resultado?</h3>
+        <div class="out">pca.explained_variance_ratio_
+→ [0.97333739, 0.02606094]
+
+soma
+→ 0.99939833 ≈ 99,94%</div>
+        <p><strong>PC1</strong> explica cerca de 97,33% da variação. <strong>PC2</strong> acrescenta aproximadamente 2,61%. Juntos, os dois componentes preservam cerca de 99,94%.</p>
+      </article>
+    </div>
+
+    <div class="key dont"><strong>Atenção à escala:</strong> o `PCA` do scikit-learn centraliza os dados, mas não padroniza automaticamente cada variável. Neste exemplo, as três notas estão na mesma escala. Em bases com unidades muito diferentes, normalmente avaliamos a padronização antes do PCA.</div>
   </section>
 
+  <section>
+    <header class="head">
+      <p class="eyebrow">7 · RESUMO</p>
+      <h2>O que você precisa lembrar</h2>
+    </header>
+    <div class="grid-3">
+      <article class="card"><div class="big-number">01</div><h3>PCA cria novas dimensões</h3><p>Ele não simplesmente escolhe algumas colunas da tabela original.</p></article>
+      <article class="card"><div class="big-number">02</div><h3>As primeiras são as mais importantes</h3><p>PC1, PC2, PC3... aparecem ordenados pela quantidade de variação que conseguem representar.</p></article>
+      <article class="card"><div class="big-number">03</div><h3>Reduzimos mantendo as primeiras</h3><p>Escolhemos menos componentes quando eles preservam uma quantidade aceitável da informação.</p></article>
+    </div>
+
+    <div class="key"><strong>Em uma frase:</strong> PCA é uma técnica que troca muitas variáveis por um conjunto menor de componentes, tentando preservar o máximo possível da variação presente nos dados.</div>
+  </section>
+
+  <footer class="footer">Material didático · PCA e redução de dimensionalidade</footer>
 </main>
-<footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
+
 <script>
 (function(){
-  const info = {
-    MM:{title:'Matemática × Matemática = 8,30',text:'É uma variável comparada com ela mesma. Por isso esta célula é a <strong>variância de Matemática</strong>: mede o quanto as notas de Matemática se espalham em torno da média.',cells:['MM']},
-    MF:{title:'Matemática × Física = 5,80',text:'Esta célula é <strong>Cov(Matemática, Física)</strong>. Como é positiva, alunos que ficam acima da média em Matemática tendem também a ficar acima da média em Física (e vice-versa). O valor espelhado Física × Matemática é o mesmo.',cells:['MF','FM']},
-    MP:{title:'Matemática × Programação = 8,10',text:'Esta célula é <strong>Cov(Matemática, Programação)</strong>. O valor positivo e alto indica que as duas notas variam fortemente na mesma direção neste pequeno conjunto de dados.',cells:['MP','PM']},
-    FP:{title:'Física × Programação = 5,40',text:'Esta célula é <strong>Cov(Física, Programação)</strong>. Ela mede como as duas variáveis se afastam de suas médias em conjunto. O valor espelhado Programação × Física é idêntico.',cells:['FP','PF']}
-  };
+  const buttons = [...document.querySelectorAll('[data-stage]')];
+  const panels = [...document.querySelectorAll('[data-panel]')];
+  const steps = [...document.querySelectorAll('[data-step]')];
 
-  const buttons = document.querySelectorAll('[data-cov]');
-  const cells = document.querySelectorAll('#covTable td[data-cell]');
-  const title = document.getElementById('covTitle');
-  const text = document.getElementById('covText');
-
-  function selectCov(key){
-    cells.forEach(c => c.classList.remove('active'));
-    buttons.forEach(b => b.classList.toggle('active', b.dataset.cov === key));
-    info[key].cells.forEach(id => {
-      const cell = document.querySelector('#covTable td[data-cell="'+id+'"]');
-      if(cell) cell.classList.add('active');
-    });
-    title.textContent = info[key].title;
-    text.innerHTML = info[key].text;
+  function showStage(index){
+    buttons.forEach((b,i)=>b.classList.toggle('active',i===index));
+    panels.forEach((p,i)=>p.classList.toggle('active',i===index));
+    steps.forEach((s,i)=>s.classList.toggle('active',i===index));
   }
-  buttons.forEach(b => b.addEventListener('click',()=>selectCov(b.dataset.cov)));
-  selectCov('MM');
 
-  const eigenData = [
-    {
-      label:'PC1', lambda:20.310, lambdaLabel:'20,310',
-      vector:[0.638,0.443,0.630], vectorLabel:['0,638','0,443','0,630'],
-      result:[12.968,8.994,12.789], resultLabel:['12,968','8,994','12,789'],
-      scaled:[12.958,8.997,12.795], scaledLabel:['12,958','8,997','12,795'],
-      system:['−12,010x + 5,800y + 8,100z = 0','5,800x − 16,040y + 5,400z = 0','8,100x + 5,400y − 12,010z = 0'],
-      note:'os números aumentaram muito, mas a proporção entre as três componentes permaneceu praticamente a mesma. Portanto a direção não mudou.'
-    },
-    {
-      label:'PC2', lambda:0.544, lambdaLabel:'0,544',
-      vector:[0.165,0.721,-0.674], vectorLabel:['0,165','0,721','−0,674'],
-      result:[0.092,0.396,-0.364], resultLabel:['0,092','0,396','−0,364'],
-      scaled:[0.090,0.392,-0.367], scaledLabel:['0,090','0,392','−0,367'],
-      system:['7,756x + 5,800y + 8,100z = 0','5,800x + 3,723y + 5,400z = 0','8,100x + 5,400y + 7,756z = 0'],
-      note:'o resultado é bem menor porque λ₂ é pequeno, mas continua proporcional ao mesmo vetor v₂. A direção permanece a mesma.'
-    },
-    {
-      label:'PC3', lambda:0.013, lambdaLabel:'0,013',
-      vector:[-0.752,0.534,0.387], vectorLabel:['−0,752','0,534','0,387'],
-      result:[-0.010,0.008,0.005], resultLabel:['−0,010','0,008','0,005'],
-      scaled:[-0.010,0.007,0.005], scaledLabel:['−0,010','0,007','0,005'],
-      system:['8,287x + 5,800y + 8,100z = 0','5,800x + 4,254y + 5,400z = 0','8,100x + 5,400y + 8,287z = 0'],
-      note:'λ₃ é quase zero. Isso significa que há pouquíssima variância nessa direção, mesmo ela sendo matematicamente um autovetor válido.'
-    }
-  ];
-  const eigenMatrixValues = [[8.30,5.80,8.10],[5.80,4.27,5.40],[8.10,5.40,8.30]];
-  const eigenVars = ['Matemática','Física','Programação'];
-  const eigenPcTabs = [...document.querySelectorAll('[data-eigen-pc]')];
-  const eigenRows = [...document.querySelectorAll('#eigenMatrix tr[data-eigen-row]')];
-  const eigenRowBtns = [...document.querySelectorAll('[data-eigen-row-btn]')];
-  const eigenVectorItems = [...document.querySelectorAll('#eigenVectorList .pca-vector-item')];
-  const eigenResultItems = [...document.querySelectorAll('#eigenResultList .pca-result-item')];
-  const eigenVectorTitle = document.getElementById('eigenVectorTitle');
-  const eigenResultTitle = document.getElementById('eigenResultTitle');
-  const eigenSolveText = document.getElementById('eigenSolveText');
-  const eigenLinearSystem = document.getElementById('eigenLinearSystem');
-  const eigenVectorChip = document.getElementById('eigenVectorChip');
-  const eigenRowCalc = document.getElementById('eigenRowCalc');
-  const eigenLeftCheck = document.getElementById('eigenLeftCheck');
-  const eigenRightCheck = document.getElementById('eigenRightCheck');
-  const eigenDirectionNote = document.getElementById('eigenDirectionNote');
-  let eigenPc = 0;
-  let eigenRow = 0;
-
-  function fmt3(n){
-    return n.toFixed(3).replace('.',',').replace('-', '−');
-  }
-  function renderEigenLab(){
-    const d = eigenData[eigenPc];
-    eigenPcTabs.forEach((b,i)=>b.classList.toggle('active',i===eigenPc));
-    eigenRows.forEach((r,i)=>r.classList.toggle('active',i===eigenRow));
-    eigenRowBtns.forEach((b,i)=>b.classList.toggle('active',i===eigenRow));
-    eigenVectorItems.forEach((el,i)=>{el.textContent=d.vectorLabel[i];el.classList.toggle('active',i===eigenRow);});
-    eigenResultItems.forEach((el,i)=>el.textContent=d.resultLabel[i]);
-    eigenVectorTitle.textContent='v'+(eigenPc+1)+' · direção';
-    eigenResultTitle.textContent='Σv'+(eigenPc+1);
-    eigenSolveText.innerHTML='Agora colocamos <strong>λ'+(eigenPc+1)+' = '+d.lambdaLabel+'</strong> na equação <strong>(Σ − λI)v = 0</strong>. O sistema encontra as proporções entre vM, vF e vP.';
-    eigenLinearSystem.innerHTML=d.system.join('<br>');
-    eigenVectorChip.textContent='v'+(eigenPc+1)+' ≈ ['+d.vectorLabel.join('; ')+']';
-
-    const terms=eigenMatrixValues[eigenRow].map((m,i)=>({m,v:d.vector[i],prod:m*d.vector[i]}));
-    const sum=terms.reduce((acc,t)=>acc+t.prod,0);
-    eigenRowCalc.innerHTML='<h4>Linha '+eigenVars[eigenRow]+' × vetor v'+(eigenPc+1)+'</h4>'+
-      '<div class="eq">('+fmt3(terms[0].m)+' × <strong>'+d.vectorLabel[0]+'</strong>) + ('+fmt3(terms[1].m)+' × <strong>'+d.vectorLabel[1]+'</strong>) + ('+fmt3(terms[2].m)+' × <strong>'+d.vectorLabel[2]+'</strong>)<br>'+
-      '= '+fmt3(terms[0].prod)+' + '+fmt3(terms[1].prod)+' + '+fmt3(terms[2].prod)+' = <strong>'+fmt3(sum)+'</strong></div>'+
-      '<p>Esta é a <strong>'+(eigenRow+1)+'ª posição</strong> de Σv'+(eigenPc+1)+'. Ela nasce da linha '+eigenVars[eigenRow]+' da matriz multiplicada pelas três posições do vetor.</p>';
-    eigenLeftCheck.textContent='Σv'+(eigenPc+1)+' ≈ ['+d.resultLabel.join('; ')+']';
-    eigenRightCheck.textContent=d.lambdaLabel+' × v'+(eigenPc+1)+' ≈ ['+d.scaledLabel.join('; ')+']';
-    eigenDirectionNote.innerHTML='<strong>O ponto-chave:</strong> '+d.note+' Logo, v'+(eigenPc+1)+' é um autovetor de Σ e '+d.lambdaLabel+' é seu autovalor.';
-  }
-  eigenPcTabs.forEach((b,i)=>b.addEventListener('click',()=>{eigenPc=i;renderEigenLab();}));
-  eigenRowBtns.forEach((b,i)=>b.addEventListener('click',()=>{eigenRow=i;renderEigenLab();}));
-  eigenRows.forEach((r,i)=>r.addEventListener('click',()=>{eigenRow=i;renderEigenLab();}));
-  renderEigenLab();
-
-  const panels = [...document.querySelectorAll('.pca-stage-panel')];
-  const labels = [...document.querySelectorAll('[data-step-label]')];
-  const eyebrow = document.getElementById('stageEyebrow');
-  const stageTitle = document.getElementById('stageTitle');
-  const stageText = document.getElementById('stageText');
-  const prev = document.getElementById('stagePrev');
-  const next = document.getElementById('stageNext');
-  const reset = document.getElementById('stageReset');
-  let stage = 0;
-
-  const copy = [
-    ['1. Espaço original','Matemática, Física e Programação são os eixos. Cada aluno precisa de três coordenadas para existir nesse espaço.'],
-    ['2. Trocar o sistema de eixos','Os autovetores da covariância viram os novos eixos PC1, PC2 e PC3. Ainda temos três dimensões; apenas giramos a forma de descrever o espaço.'],
-    ['3. Projetar no plano PC1 × PC2','Como PC3 explica apenas cerca de 0,06% da variância, projetamos cada ponto no plano formado por PC1 e PC2. A distância tracejada representa a pequena informação descartada.'],
-    ['4. Abrir o plano em 2D','Depois da projeção, o plano pode ser desenhado como um gráfico comum. Cada aluno agora precisa apenas das coordenadas (PC1, PC2).']
-  ];
-
-  function renderStage(){
-    panels.forEach((p,i)=>p.classList.toggle('active',i===stage));
-    labels.forEach((l,i)=>{
-      l.classList.toggle('active',i===stage);
-      l.classList.toggle('done',i<stage);
-    });
-    eyebrow.textContent = 'ETAPA '+(stage+1)+' DE 4';
-    stageTitle.textContent = copy[stage][0];
-    stageText.textContent = copy[stage][1];
-    prev.disabled = stage===0;
-    next.disabled = stage===panels.length-1;
-  }
-  prev.addEventListener('click',()=>{if(stage>0){stage--;renderStage();}});
-  next.addEventListener('click',()=>{if(stage<panels.length-1){stage++;renderStage();}});
-  reset.addEventListener('click',()=>{stage=0;renderStage();});
-  renderStage();
+  buttons.forEach((b,i)=>b.addEventListener('click',()=>showStage(i)));
+  steps.forEach((s,i)=>s.addEventListener('click',()=>showStage(i)));
 })();
 </script>
-<script src="../../js/code-highlighting.js"></script>
-<script src="../../js/navigation.js"></script>
 </body>
 </html>
