@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PCA — Redução de Dimensionalidade</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/classical-models.css">
   <style>
     :root{
       --bg:#f5f7fb;
@@ -28,7 +30,7 @@
       background:var(--bg);
       color:var(--text);
     }
-    button,input{font:inherit}
+    .page button,.page input{font:inherit}
     .page{width:min(1160px,calc(100% - 32px));margin:0 auto;padding:30px 0 72px}
 
     .hero{
@@ -43,7 +45,7 @@
       overflow:hidden;
     }
     .eyebrow{margin:0 0 9px;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
-    h1{margin:0;font-size:clamp(42px,7vw,74px);line-height:.98;letter-spacing:-.055em;color:#10203a}
+    .page h1{margin:0;font-size:clamp(42px,7vw,74px);line-height:.98;letter-spacing:-.055em;color:#10203a}
     .lead{margin:20px 0 0;max-width:760px;font-size:clamp(18px,2vw,22px);line-height:1.62;color:#44546b}
     .hero-card{align-self:center;padding:22px;border:1px solid #d7e2f0;border-radius:22px;background:rgba(255,255,255,.85)}
     .hero-card h3{margin:0 0 14px;font-size:17px}
@@ -52,7 +54,7 @@
     .arrow{color:#94a3b8;font-weight:900}
     .hero-card p{margin:14px 0 0;color:var(--muted);line-height:1.6;font-size:14px}
 
-    section{margin-top:38px}
+    .page section{margin-top:38px}
     .head{max-width:900px;margin-bottom:18px}
     .head h2{margin:0;font-size:clamp(29px,4vw,42px);letter-spacing:-.035em;line-height:1.1}
     .head p{margin:10px 0 0;color:var(--muted);line-height:1.72;font-size:16px}
@@ -104,12 +106,12 @@
     .step strong{display:block;margin-bottom:3px;color:#26466f}
 
     .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:#fff}
-    table{width:100%;border-collapse:collapse;min-width:680px}
-    th,td{padding:12px 14px;border-bottom:1px solid #e8edf4;text-align:center}
-    th{background:#f8fafc;color:#405069;font-size:13px}
-    tbody th{text-align:left}
-    tr:last-child td,tr:last-child th{border-bottom:0}
-    td.pc1{font-weight:850;color:#1d4ed8}td.pc2{font-weight:850;color:#6d28d9}
+    .page table{width:100%;border-collapse:collapse;min-width:680px}
+    .page th,.page td{padding:12px 14px;border-bottom:1px solid #e8edf4;text-align:center}
+    .page th{background:#f8fafc;color:#405069;font-size:13px}
+    .page tbody th{text-align:left}
+    .page tr:last-child td,.page tr:last-child th{border-bottom:0}
+    .page td.pc1{font-weight:850;color:#1d4ed8}td.pc2{font-weight:850;color:#6d28d9}
 
     .compression{
       display:grid;
@@ -137,8 +139,8 @@
 
     .code{border-radius:18px;overflow:hidden;background:#0f172a;color:#dbeafe}
     .code-head{display:flex;justify-content:space-between;gap:12px;padding:11px 15px;background:#0a1120;color:#9fb1c7;font-size:12px}
-    pre{margin:0;padding:20px;overflow:auto;line-height:1.62;font-size:13px}
-    code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .page pre{margin:0;padding:20px;overflow:auto;line-height:1.62;font-size:13px}
+    .page code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
     .out{margin-top:14px;padding:17px;border:1px solid var(--line);border-radius:16px;background:#f8fbff;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2d4566;line-height:1.65}
 
     .dont{border-left-color:var(--orange);background:#fff8ec;color:#715020}.dont strong{color:#8a5300}
@@ -160,6 +162,7 @@
   </style>
 </head>
 <body>
+<header class="site-header"></header>
 <main class="page">
 
   <section class="hero">
@@ -453,8 +456,8 @@ soma
     <div class="key"><strong>Em uma frase:</strong> PCA é uma técnica que troca muitas variáveis por um conjunto menor de componentes, tentando preservar o máximo possível da variação presente nos dados.</div>
   </section>
 
-  <footer class="footer">Material didático · PCA e redução de dimensionalidade</footer>
 </main>
+<footer class="site-footer"><p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p></footer>
 
 <script>
 (function(){
@@ -472,5 +475,7 @@ soma
   steps.forEach((s,i)=>s.addEventListener('click',()=>showStage(i)));
 })();
 </script>
+<script src="../../js/code-highlighting.js"></script>
+<script src="../../js/navigation.js"></script>
 </body>
 </html>
