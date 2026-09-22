@@ -1,0 +1,1321 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apriori | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/classical-models.css">
+  <style>
+    :root {
+      --ap-blue:#2563eb;
+      --ap-blue-soft:#eff6ff;
+      --ap-green:#16a34a;
+      --ap-green-soft:#f0fdf4;
+      --ap-orange:#ea580c;
+      --ap-orange-soft:#fff7ed;
+      --ap-red:#dc2626;
+      --ap-red-soft:#fef2f2;
+      --ap-purple:#7c3aed;
+      --ap-purple-soft:#f5f3ff;
+      --ap-ink:#0f172a;
+      --ap-muted:#64748b;
+      --ap-border:#e2e8f0;
+      --ap-surface:#ffffff;
+      --ap-soft:#f8fafc;
+    }
+
+    .ap-section { margin: 42px 0; }
+    .ap-section-head { max-width: 900px; margin-bottom: 22px; }
+    .ap-section-head h2 { margin: 4px 0 8px; }
+    .ap-section-head p { margin: 0; line-height: 1.7; }
+    .ap-eyebrow { margin:0; font-size:12px; letter-spacing:.11em; font-weight:800; color:var(--ap-blue); }
+    .ap-panel { border:1px solid var(--ap-border); border-radius:14px; background:var(--ap-surface); padding:22px; }
+    .ap-grid-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    .ap-grid-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+    .ap-card { border:1px solid var(--ap-border); border-radius:12px; background:#fff; padding:18px; min-width:0; }
+    .ap-card h3 { margin:0 0 9px; font-size:18px; }
+    .ap-card p { line-height:1.65; }
+    .ap-keyline { padding:15px 17px; border-left:4px solid var(--ap-blue); border-radius:8px; background:var(--ap-blue-soft); line-height:1.65; }
+    .ap-warning { padding:15px 17px; border-left:4px solid var(--ap-orange); border-radius:8px; background:var(--ap-orange-soft); line-height:1.65; }
+    .ap-good { padding:15px 17px; border-left:4px solid var(--ap-green); border-radius:8px; background:var(--ap-green-soft); line-height:1.65; }
+    .ap-formula { background:#0f172a; color:#f8fafc; border-radius:10px; padding:16px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; line-height:1.8; overflow:auto; }
+    .ap-formula strong { color:#93c5fd; }
+    .ap-chip { display:inline-flex; align-items:center; padding:5px 9px; margin:2px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:13px; font-weight:700; white-space:nowrap; }
+    .ap-chip.bad { background:var(--ap-red-soft); color:#991b1b; text-decoration:line-through; }
+    .ap-chip.good { background:var(--ap-green-soft); color:#166534; }
+    .ap-arrow { font-size:24px; color:#94a3b8; font-weight:800; text-align:center; }
+
+    .ap-baskets { display:grid; gap:8px; }
+    .ap-basket { display:grid; grid-template-columns:70px 1fr; gap:12px; align-items:center; border:1px solid var(--ap-border); border-radius:10px; padding:10px 12px; transition:.18s ease; }
+    .ap-basket .id { font-weight:800; color:#475569; font-size:13px; }
+    .ap-basket.dim { opacity:.28; }
+    .ap-basket.focus { border-color:#60a5fa; background:#eff6ff; }
+    .ap-basket.hit { border-color:#4ade80; background:#f0fdf4; }
+
+    .ap-metric-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+    .ap-metric-tabs button { border:1px solid var(--ap-border); background:#fff; border-radius:999px; padding:9px 13px; cursor:pointer; font-weight:750; color:#334155; }
+    .ap-metric-tabs button.active { background:#0f172a; color:#fff; border-color:#0f172a; }
+    .ap-metric-explain { min-height:180px; }
+    .ap-big-number { font-size:38px; line-height:1; font-weight:850; letter-spacing:-.04em; margin:7px 0 10px; }
+    .ap-question { color:var(--ap-muted); font-weight:700; margin-bottom:4px; }
+
+    .ap-ratio { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; margin:14px 0; }
+    .ap-ratio-box { border:1px solid var(--ap-border); border-radius:10px; padding:12px; background:var(--ap-soft); text-align:center; }
+    .ap-ratio-box strong { display:block; font-size:26px; }
+    .ap-ratio-symbol { font-size:22px; font-weight:900; color:#64748b; }
+
+    .ap-bars { margin-top:15px; display:grid; gap:12px; }
+    .ap-bar-row { display:grid; grid-template-columns:180px 1fr 60px; gap:10px; align-items:center; font-size:14px; }
+    .ap-bar-track { height:15px; background:#e2e8f0; border-radius:999px; overflow:hidden; }
+    .ap-bar-fill { height:100%; border-radius:999px; background:#64748b; }
+    .ap-bar-fill.conditional { background:var(--ap-blue); }
+
+    .ap-flow { display:flex; align-items:stretch; gap:8px; flex-wrap:wrap; }
+    .ap-flow-step { flex:1 1 150px; border:1px solid var(--ap-border); border-radius:12px; padding:14px; background:#fff; }
+    .ap-flow-step small { color:var(--ap-blue); font-weight:850; letter-spacing:.05em; }
+    .ap-flow-step strong { display:block; margin-top:6px; }
+
+    .ap-itemset-table { width:100%; border-collapse:collapse; font-size:14px; }
+    .ap-itemset-table th,.ap-itemset-table td { padding:10px; border-bottom:1px solid var(--ap-border); text-align:left; vertical-align:top; }
+    .ap-itemset-table th { font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:.04em; }
+    .ap-status { display:inline-block; padding:4px 8px; border-radius:999px; font-weight:800; font-size:12px; }
+    .ap-status.keep { background:var(--ap-green-soft); color:#166534; }
+    .ap-status.drop { background:var(--ap-red-soft); color:#991b1b; }
+
+    .ap-tree { display:grid; gap:16px; }
+    .ap-tree-level { display:grid; grid-template-columns:130px 1fr; gap:16px; align-items:start; }
+    .ap-tree-label { font-weight:850; color:#475569; padding-top:8px; }
+    .ap-node-wrap { display:flex; flex-wrap:wrap; gap:8px; }
+    .ap-node { border:1px solid var(--ap-border); border-radius:10px; padding:9px 11px; background:#fff; font-size:13px; }
+    .ap-node.keep { border-color:#86efac; background:#f0fdf4; }
+    .ap-node.drop { border-color:#fecaca; background:#fef2f2; color:#991b1b; text-decoration:line-through; opacity:.85; }
+    .ap-node.pruned { border-style:dashed; color:#94a3b8; background:#f8fafc; }
+
+    .ap-lift-scale { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:14px; }
+    .ap-lift-scale > div { border-radius:10px; padding:12px; text-align:center; font-size:13px; }
+    .ap-lift-low { background:#fef2f2; color:#991b1b; }
+    .ap-lift-neutral { background:#f8fafc; color:#475569; border:1px solid var(--ap-border); }
+    .ap-lift-high { background:#f0fdf4; color:#166534; }
+
+    .ap-rule-builder { display:grid; grid-template-columns:minmax(0,1fr) 40px minmax(0,1fr); gap:12px; align-items:center; margin:18px 0; }
+    .ap-rule-side { border:1px solid var(--ap-border); border-radius:12px; padding:15px; background:#fff; }
+    .ap-rule-side small { display:block; color:#64748b; font-weight:800; margin-bottom:6px; }
+    .ap-rule-arrow { text-align:center; font-size:30px; font-weight:900; color:#64748b; }
+    .ap-select { width:100%; padding:10px 12px; border:1px solid var(--ap-border); border-radius:9px; font-size:15px; background:white; }
+    .ap-live-grid { display:grid; grid-template-columns:1.1fr .9fr; gap:18px; }
+    .ap-live-metrics { display:grid; gap:10px; }
+    .ap-live-metric { border:1px solid var(--ap-border); border-radius:10px; padding:12px; }
+    .ap-live-metric small { display:block; color:#64748b; font-weight:750; }
+    .ap-live-metric strong { display:block; font-size:26px; margin-top:3px; }
+
+    .ap-output-table { width:100%; border-collapse:collapse; font-size:14px; min-width:720px; }
+    .ap-output-table th,.ap-output-table td { padding:11px; border-bottom:1px solid var(--ap-border); text-align:left; }
+    .ap-output-table th { color:#64748b; font-size:12px; text-transform:uppercase; }
+
+    details.ap-code { margin-top:16px; border:1px solid var(--ap-border); border-radius:12px; overflow:hidden; }
+    details.ap-code summary { cursor:pointer; padding:14px 16px; font-weight:800; background:#f8fafc; }
+    details.ap-code pre { margin:0; padding:18px; overflow:auto; background:#0f172a; color:#e2e8f0; font-size:13px; line-height:1.65; }
+
+
+
+    /* VISUALIZAÇÃO DO LOOP INTERNO */
+    .ap-loop-layout { display:grid; grid-template-columns:1.05fr .95fr; gap:18px; align-items:start; }
+    .ap-loop-stage { border:1px solid var(--ap-border); border-radius:14px; background:#fff; padding:18px; }
+    .ap-loop-code { background:#0f172a; color:#e2e8f0; border-radius:12px; padding:16px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:14px; line-height:1.8; overflow:auto; }
+    .ap-loop-code .comment { color:#94a3b8; }
+    .ap-loop-code .focus-line { display:block; margin:2px -7px; padding:0 7px; border-radius:6px; background:#1e3a5f; color:#fff; }
+    .ap-loop-state { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-bottom:12px; }
+    .ap-loop-box { border:1px solid var(--ap-border); border-radius:10px; padding:12px; background:var(--ap-soft); min-width:0; }
+    .ap-loop-box small { display:block; color:#64748b; font-weight:800; margin-bottom:4px; }
+    .ap-loop-box strong { display:block; font-size:17px; overflow-wrap:anywhere; }
+    .ap-loop-question { border:2px solid #bfdbfe; background:#eff6ff; border-radius:12px; padding:16px; margin:12px 0; text-align:center; }
+    .ap-loop-question .q { font-size:18px; font-weight:850; }
+    .ap-loop-answer { margin-top:8px; font-weight:850; font-size:16px; }
+    .ap-loop-answer.yes { color:#15803d; }
+    .ap-loop-answer.no { color:#b91c1c; }
+    .ap-loop-controls { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .ap-loop-controls button { border:1px solid var(--ap-border); border-radius:9px; padding:10px 13px; background:#fff; cursor:pointer; font-weight:800; }
+    .ap-loop-controls button.primary { background:#0f172a; color:#fff; border-color:#0f172a; }
+    .ap-counter-list { display:grid; gap:8px; margin-top:12px; }
+    .ap-counter-row { display:grid; grid-template-columns:minmax(120px,1fr) 80px 80px; gap:8px; align-items:center; padding:9px 10px; border:1px solid var(--ap-border); border-radius:9px; font-size:13px; }
+    .ap-counter-row.current { border-color:#60a5fa; background:#eff6ff; }
+    .ap-counter-row .count { font-weight:900; text-align:center; }
+    .ap-counter-row .support { text-align:right; color:#64748b; }
+    .ap-mini-flow { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:8px; margin-top:16px; }
+    .ap-mini-step { border:1px solid var(--ap-border); border-radius:10px; padding:11px; background:#fff; font-size:13px; line-height:1.45; }
+    .ap-mini-step strong { display:block; margin-bottom:4px; }
+    .ap-round-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .ap-round-tabs button { border:1px solid var(--ap-border); border-radius:999px; background:#fff; padding:8px 12px; cursor:pointer; font-weight:800; }
+    .ap-round-tabs button.active { background:#0f172a; color:#fff; border-color:#0f172a; }
+    @media (max-width: 820px) {
+      .ap-loop-layout { grid-template-columns:1fr; }
+      .ap-loop-state { grid-template-columns:1fr; }
+      .ap-mini-flow { grid-template-columns:1fr; }
+      .ap-counter-row { grid-template-columns:1fr 60px 70px; }
+    }
+
+    @media (max-width: 820px) {
+      .ap-grid-2,.ap-grid-3,.ap-live-grid { grid-template-columns:1fr; }
+      .ap-rule-builder { grid-template-columns:1fr; }
+      .ap-rule-arrow { transform:rotate(90deg); }
+      .ap-tree-level { grid-template-columns:1fr; gap:7px; }
+      .ap-bar-row { grid-template-columns:1fr; gap:5px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header"></header>
+
+  <main class="classic-page">
+    <header class="classic-hero">
+      <div class="hero-text">
+        <p class="eyebrow">APRENDIZAGEM NÃO SUPERVISIONADA · REGRAS DE ASSOCIAÇÃO</p>
+        <h1>Apriori</h1>
+        <p>Aprenda como o algoritmo sai de uma lista de compras e chega a regras como <strong>“quem compra Pão tende a comprar Manteiga”</strong> — entendendo exatamente o que significam suporte, confiança e lift.</p>
+      </div>
+    </header>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">COMECE PELO PROBLEMA</p>
+        <h2>O que o Apriori está tentando descobrir?</h2>
+        <p>Imagine que você tenha milhares de compras de supermercado. Cada compra é uma <strong>transação</strong>. O objetivo é descobrir quais produtos aparecem juntos com frequência e, a partir desses padrões, gerar <strong>regras de associação</strong>.</p>
+      </div>
+
+      <div class="ap-grid-2">
+        <article class="ap-card">
+          <h3>Itemset: combinação sem direção</h3>
+          <p>Um <strong>itemset</strong> é apenas um conjunto de itens que aparecem juntos.</p>
+          <div class="ap-formula">{ Pão, Manteiga }</div>
+          <p>Aqui ainda não estamos dizendo que um produto leva ao outro. Estamos apenas perguntando: <strong>“quantas compras contêm os dois?”</strong></p>
+        </article>
+        <article class="ap-card">
+          <h3>Regra: associação com direção</h3>
+          <p>Depois que encontramos combinações frequentes, podemos criar regras:</p>
+          <div class="ap-formula">Pão <strong>⇒</strong> Manteiga</div>
+          <p>A leitura é: <strong>“entre as compras que contêm Pão, com que frequência também aparece Manteiga?”</strong></p>
+        </article>
+      </div>
+
+      <div class="ap-keyline" style="margin-top:16px">
+        <strong>Separe as duas etapas:</strong> primeiro o Apriori procura <strong>itemsets frequentes</strong>. Depois esses itemsets podem ser transformados em <strong>regras de associação</strong>, que são avaliadas por métricas como confiança e lift.
+      </div>
+    </section>
+
+    <section class="ap-section" id="base-example">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">NOSSA BASE DIDÁTICA</p>
+        <h2>Vamos trabalhar com apenas 10 compras</h2>
+        <p>Com uma base pequena conseguimos contar tudo manualmente. Depois o algoritmo faz exatamente a mesma lógica em milhares ou milhões de transações.</p>
+      </div>
+
+      <div class="ap-grid-2">
+        <div class="ap-panel">
+          <div class="ap-baskets" id="baseBaskets"></div>
+        </div>
+        <div class="ap-panel">
+          <h3 style="margin-top:0">Observe quatro contagens</h3>
+          <p>Para estudar a regra <strong>Pão ⇒ Manteiga</strong>, precisamos saber:</p>
+          <div class="ap-ratio">
+            <div class="ap-ratio-box"><small>Total</small><strong>10</strong><span>compras</span></div>
+            <div class="ap-ratio-symbol">·</div>
+            <div class="ap-ratio-box"><small>Pão</small><strong>6</strong><span>compras</span></div>
+          </div>
+          <div class="ap-ratio">
+            <div class="ap-ratio-box"><small>Manteiga</small><strong>5</strong><span>compras</span></div>
+            <div class="ap-ratio-symbol">·</div>
+            <div class="ap-ratio-box"><small>Pão + Manteiga</small><strong>4</strong><span>compras</span></div>
+          </div>
+          <div class="ap-good">
+            Quase toda a matemática de suporte, confiança e lift será construída a partir dessas contagens.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">ANTES DO ALGORITMO</p>
+        <h2>Entenda os três números que aparecem no resultado</h2>
+        <p>Clique em cada métrica. As próprias transações serão destacadas para mostrar exatamente qual é o numerador e qual é o denominador.</p>
+      </div>
+
+      <div class="ap-live-grid">
+        <div class="ap-panel">
+          <div class="ap-metric-tabs" id="metricTabs">
+            <button type="button" class="active" data-metric="support">1. Suporte</button>
+            <button type="button" data-metric="confidence">2. Confiança</button>
+            <button type="button" data-metric="lift">3. Lift</button>
+          </div>
+          <div class="ap-baskets" id="metricBaskets"></div>
+        </div>
+
+        <div class="ap-panel ap-metric-explain" id="metricExplain"></div>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">1 · SUPORTE</p>
+        <h2>Suporte responde: “isso acontece bastante na base inteira?”</h2>
+        <p>O suporte mede a frequência do <strong>itemset completo</strong>. Para Pão e Manteiga, contamos quantas das 10 compras contêm os dois ao mesmo tempo.</p>
+      </div>
+      <div class="ap-grid-2">
+        <article class="ap-card">
+          <div class="ap-formula"><strong>support</strong>({Pão, Manteiga}) = 4 / 10 = 0,40 = 40%</div>
+          <p><strong>Interpretação:</strong> em 40% de todas as compras da base, Pão e Manteiga aparecem juntos.</p>
+        </article>
+        <article class="ap-card">
+          <h3>Por que o Apriori precisa do suporte?</h3>
+          <p>Porque ele não quer perder tempo explorando combinações muito raras. Definimos um <strong>suporte mínimo</strong>, por exemplo 30%.</p>
+          <p>Se um conjunto aparece em menos de 30% das compras, ele não é considerado frequente e pode ser descartado.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">2 · CONFIANÇA</p>
+        <h2>Confiança muda o denominador</h2>
+        <p>Agora não olhamos mais para todas as 10 compras. Olhamos apenas para as compras que já possuem o <strong>antecedente</strong> da regra.</p>
+      </div>
+      <div class="ap-grid-2">
+        <article class="ap-card">
+          <div class="ap-formula"><strong>confidence</strong>(Pão ⇒ Manteiga) = 4 / 6 = 0,667 = 66,7%</div>
+          <p>Existem <strong>6 compras com Pão</strong>. Em 4 delas também existe Manteiga.</p>
+          <p>Logo: <strong>entre quem comprou Pão, 66,7% também comprou Manteiga.</strong></p>
+        </article>
+        <article class="ap-card">
+          <h3>A direção importa</h3>
+          <div class="ap-formula">Pão ⇒ Manteiga = 4 / 6 = <strong>66,7%</strong><br>Manteiga ⇒ Pão = 4 / 5 = <strong>80%</strong></div>
+          <p>O itemset é o mesmo <strong>{Pão, Manteiga}</strong>, mas a confiança muda porque o denominador é o antecedente.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">3 · LIFT</p>
+        <h2>Lift pergunta: “isso é relação ou só popularidade?”</h2>
+        <p>Uma confiança alta pode enganar quando o consequente já é muito popular. O lift compara a confiança da regra com a frequência normal do consequente.</p>
+      </div>
+
+      <div class="ap-grid-2">
+        <article class="ap-card">
+          <h3>Pão ⇒ Manteiga</h3>
+          <p>Manteiga aparece normalmente em <strong>50%</strong> da base. Mas entre as compras com Pão, aparece em <strong>66,7%</strong>.</p>
+          <div class="ap-formula"><strong>lift</strong> = 66,7% / 50% = <strong>1,33</strong></div>
+          <div class="ap-bars">
+            <div class="ap-bar-row"><span>Manteiga na base</span><div class="ap-bar-track"><div class="ap-bar-fill" style="width:50%"></div></div><strong>50%</strong></div>
+            <div class="ap-bar-row"><span>Manteiga quando há Pão</span><div class="ap-bar-track"><div class="ap-bar-fill conditional" style="width:66.7%"></div></div><strong>66,7%</strong></div>
+          </div>
+          <p><strong>Leitura:</strong> Pão e Manteiga aparecem juntos cerca de 1,33 vez o esperado sob independência.</p>
+        </article>
+
+        <article class="ap-card">
+          <h3>Por que confiança sozinha não basta?</h3>
+          <p>Considere <strong>Café ⇒ Leite</strong>. Entre as 5 compras com Café, 4 têm Leite:</p>
+          <div class="ap-formula">confidence = 4 / 5 = <strong>80%</strong></div>
+          <p>Parece uma ótima regra. Mas Leite já aparece em <strong>90%</strong> de todas as compras.</p>
+          <div class="ap-formula">lift = 80% / 90% = <strong>0,89</strong></div>
+          <p>Ou seja: entre compradores de Café, Leite aparece até <strong>menos</strong> do que na população geral.</p>
+        </article>
+      </div>
+
+      <div class="ap-lift-scale">
+        <div class="ap-lift-low"><strong>Lift &lt; 1</strong><br>coocorrência menor que a esperada</div>
+        <div class="ap-lift-neutral"><strong>Lift = 1</strong><br>comportamento compatível com independência</div>
+        <div class="ap-lift-high"><strong>Lift &gt; 1</strong><br>coocorrência maior que a esperada</div>
+      </div>
+      <div class="ap-warning" style="margin-top:14px"><strong>Importante:</strong> associação não é causalidade. Lift alto não prova que comprar Pão <em>causou</em> a compra de Manteiga.</div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">AGORA SIM: O APRIORI</p>
+        <h2>Como ele descobre quais relações vale a pena testar?</h2>
+        <p>Se existem milhares de produtos, há combinações demais. O Apriori usa o suporte e uma propriedade simples para eliminar grande parte delas antes de chegar às regras.</p>
+      </div>
+
+      <div class="ap-keyline">
+        <strong>Princípio Apriori:</strong> se um conjunto de itens já é pouco frequente, qualquer conjunto maior que o contenha também será pouco frequente. Um conjunto maior nunca pode aparecer em mais transações que um de seus próprios subconjuntos.
+      </div>
+
+      <div class="ap-flow" style="margin-top:18px">
+        <div class="ap-flow-step"><small>PASSO 1</small><strong>Contar itens individuais</strong><p>Pão, Manteiga, Leite, Café.</p></div>
+        <div class="ap-flow-step"><small>PASSO 2</small><strong>Manter os frequentes</strong><p>Aplicar o suporte mínimo.</p></div>
+        <div class="ap-flow-step"><small>PASSO 3</small><strong>Formar pares</strong><p>Contar quais aparecem juntos.</p></div>
+        <div class="ap-flow-step"><small>PASSO 4</small><strong>Podar</strong><p>Eliminar combinações infrequentes e seus supersets.</p></div>
+        <div class="ap-flow-step"><small>PASSO 5</small><strong>Gerar regras</strong><p>Calcular confiança e lift dos padrões encontrados.</p></div>
+      </div>
+    </section>
+
+
+    <section class="ap-section" id="dentro-dos-fors">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">O ALGORITMO POR DENTRO</p>
+        <h2>O que o Apriori faz dentro de cada <code>for</code>?</h2>
+        <p>Antes de usar C₁, L₁ ou qualquer notação, pense no programa executando. Em cada rodada existem <strong>candidatos atuais</strong>. O Apriori percorre cada compra e pergunta, candidato por candidato: <strong>“todos os itens desta combinação aparecem neste carrinho?”</strong></p>
+      </div>
+
+      <div class="ap-keyline">
+        <strong>O trabalho do <code>for</code> interno é apenas CONTAR.</strong> Ele ainda não calcula confiança nem lift. Ele verifica se o candidato está contido na compra e, se estiver, soma <strong>+1</strong> à contagem daquele candidato.
+      </div>
+
+      <div class="ap-mini-flow">
+        <div class="ap-mini-step"><strong>1. Candidatos</strong>{Pão}, {Manteiga}, ...</div>
+        <div class="ap-mini-step"><strong>2. Ler compra</strong>Pegar um carrinho da base.</div>
+        <div class="ap-mini-step"><strong>3. Testar</strong>O candidato está inteiro no carrinho?</div>
+        <div class="ap-mini-step"><strong>4. Contar</strong>Se sim, contador += 1.</div>
+        <div class="ap-mini-step"><strong>5. Depois da varredura</strong>Contagem ÷ total = suporte.</div>
+      </div>
+
+      <div class="ap-loop-layout" style="margin-top:18px">
+        <div class="ap-loop-stage">
+          <div class="ap-round-tabs" id="loopRoundTabs">
+            <button type="button" class="active" data-loop-round="1">Rodada 1 · itens</button>
+            <button type="button" data-loop-round="2">Rodada 2 · pares</button>
+          </div>
+
+          <div class="ap-loop-state">
+            <div class="ap-loop-box"><small>Compra atual</small><strong id="loopTransaction">—</strong></div>
+            <div class="ap-loop-box"><small>Candidato sendo testado</small><strong id="loopCandidate">—</strong></div>
+          </div>
+
+          <div class="ap-loop-question">
+            <div class="q" id="loopQuestion">Clique em “Avançar uma comparação”.</div>
+            <div class="ap-loop-answer" id="loopAnswer"></div>
+          </div>
+
+          <div class="ap-loop-controls">
+            <button type="button" class="primary" id="loopNextBtn">Avançar uma comparação</button>
+            <button type="button" id="loopResetBtn">Reiniciar rodada</button>
+          </div>
+
+          <div class="ap-good" id="loopSummary" style="margin-top:14px">
+            A cada clique, o algoritmo executará uma comparação equivalente ao <code>if candidato ⊆ compra</code>.
+          </div>
+        </div>
+
+        <div class="ap-loop-stage">
+          <h3 style="margin-top:0">Contadores durante a varredura</h3>
+          <p style="margin-top:0">Estes números começam em zero. Eles só aumentam quando <strong>todos</strong> os itens do candidato aparecem na compra atual.</p>
+          <div class="ap-counter-list" id="loopCounters"></div>
+        </div>
+      </div>
+
+      <div class="ap-grid-2" style="margin-top:18px">
+        <article class="ap-card">
+          <h3>O primeiro <code>for</code>: percorre compras</h3>
+          <div class="ap-loop-code"><span class="focus-line">for compra in transacoes:</span>
+    <span class="comment"># agora estou olhando UMA compra</span></div>
+          <p>Ele pega a Compra 1, depois a Compra 2, depois a Compra 3... até visitar toda a base.</p>
+        </article>
+
+        <article class="ap-card">
+          <h3>O segundo <code>for</code>: percorre candidatos</h3>
+          <div class="ap-loop-code">for compra in transacoes:
+    <span class="focus-line">for candidato in candidatos:</span>
+        <span class="comment"># testar uma combinação</span></div>
+          <p>Para a mesma compra, ele testa <strong>todos os candidatos daquela rodada</strong>. Na primeira rodada são itens; na seguinte são pares; depois podem ser trios.</p>
+        </article>
+      </div>
+
+      <div class="ap-grid-2" style="margin-top:18px">
+        <article class="ap-card">
+          <h3>O <code>if</code>: a combinação está inteira no carrinho?</h3>
+          <div class="ap-loop-code">if candidato.issubset(compra):
+    contagem[candidato] += 1</div>
+          <p>Para <code>{Pão, Manteiga}</code>, não basta existir Pão. <strong>Pão e Manteiga precisam estar juntos na mesma compra.</strong></p>
+        </article>
+
+        <article class="ap-card">
+          <h3>Depois que os dois <code>for</code> terminam</h3>
+          <div class="ap-loop-code">suporte = contagem[candidato] / total
+
+if suporte >= suporte_minimo:
+    sobreviventes.append(candidato)</div>
+          <p>Só agora a contagem vira <strong>suporte</strong>. Os candidatos abaixo do mínimo morrem; os demais serão usados para construir a rodada seguinte.</p>
+        </article>
+      </div>
+
+      <div class="ap-panel" style="margin-top:18px">
+        <h3 style="margin-top:0">Exemplo completo de UMA compra na rodada dos pares</h3>
+        <p>Suponha que os candidatos atuais sejam <strong>{Pão,Manteiga}</strong>, <strong>{Pão,Leite}</strong> e <strong>{Manteiga,Café}</strong>, e a compra atual seja:</p>
+        <div class="ap-formula">Compra = {Pão, Manteiga, Leite}</div>
+        <div style="overflow-x:auto; margin-top:14px">
+          <table class="ap-itemset-table">
+            <thead><tr><th>Candidato</th><th>Pergunta feita pelo if</th><th>Resposta</th><th>Ação</th></tr></thead>
+            <tbody>
+              <tr><td>{Pão,Manteiga}</td><td>Pão E Manteiga estão na compra?</td><td><strong>Sim</strong></td><td>contador += 1</td></tr>
+              <tr><td>{Pão,Leite}</td><td>Pão E Leite estão na compra?</td><td><strong>Sim</strong></td><td>contador += 1</td></tr>
+              <tr><td>{Manteiga,Café}</td><td>Manteiga E Café estão na compra?</td><td><strong>Não</strong></td><td>não altera o contador</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ap-keyline" style="margin-top:14px"><strong>Depois disso, o <code>for</code> externo passa para a próxima compra e repete exatamente os mesmos testes.</strong> Quando todas as compras terminarem, teremos a frequência de cada candidato.</div>
+      </div>
+
+      <div class="ap-panel" style="margin-top:18px">
+        <h3 style="margin-top:0">E como nasce a próxima rodada?</h3>
+        <p>Depois de calcular o suporte, ficamos apenas com os <strong>sobreviventes</strong>. Então o Apriori combina esses sobreviventes para tentar criar conjuntos um item maiores.</p>
+        <div class="ap-flow">
+          <div class="ap-flow-step"><small>CONTAR</small><strong>varrer todas as compras</strong></div>
+          <div class="ap-arrow">→</div>
+          <div class="ap-flow-step"><small>FILTRAR</small><strong>aplicar suporte mínimo</strong></div>
+          <div class="ap-arrow">→</div>
+          <div class="ap-flow-step"><small>COMBINAR</small><strong>criar candidatos maiores</strong></div>
+          <div class="ap-arrow">→</div>
+          <div class="ap-flow-step"><small>PODAR</small><strong>remover candidatos impossíveis</strong></div>
+          <div class="ap-arrow">→</div>
+          <div class="ap-flow-step"><small>REPETIR</small><strong>voltar ao <code>for</code> das compras</strong></div>
+        </div>
+        <div class="ap-warning" style="margin-top:14px"><strong>Confiança e lift ainda não entram aqui.</strong> Enquanto procura itemsets frequentes, o Apriori trabalha principalmente com <strong>contagem + suporte + poda</strong>. Confiança e lift aparecem depois, quando os itemsets frequentes são transformados em regras.</div>
+      </div>
+    </section>
+
+    <section class="ap-section" id="algoritmo-passo-a-passo">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">EXECUTANDO O ALGORITMO NA MÃO</p>
+        <h2>Como o Apriori realmente faz a busca</h2>
+        <p>Agora vamos executar o algoritmo de verdade usando as mesmas 10 compras. Definiremos <strong>suporte mínimo = 30%</strong>. Como existem 10 transações, um conjunto precisa aparecer em pelo menos <strong>3 compras</strong> para continuar vivo.</p>
+      </div>
+
+      <div class="ap-keyline">
+        <strong>Duas letras que aparecem muito quando se estuda Apriori:</strong><br>
+        <strong>C<sub>k</sub></strong> = candidatos com <em>k</em> itens que ainda precisam ser testados.<br>
+        <strong>L<sub>k</sub></strong> = candidatos que sobreviveram ao suporte mínimo e viraram itemsets frequentes.
+      </div>
+
+      <div class="ap-panel" style="margin-top:18px">
+        <h3 style="margin-top:0">Passo 1 — testar cada produto sozinho</h3>
+        <p>No começo não conhecemos nenhuma relação. Então o algoritmo simplesmente conta em quantas transações cada item aparece.</p>
+        <div style="overflow-x:auto">
+          <table class="ap-itemset-table">
+            <thead><tr><th>Candidato C₁</th><th>Contagem</th><th>Cálculo do suporte</th><th>Suporte</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>{Pão}</td><td>6 compras</td><td>6 ÷ 10</td><td><strong>60%</strong></td><td><span class="ap-status keep">fica em L₁</span></td></tr>
+              <tr><td>{Manteiga}</td><td>5 compras</td><td>5 ÷ 10</td><td><strong>50%</strong></td><td><span class="ap-status keep">fica em L₁</span></td></tr>
+              <tr><td>{Leite}</td><td>9 compras</td><td>9 ÷ 10</td><td><strong>90%</strong></td><td><span class="ap-status keep">fica em L₁</span></td></tr>
+              <tr><td>{Café}</td><td>5 compras</td><td>5 ÷ 10</td><td><strong>50%</strong></td><td><span class="ap-status keep">fica em L₁</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ap-good" style="margin-top:14px"><strong>L₁ = {Pão}, {Manteiga}, {Leite}, {Café}</strong>. Todos passaram dos 30%, então todos podem participar da próxima etapa.</div>
+      </div>
+
+      <div class="ap-panel" style="margin-top:18px">
+        <h3 style="margin-top:0">Passo 2 — combinar os sobreviventes dois a dois</h3>
+        <p>O Apriori usa os itens de <strong>L₁</strong> para criar os candidatos de tamanho 2, chamados <strong>C₂</strong>. Agora ele volta às transações e conta quantas vezes cada par aparece junto.</p>
+        <div style="overflow-x:auto">
+          <table class="ap-itemset-table">
+            <thead><tr><th>Candidato C₂</th><th>Contagem conjunta</th><th>Suporte</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>{Pão, Manteiga}</td><td>4 compras</td><td>4 ÷ 10 = <strong>40%</strong></td><td><span class="ap-status keep">frequente</span></td></tr>
+              <tr><td>{Pão, Leite}</td><td>6 compras</td><td>6 ÷ 10 = <strong>60%</strong></td><td><span class="ap-status keep">frequente</span></td></tr>
+              <tr><td>{Pão, Café}</td><td>3 compras</td><td>3 ÷ 10 = <strong>30%</strong></td><td><span class="ap-status keep">frequente</span></td></tr>
+              <tr><td>{Manteiga, Leite}</td><td>5 compras</td><td>5 ÷ 10 = <strong>50%</strong></td><td><span class="ap-status keep">frequente</span></td></tr>
+              <tr><td>{Manteiga, Café}</td><td>2 compras</td><td>2 ÷ 10 = <strong>20%</strong></td><td><span class="ap-status drop">eliminado</span></td></tr>
+              <tr><td>{Leite, Café}</td><td>4 compras</td><td>4 ÷ 10 = <strong>40%</strong></td><td><span class="ap-status keep">frequente</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ap-warning" style="margin-top:14px"><strong>Aqui nasce a poda:</strong> {Manteiga, Café} apareceu apenas 2 vezes. Como 20% &lt; 30%, esse par é eliminado e não entra em <strong>L₂</strong>.</div>
+      </div>
+
+      <div class="ap-panel" style="margin-top:18px">
+        <h3 style="margin-top:0">Passo 3 — tentar formar trios, mas podar antes de contar</h3>
+        <p>Agora o Apriori poderia tentar todos os trios possíveis. Mas antes de consultar a base, ele verifica uma regra simples: <strong>todos os pares que formam aquele trio precisam estar em L₂</strong>.</p>
+
+        <div class="ap-grid-2" style="margin-top:14px">
+          <article class="ap-card">
+            <h3>Trio que pode ser testado</h3>
+            <div class="ap-formula">{Pão, Manteiga, Leite}</div>
+            <p>Seus pares são:</p>
+            <p><span class="ap-chip good">{Pão, Manteiga} ✓</span> <span class="ap-chip good">{Pão, Leite} ✓</span> <span class="ap-chip good">{Manteiga, Leite} ✓</span></p>
+            <p>Todos são frequentes. Portanto o trio <strong>vale ser contado</strong>.</p>
+            <div class="ap-formula">4 compras ÷ 10 = <strong>40%</strong> → sobrevive</div>
+          </article>
+
+          <article class="ap-card">
+            <h3>Trio eliminado antes da contagem</h3>
+            <div class="ap-formula">{Pão, Manteiga, Café}</div>
+            <p>Seus pares são:</p>
+            <p><span class="ap-chip good">{Pão, Manteiga} ✓</span> <span class="ap-chip good">{Pão, Café} ✓</span> <span class="ap-chip bad">{Manteiga, Café} ✗</span></p>
+            <p>Como um de seus subconjuntos já falhou, o trio inteiro é <strong>podado</strong>.</p>
+            <div class="ap-formula">não precisa contar na base → <strong>PODADO</strong></div>
+          </article>
+        </div>
+
+        <div style="overflow-x:auto; margin-top:16px">
+          <table class="ap-itemset-table">
+            <thead><tr><th>Trio</th><th>Teste Apriori</th><th>Contagem</th><th>Resultado</th></tr></thead>
+            <tbody>
+              <tr><td>{Pão, Manteiga, Leite}</td><td>todos os pares frequentes</td><td>4/10 = 40%</td><td><span class="ap-status keep">L₃</span></td></tr>
+              <tr><td>{Pão, Leite, Café}</td><td>todos os pares frequentes</td><td>3/10 = 30%</td><td><span class="ap-status keep">L₃</span></td></tr>
+              <tr><td>{Pão, Manteiga, Café}</td><td>{Manteiga,Café} falhou</td><td>nem precisa</td><td><span class="ap-status drop">podado</span></td></tr>
+              <tr><td>{Manteiga, Leite, Café}</td><td>{Manteiga,Café} falhou</td><td>nem precisa</td><td><span class="ap-status drop">podado</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="ap-panel" style="margin-top:18px">
+        <h3 style="margin-top:0">Passo 4 — tentar aumentar novamente</h3>
+        <p>O único conjunto de 4 itens possível seria:</p>
+        <div class="ap-formula">{Pão, Manteiga, Leite, Café}</div>
+        <p>Mas ele contém o subconjunto <strong>{Manteiga, Café}</strong>, que já sabemos ser infrequente. Portanto ele também pode ser descartado.</p>
+        <div class="ap-keyline"><strong>Não surgiram novos candidatos frequentes. A busca por itemsets termina aqui.</strong></div>
+      </div>
+
+      <div class="ap-panel" style="margin-top:18px">
+        <h3 style="margin-top:0">Passo 5 — só agora gerar as regras</h3>
+        <p>Os itemsets frequentes dizem apenas <strong>“estes itens aparecem juntos bastante”</strong>. Para produzir uma regra, dividimos um itemset frequente em dois lados.</p>
+        <div class="ap-rule-builder">
+          <div class="ap-rule-side"><small>ITEMSET FREQUENTE</small><strong>{Pão, Manteiga}</strong><p style="margin-bottom:0">suporte = 40%</p></div>
+          <div class="ap-rule-arrow">→</div>
+          <div class="ap-rule-side"><small>REGRAS POSSÍVEIS</small><strong>Pão ⇒ Manteiga</strong><br><strong>Manteiga ⇒ Pão</strong></div>
+        </div>
+        <p>Para cada direção, o algoritmo calcula <strong>confiança</strong> e depois <strong>lift</strong>. Se você também definir uma confiança mínima, regras abaixo desse valor podem ser descartadas.</p>
+        <div class="ap-formula">Pão ⇒ Manteiga
+confidence = support(Pão,Manteiga) / support(Pão)
+           = 0,40 / 0,60
+           = <strong>0,667 = 66,7%</strong>
+
+lift       = confidence / support(Manteiga)
+           = 0,667 / 0,50
+           = <strong>1,33</strong></div>
+      </div>
+
+      <div class="ap-keyline" style="margin-top:18px; font-size:16px">
+        <strong>O algoritmo completo é isto:</strong> gerar candidatos → contar suporte → eliminar os raros → usar os sobreviventes para construir candidatos maiores → repetir até não haver novos candidatos → transformar os itemsets frequentes em regras → calcular confiança e lift.
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">EXEMPLO COMPLETO</p>
+        <h2>Suporte mínimo = 30%</h2>
+        <p>Com 10 transações, um itemset precisa aparecer em pelo menos <strong>3 compras</strong> para sobreviver.</p>
+      </div>
+
+      <div class="ap-panel">
+        <div class="ap-tree">
+          <div class="ap-tree-level">
+            <div class="ap-tree-label">1 item</div>
+            <div class="ap-node-wrap">
+              <div class="ap-node keep">{Pão} · 60%</div>
+              <div class="ap-node keep">{Manteiga} · 50%</div>
+              <div class="ap-node keep">{Leite} · 90%</div>
+              <div class="ap-node keep">{Café} · 50%</div>
+            </div>
+          </div>
+          <div class="ap-tree-level">
+            <div class="ap-tree-label">2 itens</div>
+            <div class="ap-node-wrap">
+              <div class="ap-node keep">{Pão, Manteiga} · 40%</div>
+              <div class="ap-node keep">{Pão, Leite} · 60%</div>
+              <div class="ap-node keep">{Pão, Café} · 30%</div>
+              <div class="ap-node keep">{Manteiga, Leite} · 50%</div>
+              <div class="ap-node drop">{Manteiga, Café} · 20%</div>
+              <div class="ap-node keep">{Leite, Café} · 40%</div>
+            </div>
+          </div>
+          <div class="ap-tree-level">
+            <div class="ap-tree-label">3 itens</div>
+            <div class="ap-node-wrap">
+              <div class="ap-node keep">{Pão, Manteiga, Leite} · 40%</div>
+              <div class="ap-node keep">{Pão, Leite, Café} · 30%</div>
+              <div class="ap-node pruned">{Pão, Manteiga, Café} · PODADO</div>
+              <div class="ap-node pruned">{Manteiga, Leite, Café} · PODADO</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="ap-warning" style="margin-top:18px">
+          <strong>Por que os dois últimos trios foram podados?</strong> Porque ambos contêm o par <strong>{Manteiga, Café}</strong>, que só aparece em 20% das compras. Um trio que contém esse par nunca poderia aparecer em 30% ou mais das transações.
+        </div>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">DE ITEMSET PARA REGRA</p>
+        <h2>Depois dos padrões frequentes, surgem as regras</h2>
+        <p>O itemset frequente <strong>{Pão, Manteiga}</strong> pode originar duas regras diferentes. O suporte é o mesmo, mas a confiança pode ser diferente porque a direção mudou.</p>
+      </div>
+
+      <div class="ap-grid-2">
+        <article class="ap-card">
+          <div class="ap-rule-builder">
+            <div class="ap-rule-side"><small>ANTECEDENTE</small><strong>Pão</strong></div>
+            <div class="ap-rule-arrow">⇒</div>
+            <div class="ap-rule-side"><small>CONSEQUENTE</small><strong>Manteiga</strong></div>
+          </div>
+          <p>Suporte = 40% · Confiança = 66,7% · Lift = 1,33</p>
+        </article>
+        <article class="ap-card">
+          <div class="ap-rule-builder">
+            <div class="ap-rule-side"><small>ANTECEDENTE</small><strong>Manteiga</strong></div>
+            <div class="ap-rule-arrow">⇒</div>
+            <div class="ap-rule-side"><small>CONSEQUENTE</small><strong>Pão</strong></div>
+          </div>
+          <p>Suporte = 40% · Confiança = 80% · Lift = 1,33</p>
+        </article>
+      </div>
+
+      <div class="ap-keyline" style="margin-top:16px">
+        <strong>Resumo importante:</strong> suporte pertence ao conjunto de itens e, por isso, é igual nas duas direções. Confiança é direcional. O lift, na formulação padrão de dois lados, compara a coocorrência observada com a esperada sob independência e resulta no mesmo valor ao inverter apenas A e B.
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">LABORATÓRIO</p>
+        <h2>Troque a regra e veja de onde cada número vem</h2>
+        <p>O laboratório usa as mesmas 10 compras. Escolha uma regra; ele conta antecedente, consequente e ocorrência conjunta, calcula as três métricas e destaca as transações relevantes.</p>
+      </div>
+
+      <div class="ap-live-grid">
+        <div class="ap-panel">
+          <label for="ruleSelect" style="display:block;font-weight:800;margin-bottom:7px">Regra em análise</label>
+          <select id="ruleSelect" class="ap-select">
+            <option value="bread>butter">Pão ⇒ Manteiga</option>
+            <option value="butter>bread">Manteiga ⇒ Pão</option>
+            <option value="coffee>milk">Café ⇒ Leite</option>
+            <option value="bread+coffee>milk">Pão + Café ⇒ Leite</option>
+            <option value="milk>bread">Leite ⇒ Pão</option>
+          </select>
+          <div class="ap-baskets" id="labBaskets" style="margin-top:16px"></div>
+        </div>
+
+        <div class="ap-panel">
+          <div id="liveRule" style="font-size:22px;font-weight:850;margin-bottom:12px"></div>
+          <div class="ap-live-metrics">
+            <div class="ap-live-metric"><small>Compras totais</small><strong id="liveN">10</strong></div>
+            <div class="ap-live-metric"><small>Contêm antecedente</small><strong id="liveA">0</strong></div>
+            <div class="ap-live-metric"><small>Contêm consequente</small><strong id="liveB">0</strong></div>
+            <div class="ap-live-metric"><small>Contêm os dois lados</small><strong id="liveAB">0</strong></div>
+          </div>
+          <div class="ap-formula" id="liveFormula" style="margin-top:14px"></div>
+          <div class="ap-keyline" id="liveInterpretation" style="margin-top:14px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">O QUE SAI NO FINAL?</p>
+        <h2>O resultado não é apenas “uma relação”</h2>
+        <p>Na prática, você recebe uma tabela de regras. Cada linha precisa ser interpretada observando as métricas em conjunto.</p>
+      </div>
+      <div class="ap-panel" style="overflow-x:auto">
+        <table class="ap-output-table">
+          <thead><tr><th>Regra</th><th>Suporte</th><th>Confiança</th><th>Lift</th><th>Leitura</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Pão ⇒ Manteiga</strong></td><td>40%</td><td>66,7%</td><td>1,33</td><td>Associação positiva nesta base.</td></tr>
+            <tr><td><strong>Manteiga ⇒ Pão</strong></td><td>40%</td><td>80%</td><td>1,33</td><td>Mesma coocorrência, confiança maior pela direção.</td></tr>
+            <tr><td><strong>Café ⇒ Leite</strong></td><td>40%</td><td>80%</td><td>0,89</td><td>Confiança alta, mas abaixo da taxa normal de Leite.</td></tr>
+            <tr><td><strong>Pão + Café ⇒ Leite</strong></td><td>30%</td><td>100%</td><td>1,11</td><td>Todos os carrinhos com Pão+Café têm Leite, mas Leite já é muito comum.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">GUARDE ESTA IDEIA</p>
+        <h2>Apriori em uma frase</h2>
+      </div>
+      <div class="ap-keyline" style="font-size:17px">
+        <strong>O Apriori primeiro encontra combinações que aparecem com frequência usando suporte e poda; depois essas combinações viram regras, e confiança e lift ajudam a dizer se a regra é realmente interessante.</strong>
+      </div>
+      <div class="ap-grid-3" style="margin-top:16px">
+        <article class="ap-card"><h3>Suporte</h3><p><strong>“Isso acontece bastante?”</strong><br>Olha para a base inteira.</p></article>
+        <article class="ap-card"><h3>Confiança</h3><p><strong>“Quando A acontece, B aparece quanto?”</strong><br>Olha apenas para casos com A.</p></article>
+        <article class="ap-card"><h3>Lift</h3><p><strong>“Isso é mais do que eu esperaria normalmente?”</strong><br>Compara a regra com a popularidade de B.</p></article>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">IMPLEMENTAÇÃO DO ZERO</p>
+        <h2>O mesmo algoritmo, agora em Python</h2>
+        <p>Este código não chama <code>apriori()</code>, <code>mlxtend</code> nem uma implementação pronta. Observe principalmente os dois laços aninhados: <strong>para cada compra → para cada candidato → verificar se o candidato está dentro da compra → incrementar a contagem</strong>. Depois a contagem vira suporte, os sobreviventes geram novos candidatos e a varredura começa novamente.</p>
+      </div>
+
+      <details class="ap-code" open>
+        <summary>Abrir/fechar implementação completa</summary>
+<pre><code># =========================================================
+# APRIORI DO ZERO — SEM BIBLIOTECA DE MINERAÇÃO
+# =========================================================
+
+transacoes = [
+    {'Pão', 'Manteiga', 'Leite', 'Café'},
+    {'Pão', 'Manteiga', 'Leite'},
+    {'Pão', 'Manteiga', 'Leite', 'Café'},
+    {'Pão', 'Manteiga', 'Leite'},
+    {'Pão', 'Leite', 'Café'},
+    {'Pão', 'Leite'},
+    {'Manteiga', 'Leite'},
+    {'Leite', 'Café'},
+    {'Leite'},
+    {'Café'}
+]
+
+SUPORTE_MINIMO = 0.30
+CONFIANCA_MINIMA = 0.60
+
+
+# ---------------------------------------------------------
+# 1. GERAR COMBINAÇÕES SEM itertools
+# ---------------------------------------------------------
+def combinacoes(lista, tamanho, inicio=0, atual=None):
+    if atual is None:
+        atual = []
+
+    if len(atual) == tamanho:
+        return [atual[:]]
+
+    resultado = []
+
+    for i in range(inicio, len(lista)):
+        atual.append(lista[i])
+        resultado += combinacoes(lista, tamanho, i + 1, atual)
+        atual.pop()
+
+    return resultado
+
+
+# ---------------------------------------------------------
+# 2. CONTAR CANDIDATOS
+# ---------------------------------------------------------
+def contar_candidatos(transacoes, candidatos):
+    contagem = {}
+
+    # Todos começam com zero ocorrências.
+    for candidato in candidatos:
+        contagem[candidato] = 0
+
+    # FOR EXTERNO:
+    # pega UMA compra por vez.
+    for compra in transacoes:
+
+        # FOR INTERNO:
+        # testa TODOS os candidatos nessa compra.
+        for candidato in candidatos:
+
+            # O candidato está INTEIRO dentro da compra?
+            if candidato.issubset(compra):
+                contagem[candidato] += 1
+
+    return contagem
+
+
+# ---------------------------------------------------------
+# 3. TRANSFORMAR CONTAGEM EM SUPORTE E FILTRAR
+# ---------------------------------------------------------
+def filtrar_por_suporte(candidatos, contagem, total_transacoes):
+    frequentes = []
+    suportes = {}
+
+    for candidato in candidatos:
+        suporte = contagem[candidato] / total_transacoes
+        suportes[candidato] = suporte
+
+        if suporte >= SUPORTE_MINIMO:
+            frequentes.append(candidato)
+
+    return frequentes, suportes
+
+
+# ---------------------------------------------------------
+# 4. GERAR OS PRÓXIMOS CANDIDATOS + PODA APRIORI
+# ---------------------------------------------------------
+def gerar_proximos_candidatos(frequentes_anteriores, novo_tamanho):
+    candidatos = set()
+    frequentes_set = set(frequentes_anteriores)
+
+    # Junta sobreviventes dois a dois.
+    for a in frequentes_anteriores:
+        for b in frequentes_anteriores:
+            candidato = a | b
+
+            # Queremos exatamente um item a mais.
+            if len(candidato) != novo_tamanho:
+                continue
+
+            # Antes de aceitar esse candidato, verificamos
+            # todos os subconjuntos com tamanho novo_tamanho - 1.
+            lista = list(candidato)
+            subconjuntos = combinacoes(lista, novo_tamanho - 1)
+
+            pode_testar = True
+
+            for subconjunto_lista in subconjuntos:
+                subconjunto = frozenset(subconjunto_lista)
+
+                # Se algum subconjunto já foi infrequente,
+                # o candidato maior é PODADO sem contar na base.
+                if subconjunto not in frequentes_set:
+                    pode_testar = False
+                    break
+
+            if pode_testar:
+                candidatos.add(frozenset(candidato))
+
+    return list(candidatos)
+
+
+# ---------------------------------------------------------
+# 5. CRIAR OS CANDIDATOS DE 1 ITEM
+# ---------------------------------------------------------
+itens = set()
+
+for compra in transacoes:
+    for item in compra:
+        itens.add(item)
+
+candidatos = []
+
+for item in itens:
+    candidatos.append(frozenset([item]))
+
+
+# ---------------------------------------------------------
+# 6. LOOP PRINCIPAL DO APRIORI
+# ---------------------------------------------------------
+todos_frequentes = []
+suportes_globais = {}
+tamanho = 1
+
+while len(candidatos) > 0:
+    print('\nRODADA', tamanho)
+    print('Candidatos:', [set(c) for c in candidatos])
+
+    # A) percorre todas as compras e conta os candidatos.
+    contagem = contar_candidatos(transacoes, candidatos)
+
+    # B) contagem / número de compras = suporte.
+    frequentes, suportes = filtrar_por_suporte(
+        candidatos,
+        contagem,
+        len(transacoes)
+    )
+
+    for candidato in candidatos:
+        print(
+            set(candidato),
+            'contagem =', contagem[candidato],
+            'suporte =', round(suportes[candidato] * 100, 1), '%'
+        )
+
+    # C) guarda somente os sobreviventes.
+    if len(frequentes) == 0:
+        break
+
+    todos_frequentes += frequentes
+    suportes_globais.update(suportes)
+
+    # D) cria candidatos um item maiores.
+    tamanho += 1
+    candidatos = gerar_proximos_candidatos(
+        frequentes,
+        tamanho
+    )
+
+    # O while volta para o começo.
+    # Os NOVOS candidatos serão novamente testados
+    # contra TODAS as compras.
+
+
+# ---------------------------------------------------------
+# 7. FUNÇÃO DE SUPORTE PARA ITEMSETS JÁ ENCONTRADOS
+# ---------------------------------------------------------
+def suporte(itemset):
+    if itemset in suportes_globais:
+        return suportes_globais[itemset]
+
+    contagem = 0
+
+    for compra in transacoes:
+        if itemset.issubset(compra):
+            contagem += 1
+
+    return contagem / len(transacoes)
+
+
+# ---------------------------------------------------------
+# 8. SÓ AGORA GERAR REGRAS
+# ---------------------------------------------------------
+regras = []
+
+for itemset in todos_frequentes:
+    if len(itemset) < 2:
+        continue
+
+    itens_do_itemset = list(itemset)
+
+    # Testa antecedentes com 1 item, 2 itens, ...
+    for tamanho_antecedente in range(1, len(itemset)):
+        possibilidades = combinacoes(
+            itens_do_itemset,
+            tamanho_antecedente
+        )
+
+        for antecedente_lista in possibilidades:
+            antecedente = frozenset(antecedente_lista)
+            consequente = itemset - antecedente
+
+            suporte_itemset = suporte(itemset)
+            suporte_antecedente = suporte(antecedente)
+            suporte_consequente = suporte(consequente)
+
+            confianca = suporte_itemset / suporte_antecedente
+            lift = confianca / suporte_consequente
+
+            if confianca >= CONFIANCA_MINIMA:
+                regras.append({
+                    'antecedente': antecedente,
+                    'consequente': consequente,
+                    'suporte': suporte_itemset,
+                    'confianca': confianca,
+                    'lift': lift
+                })
+
+
+# ---------------------------------------------------------
+# 9. RESULTADO
+# ---------------------------------------------------------
+print('\nREGRAS ENCONTRADAS')
+
+for regra in regras:
+    print(
+        set(regra['antecedente']),
+        '=>',
+        set(regra['consequente']),
+        '| suporte =', round(regra['suporte'] * 100, 1), '%',
+        '| confiança =', round(regra['confianca'] * 100, 1), '%',
+        '| lift =', round(regra['lift'], 2)
+    )
+</code></pre>
+      </details>
+
+      <div class="ap-grid-3" style="margin-top:16px">
+        <article class="ap-card"><h3>gerar_candidatos()</h3><p>Combina os itemsets frequentes do nível anterior para tentar criar conjuntos um item maiores.</p></article>
+        <article class="ap-card"><h3>Teste Apriori</h3><p>Antes de contar um candidato, verifica se todos os seus subconjuntos de tamanho <em>k−1</em> sobreviveram no nível anterior.</p></article>
+        <article class="ap-card"><h3>while</h3><p>Repete a geração e a filtragem até não existir mais nenhum conjunto frequente maior.</p></article>
+      </div>
+    </section>
+
+    <section class="ap-section">
+      <div class="ap-section-head">
+        <p class="ap-eyebrow">REFERÊNCIAS</p>
+        <h2>Para aprofundar</h2>
+      </div>
+      <div class="ap-card">
+        <p><strong>Agrawal, R.; Srikant, R.</strong> Fast Algorithms for Mining Association Rules. VLDB, 1994.</p>
+        <p><strong>Oracle Machine Learning.</strong> Apriori — avaliação de regras por suporte, confiança e lift.</p>
+        <p><strong>mlxtend.</strong> Association Rules — definições e fórmulas das métricas de regras de associação.</p>
+        <p><strong>IBM.</strong> Apriori Algorithm — visão geral de itemsets frequentes, suporte, confiança e lift.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p>
+  </footer>
+
+  <script>
+    const transactions = [
+      ['Pão','Manteiga','Leite','Café'],
+      ['Pão','Manteiga','Leite'],
+      ['Pão','Manteiga','Leite','Café'],
+      ['Pão','Manteiga','Leite'],
+      ['Pão','Leite','Café'],
+      ['Pão','Leite'],
+      ['Manteiga','Leite'],
+      ['Leite','Café'],
+      ['Leite'],
+      ['Café']
+    ];
+
+    const itemChip = item => `<span class="ap-chip">${item}</span>`;
+
+    function basketHTML(tx, index, cls='') {
+      return `<div class="ap-basket ${cls}" data-index="${index}">
+        <div class="id">Compra ${index + 1}</div>
+        <div>${tx.map(itemChip).join('')}</div>
+      </div>`;
+    }
+
+    function renderSimpleBaskets(target) {
+      target.innerHTML = transactions.map((tx,i) => basketHTML(tx,i)).join('');
+    }
+
+    renderSimpleBaskets(document.getElementById('baseBaskets'));
+
+    const metricBaskets = document.getElementById('metricBaskets');
+    const metricExplain = document.getElementById('metricExplain');
+
+    function hasAll(tx, items) {
+      return items.every(item => tx.includes(item));
+    }
+
+    function renderMetric(metric) {
+      let html = '';
+
+      transactions.forEach((tx, i) => {
+        const hasBread = hasAll(tx,['Pão']);
+        const hasButter = hasAll(tx,['Manteiga']);
+        const hasBoth = hasBread && hasButter;
+        let cls = '';
+
+        if (metric === 'support') cls = hasBoth ? 'hit' : '';
+        if (metric === 'confidence') cls = !hasBread ? 'dim' : (hasBoth ? 'hit' : 'focus');
+        if (metric === 'lift') cls = hasButter ? 'focus' : '';
+
+        html += basketHTML(tx,i,cls);
+      });
+      metricBaskets.innerHTML = html;
+
+      if (metric === 'support') {
+        metricExplain.innerHTML = `
+          <div class="ap-question">Pergunta</div>
+          <h3>Em quantas compras da base inteira os dois aparecem juntos?</h3>
+          <div class="ap-big-number">40%</div>
+          <div class="ap-formula">4 compras com Pão + Manteiga<br>÷ 10 compras totais<br>= <strong>0,40</strong></div>
+          <p>O denominador é <strong>toda a base</strong>. As compras verdes são as quatro que contêm os dois produtos.</p>`;
+      }
+
+      if (metric === 'confidence') {
+        metricExplain.innerHTML = `
+          <div class="ap-question">Pergunta</div>
+          <h3>Entre as compras que já têm Pão, quantas também têm Manteiga?</h3>
+          <div class="ap-big-number">66,7%</div>
+          <div class="ap-formula">4 compras com Pão + Manteiga<br>÷ 6 compras com Pão<br>= <strong>0,667</strong></div>
+          <p>As compras esmaecidas saem do denominador. Agora só interessam as <strong>6 compras que têm Pão</strong>.</p>`;
+      }
+
+      if (metric === 'lift') {
+        metricExplain.innerHTML = `
+          <div class="ap-question">Pergunta</div>
+          <h3>Manteiga aparece mais quando existe Pão do que aparece normalmente?</h3>
+          <div class="ap-big-number">1,33</div>
+          <div class="ap-formula">66,7% de Manteiga quando há Pão<br>÷ 50% de Manteiga na base<br>= <strong>1,33</strong></div>
+          <div class="ap-bars">
+            <div class="ap-bar-row"><span>Taxa normal de Manteiga</span><div class="ap-bar-track"><div class="ap-bar-fill" style="width:50%"></div></div><strong>50%</strong></div>
+            <div class="ap-bar-row"><span>Com Pão</span><div class="ap-bar-track"><div class="ap-bar-fill conditional" style="width:66.7%"></div></div><strong>66,7%</strong></div>
+          </div>`;
+      }
+    }
+
+    document.querySelectorAll('#metricTabs button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('#metricTabs button').forEach(b => b.classList.remove('active'));
+        button.classList.add('active');
+        renderMetric(button.dataset.metric);
+      });
+    });
+    renderMetric('support');
+
+    const ruleMap = {
+      'bread>butter': { a:['Pão'], b:['Manteiga'] },
+      'butter>bread': { a:['Manteiga'], b:['Pão'] },
+      'coffee>milk': { a:['Café'], b:['Leite'] },
+      'bread+coffee>milk': { a:['Pão','Café'], b:['Leite'] },
+      'milk>bread': { a:['Leite'], b:['Pão'] }
+    };
+
+    const ruleSelect = document.getElementById('ruleSelect');
+    const labBaskets = document.getElementById('labBaskets');
+
+    function pct(v) { return (v * 100).toFixed(1).replace('.', ',') + '%'; }
+
+    function updateLab() {
+      const rule = ruleMap[ruleSelect.value];
+      const aLabel = rule.a.join(' + ');
+      const bLabel = rule.b.join(' + ');
+      let countA=0, countB=0, countAB=0;
+
+      const rows = transactions.map((tx,i) => {
+        const hasA = hasAll(tx, rule.a);
+        const hasB = hasAll(tx, rule.b);
+        if (hasA) countA++;
+        if (hasB) countB++;
+        if (hasA && hasB) countAB++;
+        const cls = hasA && hasB ? 'hit' : (hasA ? 'focus' : 'dim');
+        return basketHTML(tx,i,cls);
+      });
+
+      labBaskets.innerHTML = rows.join('');
+      const n = transactions.length;
+      const support = countAB / n;
+      const confidence = countA ? countAB / countA : 0;
+      const supportB = countB / n;
+      const lift = supportB ? confidence / supportB : 0;
+
+      document.getElementById('liveRule').textContent = `${aLabel} ⇒ ${bLabel}`;
+      document.getElementById('liveN').textContent = n;
+      document.getElementById('liveA').textContent = countA;
+      document.getElementById('liveB').textContent = countB;
+      document.getElementById('liveAB').textContent = countAB;
+      document.getElementById('liveFormula').innerHTML = `
+        Suporte = ${countAB}/${n} = <strong>${pct(support)}</strong><br>
+        Confiança = ${countAB}/${countA} = <strong>${pct(confidence)}</strong><br>
+        Lift = ${pct(confidence)} / ${pct(supportB)} = <strong>${lift.toFixed(2).replace('.', ',')}</strong>`;
+
+      let msg;
+      if (lift > 1.05) {
+        msg = `<strong>Associação positiva:</strong> ${bLabel} aparece proporcionalmente mais nas transações com ${aLabel} do que na base em geral.`;
+      } else if (lift < 0.95) {
+        msg = `<strong>Associação negativa nesta base:</strong> apesar da confiança, ${bLabel} aparece proporcionalmente menos quando há ${aLabel} do que aparece normalmente.`;
+      } else {
+        msg = `<strong>Próximo da independência:</strong> saber que existe ${aLabel} quase não altera a frequência esperada de ${bLabel}.`;
+      }
+      document.getElementById('liveInterpretation').innerHTML = msg;
+    }
+
+    ruleSelect.addEventListener('change', updateLab);
+    updateLab();
+  </script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js">
+
+    // ================================================================
+    // VISUALIZAÇÃO: O QUE ACONTECE DENTRO DOS FORS
+    // ================================================================
+    const loopRounds = {
+      1: [
+        ['Pão'], ['Manteiga'], ['Leite'], ['Café']
+      ],
+      2: [
+        ['Pão','Manteiga'],
+        ['Pão','Leite'],
+        ['Pão','Café'],
+        ['Manteiga','Leite'],
+        ['Manteiga','Café'],
+        ['Leite','Café']
+      ]
+    };
+
+    let loopRound = 1;
+    let loopTransactionIndex = 0;
+    let loopCandidateIndex = 0;
+    let loopCounts = {};
+    let loopFinished = false;
+
+    function loopKey(items) {
+      return items.join(' + ');
+    }
+
+    function resetLoopSimulation(round = loopRound) {
+      loopRound = round;
+      loopTransactionIndex = 0;
+      loopCandidateIndex = 0;
+      loopFinished = false;
+      loopCounts = {};
+
+      loopRounds[loopRound].forEach(candidate => {
+        loopCounts[loopKey(candidate)] = 0;
+      });
+
+      document.querySelectorAll('[data-loop-round]').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.loopRound) === loopRound);
+      });
+
+      document.getElementById('loopQuestion').textContent = 'Clique em “Avançar uma comparação”.';
+      const answer = document.getElementById('loopAnswer');
+      answer.textContent = '';
+      answer.className = 'ap-loop-answer';
+      document.getElementById('loopSummary').innerHTML = loopRound === 1
+        ? 'Rodada 1: cada candidato possui <strong>1 item</strong>. O algoritmo verificará Pão, Manteiga, Leite e Café em cada compra.'
+        : 'Rodada 2: cada candidato possui <strong>2 itens</strong>. Para contar, os dois itens precisam aparecer juntos na mesma compra.';
+
+      updateLoopView();
+    }
+
+    function updateLoopView() {
+      const transaction = transactions[Math.min(loopTransactionIndex, transactions.length - 1)] || [];
+      const candidates = loopRounds[loopRound];
+      const candidate = candidates[Math.min(loopCandidateIndex, candidates.length - 1)] || [];
+
+      document.getElementById('loopTransaction').textContent = loopFinished
+        ? 'Varredura concluída'
+        : `Compra ${loopTransactionIndex + 1}: {${transaction.join(', ')}}`;
+
+      document.getElementById('loopCandidate').textContent = loopFinished
+        ? '—'
+        : `{${candidate.join(', ')}}`;
+
+      const counters = document.getElementById('loopCounters');
+      counters.innerHTML = candidates.map((items, index) => {
+        const key = loopKey(items);
+        const count = loopCounts[key] || 0;
+        const support = loopFinished ? `${((count / transactions.length) * 100).toFixed(0)}%` : '—';
+        const current = !loopFinished && index === loopCandidateIndex ? ' current' : '';
+        return `<div class="ap-counter-row${current}">
+          <strong>{${items.join(', ')}}</strong>
+          <span class="count">${count}</span>
+          <span class="support">${support}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function stepLoopSimulation() {
+      if (loopFinished) return;
+
+      const candidates = loopRounds[loopRound];
+      const transaction = transactions[loopTransactionIndex];
+      const candidate = candidates[loopCandidateIndex];
+      const key = loopKey(candidate);
+      const hit = hasAll(transaction, candidate);
+
+      document.getElementById('loopQuestion').innerHTML = `Todos os itens de <strong>{${candidate.join(', ')}}</strong> estão na Compra ${loopTransactionIndex + 1}?`;
+
+      const answer = document.getElementById('loopAnswer');
+      if (hit) {
+        loopCounts[key] += 1;
+        answer.textContent = `SIM → contagem de {${candidate.join(', ')}} recebe +1`;
+        answer.className = 'ap-loop-answer yes';
+      } else {
+        answer.textContent = `NÃO → a contagem de {${candidate.join(', ')}} não muda`;
+        answer.className = 'ap-loop-answer no';
+      }
+
+      loopCandidateIndex += 1;
+
+      if (loopCandidateIndex >= candidates.length) {
+        loopCandidateIndex = 0;
+        loopTransactionIndex += 1;
+      }
+
+      if (loopTransactionIndex >= transactions.length) {
+        loopFinished = true;
+        const survivors = candidates.filter(items => {
+          const support = loopCounts[loopKey(items)] / transactions.length;
+          return support >= 0.30;
+        });
+
+        document.getElementById('loopSummary').innerHTML = `
+          <strong>Fim da varredura.</strong> Agora, e somente agora, fazemos
+          <code>suporte = contagem ÷ 10</code>. Com suporte mínimo de 30%, sobrevivem:
+          <strong>${survivors.map(items => `{${items.join(', ')}}`).join(', ') || 'nenhum candidato'}</strong>.
+        `;
+      }
+
+      updateLoopView();
+    }
+
+    document.querySelectorAll('[data-loop-round]').forEach(button => {
+      button.addEventListener('click', () => resetLoopSimulation(Number(button.dataset.loopRound)));
+    });
+
+    document.getElementById('loopNextBtn').addEventListener('click', stepLoopSimulation);
+    document.getElementById('loopResetBtn').addEventListener('click', () => resetLoopSimulation(loopRound));
+    resetLoopSimulation(1);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aprendizagem Não Supervisionada | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/learning-theory.css">
+  <link rel="stylesheet" href="../../css/supervised-algorithms.css">
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs'; 
+    mermaid.initialize({ startOnLoad: true });
+  </script>
+</head>
+<body>
+<header class="site-header"></header>
+<main class="learning-page">
+  
+  <section class="learning-hero">
+    <div>
+      <p class="eyebrow">APRENDIZAGEM NÃO SUPERVISIONADA</p>
+      <h1>Aprender explorando os dados sem um gabarito.</h1>
+      <p>Diferente da aprendizagem supervisionada, aqui não há um "alvo" (y) ou um professor para corrigir o modelo. O algoritmo recebe apenas as entradas (x) e sua missão é descobrir padrões, grupos ou regras ocultas por conta própria.</p>
+      <a class="button" href="#a-analogia">Acompanhar o processo ↓</a>
+    </div>
+    <div class="learning-hero-visual">
+      <article><b>x · entradas</b><span>Características brutas que descrevem uma amostra.</span></article>
+      <article><b>? · sem alvo</b><span>O modelo deve encontrar a estrutura sozinho.</span></article>
+      <article><b>Estrutura</b><span>Grupos, regras ou resumos criados pelo algoritmo.</span></article>
+    </div>
+  </section>
+
+  <section class="learning-section" id="a-analogia">
+    <header class="narrative-head">
+      <p class="eyebrow">01 · A INTUIÇÃO</p>
+      <h2>A analogia da "Caixa Misturada".</h2>
+    </header>
+    <div class="problem-grid" style="grid-template-columns: 1fr;">
+      <article class="problem-card" style="padding: 30px;">
+        <p style="font-size: 1.1rem; line-height: 1.6;">Imagine que você receba uma caixa enorme e bagunçada, cheia de objetos misturados: <strong>moedas, botões, chaves e clipes de papel</strong>. Ninguém te deu instruções de como separá-los e os objetos não possuem etiquetas com seus nomes.</p>
+        <p style="font-size: 1.1rem; line-height: 1.6; margin-top: 15px;">Sem um "professor" para te dizer o que é cada coisa, você instintivamente começaria a observar as características físicas (as variáveis <em>x</em>). Rapidamente, você juntaria os objetos metálicos e redondos de um lado (moedas), e os objetos plásticos com furos do outro (botões).</p>
+        <div class="learning-note" style="margin-top: 20px;">
+          <b>A Lição:</b> É exatamente assim que a Aprendizagem Não Supervisionada funciona. O algoritmo recebe os dados crus e pergunta: <em>"Qual estrutura matemática eu consigo encontrar aqui dentro?"</em> ao invés de perguntar <em>"Isso é uma moeda ou um botão?"</em>.
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <header class="narrative-head">
+      <p class="eyebrow">02 · TRÊS TIPOS DE PROBLEMA</p>
+      <h2>O que o algoritmo pode descobrir?</h2>
+    </header>
+    <div class="problem-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <article class="problem-card">
+        <h3>Clustering (Agrupamento)</h3>
+        <p>O algoritmo procura "panelinhas" ou grupos naturais. Elementos dentro de um grupo devem ser muito parecidos, e diferentes dos demais.</p>
+        <div class="equation">Ex: Google News agrupando<br>notícias do mesmo evento.</div>
+      </article>
+      <article class="problem-card">
+        <h3>Redução de Dimensionalidade</h3>
+        <p>O algoritmo "esmaga" e simplifica dados complexos, eliminando variáveis repetitivas e mantendo apenas a essência.</p>
+        <div class="equation">Ex: Compactação de imagens<br>ou visualização de dados 3D.</div>
+      </article>
+      <article class="problem-card">
+        <h3>Regras de Associação</h3>
+        <p>O algoritmo age como um detetive, descobrindo itens que frequentemente ocorrem juntos no mesmo evento.</p>
+        <div class="equation">Ex: Quem compra Fralda,<br>costuma comprar Cerveja.</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="learning-section">
+    <header class="narrative-head">
+      <p class="eyebrow">03 · APLICAÇÕES PRÁTICAS</p>
+      <h2>Onde usamos no mundo real?</h2>
+      <p>Esses algoritmos brilham quando rotular dados humanos é caro, demorado ou impossível.</p>
+    </header>
+    <div class="example-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Entradas brutas (x)</th>
+            <th>Padrão Descoberto</th>
+            <th>Pilar utilizado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Histórico de compras de 100.000 clientes</td>
+            <td>Segmentos: "Caçadores de Promoção" e "Fiéis de Alto Luxo"</td>
+            <td>Clustering</td>
+          </tr>
+          <tr>
+            <td>Transações normais de cartão de crédito</td>
+            <td>"Esta transação foge do grupo normal" (Fraude)</td>
+            <td>Clustering (Detecção de Anomalia)</td>
+          </tr>
+          <tr>
+            <td>Carrinhos de compra de um supermercado</td>
+            <td>Regra: "Se comprou celular, tem 80% de chance de levar capinha"</td>
+            <td>Associação</td>
+          </tr>
+          <tr>
+            <td>Exames de sangue com 50 variáveis hormonais</td>
+            <td>Resumo das 50 variáveis em apenas 2 componentes visuais</td>
+            <td>Redução de Dimensionalidade</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="learning-section supervised-algorithms" id="algoritmos-classicos">
+    <header class="narrative-head">
+      <p class="eyebrow">04 · ALGORITMOS CLÁSSICOS</p>
+      <h2>Nossos próximos passos práticos.</h2>
+      <p>Vamos mergulhar em três dos algoritmos mais consagrados do aprendizado não supervisionado, com exemplos passo a passo e atividades interativas.</p>
+    </header>
+    <div class="supervised-algorithm-grid">
+      <article class="supervised-algorithm-card classification-family">
+        <div class="algorithm-card-top"><span>01</span><em>CLUSTERING</em></div>
+        <h3>K-Means</h3>
+        <p><strong>Como funciona:</strong> Agrupa dados em K grupos pré-definidos baseando-se na distância matemática (similaridade) entre eles.</p>
+        <a href="./k-means.html">Estudar K-Means →</a>
+      </article>
+      <article class="supervised-algorithm-card regression-family">
+        <div class="algorithm-card-top"><span>02</span><em>REDUÇÃO</em></div>
+        <h3>PCA</h3>
+        <p><strong>Como funciona:</strong> (Principal Component Analysis) Transforma variáveis altamente correlacionadas em componentes independentes cruciais.</p>
+        <a href="./pca.html">Estudar PCA →</a>
+      </article>
+      <article class="supervised-algorithm-card mixed-family">
+        <div class="algorithm-card-top"><span>03</span><em>ASSOCIAÇÃO</em></div>
+        <h3>Apriori</h3>
+        <p><strong>Como funciona:</strong> Baseado em métricas de "Suporte" e "Confiança", varre bases de dados gigantescas buscando eventos simultâneos.</p>
+        <a href="./apriori.html">Estudar Apriori →</a>
+      </article>
+    </div>
+  </section>
+
+</main>
+<footer class="site-footer">
+  <div class="footer-sources">
+    <strong>Dica de Estudo:</strong> Siga a ordem dos cards acima para construir seu conhecimento passo a passo.
+  </div>
+  <p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p>
+</footer>
+<script src="../../js/navigation.js"></script>
+</body>
+</html>

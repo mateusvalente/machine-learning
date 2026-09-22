@@ -180,6 +180,15 @@
       ]
     },
     {
+      titulo: 'APRENDIZAGEM NÃO SUPERVISIONADA',
+      itens: [
+        { icone: 'fa-chalkboard-user', titulo: 'Introdução aos Pilares', caminho: 'pages/aprendizagem-nao-supervisionada/introducao.html' },
+        { icone: 'fa-object-group', titulo: 'K-Means', caminho: 'pages/aprendizagem-nao-supervisionada/k-means.html' },
+        { icone: 'fa-compress', titulo: 'PCA', caminho: 'pages/aprendizagem-nao-supervisionada/pca.html' },
+        { icone: 'fa-link', titulo: 'Apriori', caminho: 'pages/aprendizagem-nao-supervisionada/apriori.html' }
+      ]
+    },
+    {
       titulo: 'ATIVIDADES',
       itens: [
         {

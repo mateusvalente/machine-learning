@@ -27,6 +27,9 @@
         <article><b>02 · Limpeza</b><span>Converta uma tabela inconsistente em dados de treino.</span></article>
         <article><b>03 · WAF</b><span>Classifique requisições antes que cheguem ao PHP.</span></article>
         <article><b>04 · Métricas</b><span>Justifique a qualidade e os riscos da decisão.</span></article>
+        <article><b>05 · K-Means</b><span>Agrupe clientes de e-commerce e tome decisões.</span></article>
+        <article><b>06 · PCA</b><span>Reduza dados de 15 sensores industriais.</span></article>
+        <article><b>07 · Apriori</b><span>Descubra regras de compra em uma padaria.</span></article>
       </div>
     </section>
 
@@ -93,6 +96,55 @@
           <section class="activity-card"><h3>Entrega final</h3><ul><li>Uma tabela com as métricas para cada modelo.</li><li>A matriz de confusão identificando VP, VN, FP e FN.</li><li>O limiar usado e por que ele foi escolhido.</li><li>Três exemplos de erro e uma hipótese para cada um.</li><li>Uma decisão de melhoria: mais dados, atributos melhores, limpeza, arquitetura ou ajuste de limiar.</li></ul></section>
         </div>
         <div class="activity-downloads"><a class="primary" href="../aprendizagem-supervisionada/matriz-confusao.html"><i class="fa-solid fa-table-cells"></i> Abrir matriz de confusão</a><a href="../aprendizagem-supervisionada/f1-score.html"><i class="fa-solid fa-scale-balanced"></i> Revisar F1-score</a></div>
+      </div>
+    </article>
+
+    <article class="challenge" id="atividade-kmeans">
+      <div class="challenge-number">05</div>
+      <div>
+        <p class="eyebrow">CLUSTERIZAÇÃO K-MEANS</p>
+        <h2>Faça a segmentação de clientes de um e-commerce.</h2>
+        <p class="challenge-lead">Utilize o algoritmo K-Means para agrupar clientes baseando-se na idade, renda e pontuação de gastos, sem utilizar rótulos pré-existentes. O objetivo é criar estratégias de marketing personalizadas.</p>
+        <div class="challenge-grid">
+          <section class="activity-card"><h3>Requisitos mínimos</h3><ol><li>Carregue o dataset <code>ecommerce_kmeans.csv</code> e descarte o ID.</li><li>Use o Método do Cotovelo (Elbow Method) para provar o número ideal de K.</li><li>Treine o K-Means com o número K escolhido.</li><li>Plote um gráfico de dispersão colorindo os pontos pelos clusters gerados.</li><li>Descreva um perfil de marketing para cada cluster (Ex: "Foco em cupons").</li></ol></section>
+          <section class="activity-card emphasis"><h3>Entrega</h3><p>Entregue o Jupyter Notebook com a visualização dos grupos, o gráfico do Cotovelo que justificou a escolha matemática do K, e um parágrafo defendendo qual campanha de marketing deve ser ativada para cada grupo descoberto.</p></section>
+        </div>
+        <div class="activity-downloads">
+          <a class="primary" download href="../../assets/datasets/ecommerce_kmeans.csv"><i class="fa-solid fa-download"></i> Baixar ecommerce_kmeans.csv</a>
+          <a href="../aprendizagem-nao-supervisionada/k-means.html"><i class="fa-solid fa-book-open"></i> Revisar a teoria e laboratório K-Means</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="challenge" id="atividade-pca">
+      <div class="challenge-number">06</div>
+      <div>
+        <p class="eyebrow">REDUÇÃO DE DIMENSIONALIDADE (PCA)</p>
+        <h2>Reduza dados de 15 sensores industriais para 2D.</h2>
+        <p class="challenge-lead">Imagine que você está monitorando uma máquina complexa através de 15 sensores, o que torna a visualização impossível em telas normais. Use o PCA para condensar toda essa variação em apenas 2 eixos principais (Componentes).</p>
+        <div class="challenge-grid">
+          <section class="activity-card"><h3>Requisitos mínimos</h3><ol><li>Carregue o dataset <code>sensores_pca.csv</code>.</li><li>Padronize os dados (StandardScaler), pois o PCA é sensível à escala.</li><li>Aplique o PCA pedindo 2 componentes (n_components=2).</li><li>Avalie o <code>explained_variance_ratio_</code> para ver quanta informação foi retida.</li><li>Crie um gráfico 2D mostrando o estado dos sensores.</li></ol></section>
+        </div>
+        <div class="activity-downloads">
+          <a class="primary" download href="../../assets/datasets/sensores_pca.csv"><i class="fa-solid fa-download"></i> Baixar sensores_pca.csv</a>
+          <a href="../aprendizagem-nao-supervisionada/pca.html"><i class="fa-solid fa-book-open"></i> Revisar a teoria do PCA</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="challenge" id="atividade-apriori">
+      <div class="challenge-number">07</div>
+      <div>
+        <p class="eyebrow">REGRAS DE ASSOCIAÇÃO (APRIORI)</p>
+        <h2>Descubra produtos vendidos juntos em uma padaria.</h2>
+        <p class="challenge-lead">Se um cliente comprar pão, qual a probabilidade de ele comprar manteiga? Aplique o algoritmo Apriori para minerar regras de associação no histórico de cupons fiscais e organize melhor as prateleiras.</p>
+        <div class="challenge-grid">
+          <section class="activity-card"><h3>Requisitos mínimos</h3><ol><li>Carregue o dataset <code>padaria_apriori.csv</code>, que possui itens separados por vírgula.</li><li>Converta a lista de strings para o formato aceito pelo Apriori (One-Hot Encoding das cestas).</li><li>Gere conjuntos de itens frequentes pedindo um suporte mínimo de 0.2 (20%).</li><li>Gere as regras de associação filtrando por Confiança mínima de 0.6 (60%).</li><li>Liste as Top 3 regras pelo índice Lift e justifique onde você colocaria esses produtos na loja.</li></ol></section>
+        </div>
+        <div class="activity-downloads">
+          <a class="primary" download href="../../assets/datasets/padaria_apriori.csv"><i class="fa-solid fa-download"></i> Baixar padaria_apriori.csv</a>
+          <a href="../aprendizagem-nao-supervisionada/apriori.html"><i class="fa-solid fa-book-open"></i> Revisar a teoria do Apriori</a>
+        </div>
       </div>
     </article>
 

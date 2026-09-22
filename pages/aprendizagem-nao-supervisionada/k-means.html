@@ -1,0 +1,2002 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>K-Means — laboratório didático | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/classical-models.css">
+  <style>
+    :root {
+      --km-bg: #f6f8fc;
+      --km-surface: #ffffff;
+      --km-surface-soft: #f8fafc;
+      --km-text: #142033;
+      --km-muted: #5e6b7f;
+      --km-line: #dde4ef;
+      --km-blue: #2563eb;
+      --km-blue-soft: #eaf1ff;
+      --km-indigo: #4f46e5;
+      --km-green: #059669;
+      --km-amber: #d97706;
+      --km-red: #dc2626;
+      --km-violet: #7c3aed;
+      --km-shadow: 0 18px 50px rgba(28, 39, 64, .08);
+      --km-radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--km-bg); color: var(--km-text); }
+
+    .km-page {
+      width: min(1220px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 72px;
+    }
+
+    .km-hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(280px, .55fr);
+      gap: 28px;
+      padding: 44px;
+      background:
+        radial-gradient(circle at 86% 12%, rgba(96,165,250,.24), transparent 24%),
+        radial-gradient(circle at 72% 90%, rgba(124,58,237,.13), transparent 28%),
+        linear-gradient(135deg, #ffffff 0%, #f7faff 58%, #eef4ff 100%);
+      border: 1px solid var(--km-line);
+      border-radius: 28px;
+      box-shadow: var(--km-shadow);
+    }
+
+    .km-eyebrow {
+      margin: 0 0 10px;
+      color: var(--km-blue);
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .km-hero h1 {
+      margin: 0;
+      font-size: clamp(42px, 7vw, 74px);
+      line-height: .96;
+      letter-spacing: -.055em;
+      color: #0f1f38;
+    }
+
+    .km-hero .lead {
+      margin: 22px 0 0;
+      max-width: 760px;
+      font-size: clamp(17px, 2vw, 21px);
+      line-height: 1.65;
+      color: #3e4c63;
+    }
+
+    .km-hero .lead strong { color: #15233b; }
+
+    .km-hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .km-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      border: 1px solid #cfdcf3;
+      background: rgba(255,255,255,.8);
+      color: #304563;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .km-hero-map {
+      display: grid;
+      align-content: center;
+      gap: 12px;
+      min-height: 260px;
+      padding: 24px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(203,213,225,.86);
+      border-radius: 22px;
+      backdrop-filter: blur(8px);
+    }
+
+    .km-map-step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      align-items: center;
+      color: #334155;
+      font-size: 14px;
+    }
+
+    .km-map-step span:first-child {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #eff4ff;
+      color: var(--km-blue);
+      border: 1px solid #cfddff;
+      font-weight: 850;
+    }
+
+    .km-section { margin-top: 30px; }
+    .km-panel {
+      background: var(--km-surface);
+      border: 1px solid var(--km-line);
+      border-radius: var(--km-radius);
+      box-shadow: 0 10px 35px rgba(28,39,64,.05);
+    }
+
+    .km-section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+
+    .km-section-head > div { max-width: 850px; }
+    .km-section-head h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: -.035em;
+      line-height: 1.08;
+      color: #13213a;
+    }
+    .km-section-head p {
+      margin: 10px 0 0;
+      color: var(--km-muted);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    .km-grid-3,
+    .km-grid-2,
+    .km-math-grid,
+    .km-lab-grid,
+    .km-compare-grid {
+      display: grid;
+      gap: 16px;
+    }
+    .km-grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .km-grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .km-math-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .km-lab-grid { grid-template-columns: minmax(0, 1.7fr) minmax(310px, .7fr); }
+    .km-compare-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
+
+    .km-card {
+      padding: 24px;
+      background: var(--km-surface);
+      border: 1px solid var(--km-line);
+      border-radius: 18px;
+    }
+    .km-card h3 { margin: 0 0 9px; font-size: 19px; color: #17243a; }
+    .km-card p { margin: 0; color: var(--km-muted); line-height: 1.62; }
+    .km-card ul { margin: 14px 0 0 18px; padding: 0; color: var(--km-muted); line-height: 1.65; }
+    .km-card li + li { margin-top: 7px; }
+
+    .km-concept-number {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      margin-bottom: 14px;
+      border-radius: 10px;
+      background: var(--km-blue-soft);
+      color: var(--km-blue);
+      font-weight: 900;
+    }
+
+    .km-keyline {
+      margin: 18px 0 0;
+      padding: 16px 18px;
+      border-left: 4px solid var(--km-blue);
+      background: #f4f7ff;
+      border-radius: 0 14px 14px 0;
+      color: #354762;
+      line-height: 1.65;
+    }
+
+    .km-lab { padding: 20px; }
+    .km-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .km-field { display: grid; gap: 6px; }
+    .km-field label,
+    .km-label {
+      font-size: 11px;
+      font-weight: 850;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #627087;
+    }
+
+    .km-field select,
+    .km-button {
+      min-height: 42px;
+      border-radius: 10px;
+      border: 1px solid #cad5e5;
+      background: #fff;
+      color: #203047;
+      font: inherit;
+    }
+    .km-field select { padding: 0 34px 0 12px; }
+
+    .km-button {
+      padding: 0 15px;
+      cursor: pointer;
+      font-weight: 760;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .km-button:hover { transform: translateY(-1px); border-color: #9fb4d7; }
+    .km-button.primary { background: var(--km-blue); color: white; border-color: var(--km-blue); }
+    .km-button.soft { background: #f6f8fc; }
+
+    .km-stagebar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin: 12px 0 16px;
+    }
+    .km-stage {
+      padding: 11px 10px;
+      border-radius: 10px;
+      background: #f7f9fc;
+      border: 1px solid #e2e8f0;
+      color: #69778c;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+    .km-stage.active { background: #edf3ff; border-color: #bcd0ff; color: #2157c8; }
+    .km-stage.done { background: #eefbf5; border-color: #b9ecd3; color: #047857; }
+
+    .km-canvas-wrap {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid #d8e1ee;
+      border-radius: 14px;
+      background: #fbfcfe;
+    }
+    #kmeansCanvas { display: block; width: 100%; height: 480px; }
+
+    .km-canvas-legend {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .km-legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(203,213,225,.9);
+      color: #4f5d72;
+      font-size: 11px;
+      font-weight: 750;
+      backdrop-filter: blur(6px);
+    }
+    .km-dot { width: 9px; height: 9px; border-radius: 50%; background: #8795aa; }
+    .km-square { width: 10px; height: 10px; border: 2px solid #162033; background: #fff; }
+
+    .km-side {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .km-sidebox {
+      padding: 17px;
+      background: #fbfcfe;
+      border: 1px solid #dce4ef;
+      border-radius: 14px;
+    }
+    .km-sidebox h3 { margin: 0 0 8px; font-size: 15px; }
+    .km-sidebox p { margin: 0; color: var(--km-muted); font-size: 13.5px; line-height: 1.55; }
+    .km-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 10px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #fff7df;
+      border: 1px solid #f5dda0;
+      color: #8a5b00;
+      font-size: 11px;
+      font-weight: 850;
+    }
+    .km-status.ok { background: #ecfdf5; border-color: #b7ead2; color: #047857; }
+
+    .km-metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .km-metric {
+      padding: 11px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+    }
+    .km-metric small { display: block; color: #78859a; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; }
+    .km-metric strong { display: block; margin-top: 3px; font-size: 17px; color: #24334a; }
+
+    .km-calc {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #dbeafe;
+      background: #172033;
+      border: 1px solid #26354f;
+      border-radius: 12px;
+      padding: 14px;
+      max-height: 270px;
+      overflow: auto;
+    }
+    .km-calc .muted { color: #94a3b8; }
+    .km-calc .hi { color: #fde68a; }
+    .km-calc .good { color: #86efac; }
+
+    .km-formula-card {
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+      background: linear-gradient(180deg, #fff, #fafcff);
+      border: 1px solid #dce5f1;
+      border-radius: 18px;
+    }
+    .km-formula-card::before {
+      content: attr(data-step);
+      position: absolute;
+      right: 18px;
+      top: 14px;
+      font-size: 42px;
+      font-weight: 900;
+      color: #edf2f8;
+    }
+    .km-formula-card h3 { margin: 0 0 12px; font-size: 18px; }
+    .km-formula {
+      margin: 12px 0;
+      padding: 16px;
+      overflow-x: auto;
+      background: #13213a;
+      color: #f8fafc;
+      border-radius: 12px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 19px;
+      line-height: 1.55;
+      letter-spacing: .01em;
+    }
+    .km-formula .sym { color: #93c5fd; font-weight: 700; }
+    .km-formula-note { color: var(--km-muted); line-height: 1.6; font-size: 14px; }
+    .km-symbols { display: grid; gap: 9px; margin-top: 13px; }
+    .km-symbol { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: baseline; }
+    .km-symbol code { color: #1d4ed8; font-weight: 800; font-size: 14px; }
+    .km-symbol span { color: #64748b; font-size: 13.5px; line-height: 1.5; }
+
+    .km-example {
+      padding: 22px;
+      background: #f5f8ff;
+      border: 1px solid #d8e4ff;
+      border-radius: 16px;
+    }
+    .km-example h3 { margin: 0 0 10px; }
+    .km-example p { color: #516078; line-height: 1.65; }
+    .km-example-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-top: 12px; }
+    .km-example-grid > div { padding: 14px; background: white; border: 1px solid #dde6f4; border-radius: 12px; }
+
+    .km-mini-chart {
+      width: 100%;
+      min-height: 240px;
+      background: #fbfcfe;
+      border: 1px solid #dde5f0;
+      border-radius: 14px;
+      padding: 12px;
+    }
+    #elbowSvg { width: 100%; height: 240px; display: block; }
+
+    .km-score {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid #dfe6f0;
+      border-radius: 12px;
+      background: #fff;
+    }
+    .km-score strong { font-size: 30px; color: #163d84; }
+    .km-score p { margin: 0; color: var(--km-muted); line-height: 1.5; font-size: 13.5px; }
+
+    .km-warning {
+      padding: 18px;
+      border: 1px solid #f0d7ac;
+      border-radius: 15px;
+      background: #fffaf1;
+    }
+    .km-warning h3 { color: #8a5b00; }
+
+    .km-code-tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+    .km-tab {
+      padding: 8px 12px;
+      border-radius: 9px;
+      border: 1px solid #ccd6e5;
+      background: #fff;
+      color: #44546b;
+      font-weight: 760;
+      cursor: pointer;
+    }
+    .km-tab.active { background: #eaf1ff; color: #1d4ed8; border-color: #b9ceff; }
+    .km-code-window { overflow: hidden; border-radius: 14px; border: 1px solid #25344e; background: #101827; }
+    .km-codebar { display: flex; justify-content: space-between; padding: 10px 14px; background: #172033; color: #aebbd0; font-size: 12px; }
+    .km-code-window pre { margin: 0; padding: 18px; overflow: auto; color: #d9e4f2; line-height: 1.6; font-size: 13px; }
+    .km-code-window code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .km-source-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding-left: 20px;
+      color: #56647a;
+      line-height: 1.55;
+    }
+    .km-source-list a { color: #1d4ed8; }
+
+    .km-footer-note { margin-top: 20px; color: #718096; font-size: 12px; line-height: 1.55; }
+
+    @media (max-width: 980px) {
+      .km-hero, .km-lab-grid, .km-grid-3, .km-compare-grid { grid-template-columns: 1fr; }
+      .km-grid-2, .km-math-grid { grid-template-columns: 1fr; }
+      .km-hero { padding: 30px; }
+      .km-hero-map { min-height: 0; }
+    }
+    @media (max-width: 640px) {
+      .km-page { width: min(100% - 18px, 1220px); padding-top: 12px; }
+      .km-hero { padding: 24px 20px; border-radius: 20px; }
+      .km-card, .km-formula-card { padding: 19px; }
+      .km-stagebar { grid-template-columns: 1fr 1fr; }
+      #kmeansCanvas { height: 390px; }
+      .km-controls { align-items: stretch; }
+      .km-field { flex: 1 1 140px; }
+      .km-button { flex: 1 1 150px; }
+      .km-example-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header"></header>
+
+  <main class="km-page">
+    <section class="km-hero">
+      <div>
+        <p class="km-eyebrow">Aprendizagem não supervisionada · laboratório visual</p>
+        <h1>K-Means,<br>do zero.</h1>
+        <p class="lead">
+          Entenda <strong>o que o algoritmo procura</strong>, como ele mede distância, por que os centróides se movem,
+          o que significa convergir e como avaliar se os grupos encontrados realmente fazem sentido.
+        </p>
+        <div class="km-hero-tags">
+          <span class="km-tag">sem rótulos Y</span>
+          <span class="km-tag">distância Euclidiana</span>
+          <span class="km-tag">centróides</span>
+          <span class="km-tag">inércia / WCSS</span>
+          <span class="km-tag">k-means++</span>
+        </div>
+      </div>
+
+      <aside class="km-hero-map" aria-label="Roteiro de aprendizagem">
+        <p class="km-eyebrow" style="margin-bottom:2px">Roteiro mental</p>
+        <div class="km-map-step"><span>1</span><div><strong>Representar</strong><br>dados como pontos em um espaço de atributos.</div></div>
+        <div class="km-map-step"><span>2</span><div><strong>Medir</strong><br>qual centróide está mais perto.</div></div>
+        <div class="km-map-step"><span>3</span><div><strong>Agrupar</strong><br>cada ponto ao centróide mais próximo.</div></div>
+        <div class="km-map-step"><span>4</span><div><strong>Recalcular</strong><br>cada centróide como a média do seu grupo.</div></div>
+        <div class="km-map-step"><span>5</span><div><strong>Repetir</strong><br>até o sistema estabilizar.</div></div>
+      </aside>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Antes do algoritmo</p>
+          <h2>O que o K-Means está tentando descobrir?</h2>
+          <p>Ele recebe apenas os atributos <strong>X</strong>. Não existem classes corretas previamente informadas. O objetivo é criar <strong>K grupos compactos</strong> em que os pontos fiquem, tanto quanto possível, próximos do centro do próprio grupo.</p>
+        </div>
+      </div>
+
+      <div class="km-grid-3">
+        <article class="km-card">
+          <span class="km-concept-number">K</span>
+          <h3>Quantos grupos?</h3>
+          <p><strong>K</strong> é a quantidade de clusters que desejamos formar. O algoritmo não “descobre K sozinho” na versão clássica: esse valor precisa ser escolhido ou avaliado externamente.</p>
+        </article>
+        <article class="km-card">
+          <span class="km-concept-number">μ</span>
+          <h3>O que é um centróide?</h3>
+          <p>É o vetor médio dos pontos de um cluster. Ele representa o “centro matemático” do grupo e <strong>não precisa coincidir com um ponto real do conjunto de dados</strong>.</p>
+        </article>
+        <article class="km-card">
+          <span class="km-concept-number">J</span>
+          <h3>O que significa “bom agrupamento”?</h3>
+          <p>O K-Means procura reduzir a <strong>soma das distâncias quadráticas</strong> de cada ponto ao centróide do seu cluster. Essa quantidade é chamada de inércia, SSE ou WCSS.</p>
+        </article>
+      </div>
+
+      <div class="km-keyline">
+        <strong>Ideia central:</strong> o algoritmo alterna duas decisões simples — “qual centróide é o mais próximo?” e “onde fica a média deste grupo?” — até que repetir essas duas decisões praticamente não altere mais a solução.
+      </div>
+
+      <div class="km-section-head" style="margin-top:34px">
+        <div>
+          <p class="km-eyebrow">A dúvida mais importante</p>
+          <h2>Se eu já formei o cluster, por que mover o centróide?</h2>
+          <p>Porque o primeiro cluster <strong>não é definitivo</strong>. Ele foi criado usando centróides que ainda eram apenas palpites iniciais. O K-Means alterna entre duas perguntas diferentes.</p>
+        </div>
+      </div>
+
+      <div class="km-grid-2">
+        <article class="km-card">
+          <span class="km-concept-number">A</span>
+          <h3>Com os centróides fixos: quem pertence a quem?</h3>
+          <p>Primeiro, os centróides ficam parados. Cada ponto escolhe o centróide mais próximo. Isso produz <strong>clusters provisórios</strong>.</p>
+          <div class="km-formula" style="font-size:17px">cᵢ = arg minⱼ ||xᵢ − μⱼ||²</div>
+          <p>Enquanto os centróides estão fixos, essa escolha é a melhor atribuição possível para cada ponto.</p>
+        </article>
+
+        <article class="km-card">
+          <span class="km-concept-number">B</span>
+          <h3>Com os clusters fixos: onde deveria estar o centro?</h3>
+          <p>Agora seguramos temporariamente os membros de cada cluster e calculamos a média deles. A média é a posição que minimiza a soma das distâncias quadráticas <strong>para aquele grupo atual</strong>.</p>
+          <div class="km-formula" style="font-size:17px">μⱼ = (1 / |Cⱼ|) · Σ xᵢ</div>
+          <p>Ao mover μⱼ, porém, mudamos as distâncias. Por isso, a atribuição feita no passo anterior pode deixar de ser a melhor.</p>
+        </article>
+      </div>
+
+      <div class="km-panel" style="padding:22px; margin-top:18px">
+        <h3 style="margin-top:0">Um exemplo pequeno mostra por que não é redundante</h3>
+        <p>Considere os pontos <strong>0, 4, 5, 6 e 20</strong> em uma linha, com dois centróides iniciais em <strong>0</strong> e <strong>6</strong>. Veja que um ponto realmente troca de grupo depois que o centróide se move.</p>
+        <div class="km-grid-3" style="margin-top:14px">
+          <article class="km-card">
+            <strong>1ª atribuição</strong>
+            <p>μ₁=0 recebe {0}<br>μ₂=6 recebe {4,5,6,20}</p>
+            <p>Esses grupos surgiram apenas porque <strong>0 e 6 eram os centros atuais</strong>.</p>
+          </article>
+          <article class="km-card">
+            <strong>Atualização</strong>
+            <p>novo μ₁=<strong>0</strong><br>novo μ₂=(4+5+6+20)/4=<strong>8,75</strong></p>
+            <p>Os centros agora representam melhor os grupos provisórios.</p>
+          </article>
+          <article class="km-card">
+            <strong>Nova atribuição</strong>
+            <p>As distâncias são calculadas <strong>de novo</strong> usando 0 e 8,75.</p>
+            <p>O ponto <strong>4 troca de cluster</strong>: antes estava a apenas 2 unidades de μ₂=6 e a 4 de μ₁=0; agora está a 4 de μ₁=0 e a 4,75 de μ₂=8,75. Depois disso, as médias serão recalculadas outra vez.</p>
+          </article>
+        </div>
+        <div class="km-keyline" style="margin-top:16px">
+          <strong>Portanto:</strong> atualizar o centróide resolve o melhor centro <em>para os membros atuais</em>; reatribuir resolve os melhores membros <em>para os centros atuais</em>. Uma etapa altera o problema da outra.
+        </div>
+      </div>
+
+      <div class="km-panel" style="padding:22px; margin-top:18px">
+        <h3 style="margin-top:0">Em linguagem direta: o K-Means funciona assim</h3>
+        <p>Se você quiser guardar o algoritmo em uma única ideia, pense exatamente desta forma:</p>
+        <div class="km-keyline" style="margin:14px 0 18px 0">
+          <strong>Resumo didático:</strong> inicializo <strong>K</strong> centróides, associo cada ponto ao centróide mais próximo, calculo a média dos pontos de cada grupo e <strong>substituo</strong> o centróide antigo por essa média. Depois repito tudo <strong>iterativamente</strong> até que os centróides quase não mudem mais — ou até nenhum ponto trocar de grupo.
+        </div>
+        <div class="km-grid-2">
+          <article class="km-card">
+            <h3>Passo a passo mental</h3>
+            <ol style="margin:10px 0 0 18px; line-height:1.8">
+              <li>Escolho o valor de <strong>K</strong>.</li>
+              <li>Posiciono <strong>K centróides iniciais</strong> (geralmente de forma aleatória ou com k-means++).</li>
+              <li>Calculo a distância de cada ponto até todos os centróides.</li>
+              <li>Cada ponto entra no grupo do <strong>centróide mais próximo</strong>.</li>
+              <li>Para cada grupo formado, calculo a <strong>média das coordenadas</strong>.</li>
+              <li>Essa média vira a <strong>nova posição do centróide</strong>.</li>
+              <li>Como os centróides mudaram, recalculo <strong>todas as atribuições</strong>.</li>
+              <li>Repito até estabilizar.</li>
+            </ol>
+          </article>
+          <article class="km-card">
+            <h3>Importante: “mover” não é arrastar aos poucos</h3>
+            <p>No desenho, parece que o centróide anda suavemente, mas matematicamente o que acontece é apenas uma <strong>substituição</strong>.</p>
+            <div class="km-formula" style="font-size:16px">centróide antigo → média do grupo atual</div>
+            <p>Se o centróide estava em <strong>(8, 7)</strong> e a nova média calculada deu <strong>(5, 4)</strong>, o algoritmo simplesmente passa a usar <strong>(5, 4)</strong> na próxima iteração.</p>
+            <p>Depois disso, todos os pontos medem novamente sua distância aos novos centróides. É por isso que um ponto pode trocar de grupo.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Experimente antes de decorar</p>
+          <h2>Laboratório passo a passo</h2>
+          <p>Avance uma fase por vez. A lateral mostra a conta que acabou de ser executada; a inércia permite observar se a solução está melhorando.</p>
+        </div>
+      </div>
+
+      <div class="km-panel km-lab">
+        <div class="km-controls">
+          <div class="km-field">
+            <label for="datasetSelect">Formato dos dados</label>
+            <select id="datasetSelect">
+              <option value="blobs">Grupos compactos</option>
+              <option value="elongated">Grupos alongados</option>
+              <option value="moons">Luas — caso difícil</option>
+            </select>
+          </div>
+          <div class="km-field">
+            <label for="kSelect">Número de clusters</label>
+            <select id="kSelect">
+              <option value="2">K = 2</option>
+              <option value="3" selected>K = 3</option>
+              <option value="4">K = 4</option>
+              <option value="5">K = 5</option>
+            </select>
+          </div>
+          <div class="km-field">
+            <label for="initSelect">Inicialização</label>
+            <select id="initSelect">
+              <option value="plusplus" selected>k-means++</option>
+              <option value="random">aleatória</option>
+            </select>
+          </div>
+          <button class="km-button primary" id="nextBtn">Avançar uma fase</button>
+          <button class="km-button soft" id="autoBtn">Executar automaticamente</button>
+          <button class="km-button soft" id="resetBtn">Novo exemplo</button>
+        </div>
+
+        <div class="km-stagebar" aria-label="Etapas do algoritmo">
+          <div class="km-stage active" data-stage="0">1 · Inicializar</div>
+          <div class="km-stage" data-stage="1">2 · Atribuir</div>
+          <div class="km-stage" data-stage="2">3 · Atualizar médias</div>
+          <div class="km-stage" data-stage="3">4 · Convergir</div>
+        </div>
+
+        <div class="km-lab-grid">
+          <div class="km-canvas-wrap">
+            <canvas id="kmeansCanvas" width="900" height="480" aria-label="Visualização do K-Means"></canvas>
+            <div class="km-canvas-legend">
+              <span class="km-legend-chip"><i class="km-dot"></i> ponto / observação</span>
+              <span class="km-legend-chip"><i class="km-square"></i> centróide μ</span>
+            </div>
+          </div>
+
+          <aside class="km-side">
+            <div class="km-sidebox">
+              <span class="km-status" id="statusBadge">Inicialização</span>
+              <h3 id="stepTitle">Os centróides foram posicionados</h3>
+              <p id="stepText">Agora cada ponto precisa descobrir qual centróide está mais próximo.</p>
+              <div class="km-metric-grid">
+                <div class="km-metric"><small>Iteração</small><strong id="iterationMetric">0</strong></div>
+                <div class="km-metric"><small>Inércia J</small><strong id="inertiaMetric">—</strong></div>
+                <div class="km-metric"><small>Silhouette</small><strong id="silhouetteMetric">—</strong></div>
+                <div class="km-metric"><small>Pontos</small><strong id="pointsMetric">90</strong></div>
+              </div>
+            </div>
+
+            <div class="km-sidebox">
+              <h3>A conta desta fase</h3>
+              <div class="km-calc" id="calculationBox">Aguardando a primeira atribuição…</div>
+            </div>
+
+            <div class="km-sidebox">
+              <h3>O que observar</h3>
+              <p id="observeText">Os centróides iniciais influenciam o caminho seguido pelo algoritmo. Compare a inicialização aleatória com k-means++.</p>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">A matemática por trás da animação</p>
+          <h2>Quatro expressões explicam o K-Means</h2>
+          <p>As fórmulas abaixo correspondem diretamente às fases do laboratório. O objetivo é associar cada símbolo a uma ação visual.</p>
+        </div>
+      </div>
+
+      <div class="km-math-grid">
+        <article class="km-formula-card" data-step="01">
+          <h3>1. Representar os dados</h3>
+          <div class="km-formula"><span class="sym">X</span> = { x₁, x₂, …, xₙ }, &nbsp; xᵢ ∈ ℝᵈ</div>
+          <p class="km-formula-note">Cada observação <strong>xᵢ</strong> é um vetor com <strong>d atributos</strong>. Em um gráfico 2D, por exemplo, xᵢ = (x, y).</p>
+          <div class="km-symbols">
+            <div class="km-symbol"><code>n</code><span>número de observações.</span></div>
+            <div class="km-symbol"><code>d</code><span>número de atributos (dimensões).</span></div>
+            <div class="km-symbol"><code>xᵢ</code><span>i-ésima observação do conjunto.</span></div>
+          </div>
+        </article>
+
+        <article class="km-formula-card" data-step="02">
+          <h3>2. Medir a distância</h3>
+          <div class="km-formula">d(xᵢ, μⱼ) = √[ Σₘ₌₁ᵈ (xᵢₘ − μⱼₘ)² ]</div>
+          <p class="km-formula-note">A distância Euclidiana mede o comprimento da linha reta entre o ponto <strong>xᵢ</strong> e o centróide <strong>μⱼ</strong>. O cluster escolhido será o do menor valor.</p>
+          <div class="km-symbols">
+            <div class="km-symbol"><code>μⱼ</code><span>centróide do cluster j.</span></div>
+            <div class="km-symbol"><code>m</code><span>índice do atributo comparado.</span></div>
+            <div class="km-symbol"><code>d(·)</code><span>distância entre dois vetores.</span></div>
+          </div>
+        </article>
+
+        <article class="km-formula-card" data-step="03">
+          <h3>3. Atribuir o cluster</h3>
+          <div class="km-formula">cᵢ = arg minⱼ || xᵢ − μⱼ ||²</div>
+          <p class="km-formula-note"><strong>arg min</strong> significa: “qual índice j produz o menor valor?”. Portanto, cᵢ guarda o número do centróide mais próximo de xᵢ.</p>
+          <div class="km-symbols">
+            <div class="km-symbol"><code>cᵢ</code><span>cluster atribuído ao ponto xᵢ.</span></div>
+            <div class="km-symbol"><code>arg min</code><span>posição/índice que minimiza a expressão.</span></div>
+          </div>
+        </article>
+
+        <article class="km-formula-card" data-step="04">
+          <h3>4. Recalcular o centróide</h3>
+          <div class="km-formula">μⱼ = (1 / |Cⱼ|) · Σ₍xᵢ∈Cⱼ₎ xᵢ</div>
+          <p class="km-formula-note">O novo centróide é simplesmente a <strong>média de cada atributo</strong> dos pontos atualmente pertencentes ao cluster Cⱼ.</p>
+          <div class="km-symbols">
+            <div class="km-symbol"><code>Cⱼ</code><span>conjunto de pontos do cluster j.</span></div>
+            <div class="km-symbol"><code>|Cⱼ|</code><span>quantidade de pontos no cluster j.</span></div>
+          </div>
+        </article>
+      </div>
+
+      <div class="km-example" style="margin-top:16px">
+        <h3>Exemplo numérico completo</h3>
+        <p>Considere o ponto <strong>x = (2, 3)</strong> e dois centróides: <strong>μ₁ = (1, 1)</strong> e <strong>μ₂ = (5, 4)</strong>.</p>
+        <div class="km-example-grid">
+          <div><strong>Distância até μ₁</strong><br>d = √[(2−1)² + (3−1)²] = √5 ≈ <strong>2,24</strong></div>
+          <div><strong>Distância até μ₂</strong><br>d = √[(2−5)² + (3−4)²] = √10 ≈ <strong>3,16</strong></div>
+        </div>
+        <p style="margin-bottom:0"><strong>Conclusão:</strong> como 2,24 &lt; 3,16, esse ponto é atribuído ao cluster 1. A próxima fase recalculará μ₁ usando a média de todos os pontos que também foram enviados para esse cluster.</p>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Função objetivo</p>
+          <h2>O algoritmo tenta fazer J diminuir</h2>
+          <p>A forma clássica do K-Means minimiza a soma das distâncias Euclidianas <strong>quadráticas</strong> entre cada ponto e o centróide do seu próprio cluster.</p>
+        </div>
+      </div>
+
+      <div class="km-grid-2">
+        <article class="km-card">
+          <h3>Inércia / SSE / WCSS</h3>
+          <div class="km-formula">J = Σᵢ₌₁ⁿ || xᵢ − μcᵢ ||²</div>
+          <p>Quanto menor <strong>J</strong>, mais compactos são os grupos para aquele valor de K. Durante as iterações de Lloyd, a função objetivo não aumenta: cada fase de atribuição e atualização procura manter ou reduzir esse custo.</p>
+          <p style="margin-top:10px"><strong>Mas cuidado:</strong> menor inércia não significa automaticamente “melhor explicação do mundo”. A inércia sempre tende a cair quando aumentamos K.</p>
+        </article>
+        <article class="km-card">
+          <h3>Por que justamente a média?</h3>
+          <p>Para um conjunto de pontos fixo, o valor que minimiza a soma dos erros quadráticos é a média. Por isso, depois que os membros de um cluster estão definidos, mover μ para a média é a melhor atualização possível para esse cluster dentro desse critério.</p>
+          <div class="km-formula" style="font-size:17px">min<sub>μ</sub> Σ ||xᵢ − μ||² &nbsp; ⇒ &nbsp; μ = (1/n) Σxᵢ</div>
+          <p>Essa ligação entre <strong>erro quadrático</strong> e <strong>média</strong> é a razão matemática do nome <em>K-Means</em>.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Escolha do K</p>
+          <h2>Se K é informado pelo usuário, como escolher?</h2>
+          <p>Não existe um único teste universal. Duas ferramentas didáticas comuns são o <strong>método do cotovelo</strong> e o <strong>coeficiente de silhouette</strong>. Use-os junto com conhecimento do problema.</p>
+        </div>
+      </div>
+
+      <div class="km-grid-2">
+        <article class="km-card">
+          <h3>Método do cotovelo</h3>
+          <p>Execute o K-Means para vários valores de K e observe a queda da inércia. Procura-se um ponto a partir do qual aumentar K traz ganhos proporcionalmente menores.</p>
+          <div class="km-mini-chart" style="margin-top:14px">
+            <svg id="elbowSvg" viewBox="0 0 520 240" role="img" aria-label="Curva de inércia por K"></svg>
+          </div>
+          <p style="margin-top:10px; font-size:13px">O gráfico acima é recalculado para o conjunto de dados do laboratório.</p>
+        </article>
+
+        <article class="km-card">
+          <h3>Silhouette</h3>
+          <div class="km-formula" style="font-size:17px">s(i) = [ b(i) − a(i) ] / max{ a(i), b(i) }</div>
+          <p><strong>a(i)</strong> mede a distância média do ponto aos membros do próprio cluster; <strong>b(i)</strong> mede a menor distância média desse ponto a outro cluster. O resultado fica entre −1 e 1.</p>
+          <div class="km-score">
+            <strong id="silhouetteBig">—</strong>
+            <p><strong>Próximo de +1:</strong> ponto bem separado.<br><strong>Próximo de 0:</strong> fronteira ambígua.<br><strong>Negativo:</strong> possível atribuição ruim.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Pré-processamento</p>
+          <h2>Distância só faz sentido se as escalas fizerem sentido</h2>
+          <p>Como K-Means depende de distância, um atributo numericamente muito maior pode dominar os demais. Por isso, escalonamento e escolha de atributos fazem parte do problema.</p>
+        </div>
+      </div>
+
+      <div class="km-grid-3">
+        <article class="km-card">
+          <h3>Sem padronizar</h3>
+          <p>Imagine <strong>idade = 20–70</strong> e <strong>renda = 1.500–30.000</strong>. A diferença de renda pode ser centenas de vezes maior e dominar a distância Euclidiana, mesmo quando isso não deveria representar a importância real do atributo.</p>
+        </article>
+        <article class="km-card">
+          <h3>Z-score</h3>
+          <div class="km-formula" style="font-size:17px">z = (x − média) / desvio padrão</div>
+          <p>A padronização transforma os atributos para escalas comparáveis. Após isso, “um desvio padrão de diferença” em idade e em renda passa a ter magnitude numérica semelhante.</p>
+        </article>
+        <article class="km-card">
+          <h3>Não é só apertar “fit”</h3>
+          <ul>
+            <li>trate valores ausentes;</li>
+            <li>avalie outliers;</li>
+            <li>evite atributos redundantes;</li>
+            <li>codifique variáveis com cuidado;</li>
+            <li>verifique se distância representa similaridade no domínio.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Inicialização e convergência</p>
+          <h2>O ponto de partida pode mudar o resultado</h2>
+          <p>O algoritmo clássico converge para um mínimo local. Por isso, inicializações diferentes podem levar a soluções finais diferentes.</p>
+        </div>
+      </div>
+
+      <div class="km-compare-grid">
+        <article class="km-card">
+          <h3>Inicialização aleatória</h3>
+          <p>Seleciona posições/pontos iniciais sem uma estratégia de espalhamento. Se dois centróides começam muito próximos, o algoritmo pode gastar mais iterações ou terminar em uma solução ruim.</p>
+        </article>
+        <article class="km-card">
+          <h3>k-means++</h3>
+          <p>Escolhe novos centros favorecendo pontos distantes dos centros já escolhidos. A ideia é começar com sementes mais bem distribuídas e reduzir a chance de uma inicialização ruim.</p>
+        </article>
+        <article class="km-card">
+          <h3>Várias execuções</h3>
+          <p>Na prática, é comum executar o algoritmo com sementes diferentes e manter a solução de menor inércia. Bibliotecas modernas automatizam esse procedimento por meio de parâmetros como <code>n_init</code>.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Quando ele falha</p>
+          <h2>K-Means não encontra “qualquer tipo” de cluster</h2>
+          <p>Troque o conjunto do laboratório para <strong>grupos alongados</strong> ou <strong>luas</strong>. Você verá que proximidade a um centróide favorece regiões aproximadamente convexas e isotrópicas.</p>
+        </div>
+      </div>
+
+      <div class="km-grid-2">
+        <article class="km-warning">
+          <h3>Casos problemáticos</h3>
+          <ul>
+            <li>clusters não convexos (como duas luas);</li>
+            <li>grupos muito diferentes em tamanho ou densidade;</li>
+            <li>presença forte de outliers;</li>
+            <li>atributos em escalas inadequadas;</li>
+            <li>distância Euclidiana sem significado semântico;</li>
+            <li>dados categóricos puros.</li>
+          </ul>
+        </article>
+        <article class="km-card">
+          <h3>Alternativas dependendo do problema</h3>
+          <ul>
+            <li><strong>DBSCAN / HDBSCAN:</strong> úteis quando densidade e ruído são importantes.</li>
+            <li><strong>Clustering hierárquico:</strong> útil quando se deseja uma hierarquia de grupos.</li>
+            <li><strong>Gaussian Mixture Models:</strong> modelam probabilidades e clusters elípticos.</li>
+            <li><strong>K-Medoids:</strong> pode ser mais robusto a outliers e usa pontos reais como centros.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Do conceito para o código</p>
+          <h2>K-Means do zero — sem NumPy, sem scikit-learn</h2>
+          <p>A implementação abaixo usa apenas listas, laços, soma e divisão. Os centróides iniciais são passados explicitamente para que fique visível que eles são apenas o <strong>ponto de partida</strong> do algoritmo.</p>
+          <p><strong>Leitura correta do laço:</strong> primeiro o algoritmo classifica os pontos com os centróides atuais; depois recalcula os centróides como médias; em seguida volta e classifica tudo novamente com os novos centros. Esse ciclo é o coração do K-Means.</p>
+        </div>
+      </div>
+
+      <div class="km-panel" style="padding:20px">
+        <div class="km-code-window" id="manualCode">
+          <div class="km-codebar"><span>kmeans_do_zero.py</span><span>100% explícito</span></div>
+<pre><code># Nenhuma biblioteca é necessária.
+
+
+def distancia_quadrada(ponto, centroide):
+    soma = 0.0
+
+    for i in range(len(ponto)):
+        diferenca = ponto[i] - centroide[i]
+        soma = soma + diferenca * diferenca
+
+    return soma
+
+
+def centroide_do_cluster(pontos_do_cluster):
+    quantidade = len(pontos_do_cluster)
+    dimensoes = len(pontos_do_cluster[0])
+
+    novo_centroide = []
+
+    for dimensao in range(dimensoes):
+        soma = 0.0
+
+        for ponto in pontos_do_cluster:
+            soma = soma + ponto[dimensao]
+
+        media = soma / quantidade
+        novo_centroide.append(media)
+
+    return novo_centroide
+
+
+def atribuir_pontos(dados, centroides):
+    # Guarda o índice do centróide escolhido para cada ponto.
+    rotulos = []
+
+    for ponto in dados:
+        melhor_cluster = 0
+        menor_distancia = distancia_quadrada(ponto, centroides[0])
+
+        for j in range(1, len(centroides)):
+            distancia = distancia_quadrada(ponto, centroides[j])
+
+            if distancia &lt; menor_distancia:
+                menor_distancia = distancia
+                melhor_cluster = j
+
+        rotulos.append(melhor_cluster)
+
+    return rotulos
+
+
+def atualizar_centroides(dados, rotulos, centroides_atuais):
+    k = len(centroides_atuais)
+    novos_centroides = []
+
+    for j in range(k):
+        pontos_do_cluster = []
+
+        # Separa os pontos que atualmente pertencem ao cluster j.
+        for i in range(len(dados)):
+            if rotulos[i] == j:
+                pontos_do_cluster.append(dados[i])
+
+        # Se o cluster ficou vazio, mantém o centróide anterior.
+        if len(pontos_do_cluster) == 0:
+            novos_centroides.append(centroides_atuais[j][:])
+        else:
+            novos_centroides.append(
+                centroide_do_cluster(pontos_do_cluster)
+            )
+
+    return novos_centroides
+
+
+def centroides_iguais(a, b, tolerancia=0.000001):
+    for j in range(len(a)):
+        for d in range(len(a[j])):
+            if abs(a[j][d] - b[j][d]) &gt; tolerancia:
+                return False
+
+    return True
+
+
+def calcular_inercia(dados, rotulos, centroides):
+    total = 0.0
+
+    for i in range(len(dados)):
+        cluster = rotulos[i]
+        total = total + distancia_quadrada(
+            dados[i],
+            centroides[cluster]
+        )
+
+    return total
+
+
+def kmeans(dados, centroides_iniciais, max_iteracoes=100):
+    # Fazemos uma cópia para não alterar a lista recebida.
+    centroides = []
+    for centroide in centroides_iniciais:
+        centroides.append(centroide[:])
+
+    for iteracao in range(max_iteracoes):
+        print("\nITERACAO", iteracao + 1)
+        print("Centroides no inicio:", centroides)
+
+        # PASSO A ---------------------------------------------
+        # Com os centroides PARADOS, cada ponto escolhe
+        # o centroide mais proximo.
+        rotulos = atribuir_pontos(dados, centroides)
+        print("Rotulos:", rotulos)
+
+        # PASSO B ---------------------------------------------
+        # Com os membros dos clusters PARADOS, calculamos
+        # a media de cada grupo e movemos seus centroides.
+        novos_centroides = atualizar_centroides(
+            dados,
+            rotulos,
+            centroides
+        )
+        print("Novos centroides:", novos_centroides)
+
+        # Se a media nao mudou mais, chegamos a um ponto fixo.
+        if centroides_iguais(centroides, novos_centroides):
+            centroides = novos_centroides
+            print("Convergiu.")
+            break
+
+        # IMPORTANTE:
+        # ao mover os centroides, as distancias mudaram.
+        # Portanto, na proxima volta precisamos atribuir
+        # TODOS OS PONTOS NOVAMENTE.
+        centroides = novos_centroides
+
+    # Recalcula os rotulos uma ultima vez usando os centros finais.
+    rotulos = atribuir_pontos(dados, centroides)
+    inercia = calcular_inercia(dados, rotulos, centroides)
+
+    return rotulos, centroides, inercia
+
+
+# -----------------------------------------------------------
+# EXEMPLO 1D — o mesmo da explicação acima
+# Cada ponto continua sendo um vetor; aqui ele tem 1 dimensão.
+# -----------------------------------------------------------
+
+dados = [
+    [0.0],
+    [4.0],
+    [5.0],
+    [6.0],
+    [20.0]
+]
+
+# Não são os centros "corretos".
+# São somente dois palpites iniciais.
+centroides_iniciais = [
+    [0.0],
+    [6.0]
+]
+
+rotulos, centroides, inercia = kmeans(
+    dados,
+    centroides_iniciais
+)
+
+print("\nRESULTADO FINAL")
+print("Rotulos:", rotulos)
+print("Centroides:", centroides)
+print("Inercia:", inercia)
+</code></pre>
+        </div>
+
+        <div class="km-grid-2" style="margin-top:18px">
+          <article class="km-card">
+            <h3>Onde o centróide realmente se move?</h3>
+            <p>Na função <code>atualizar_centroides()</code>. Ela seleciona os membros que <strong>naquela iteração</strong> receberam o mesmo rótulo e chama <code>centroide_do_cluster()</code>, que calcula manualmente a média de cada dimensão.</p>
+          </article>
+          <article class="km-card">
+            <h3>Onde o cluster pode mudar?</h3>
+            <p>Na próxima chamada de <code>atribuir_pontos()</code>. Como os centróides acabaram de mudar de posição, todas as distâncias são calculadas novamente. Um ponto pode permanecer no grupo ou trocar para outro.</p>
+          </article>
+        </div>
+
+        <div class="km-keyline" style="margin-top:18px">
+          <strong>Leia o laço principal como duas operações alternadas:</strong> atribuir pontos usando os centros atuais → recalcular os centros usando os grupos atuais → repetir. Isso é o coração do K-Means.
+        </div>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Resumo para revisão</p>
+          <h2>O algoritmo em uma frase por etapa</h2>
+        </div>
+      </div>
+      <div class="km-grid-3">
+        <article class="km-card"><span class="km-concept-number">1</span><h3>Escolha K</h3><p>Defina quantos grupos serão procurados.</p></article>
+        <article class="km-card"><span class="km-concept-number">2</span><h3>Inicialize μ</h3><p>Posicione K centróides, preferencialmente com uma estratégia como k-means++.</p></article>
+        <article class="km-card"><span class="km-concept-number">3</span><h3>Atribua</h3><p>Cada ponto vai para o centróide mais próximo.</p></article>
+        <article class="km-card"><span class="km-concept-number">4</span><h3>Atualize</h3><p>Substitua cada centróide pela média do seu cluster.</p></article>
+        <article class="km-card"><span class="km-concept-number">5</span><h3>Repita</h3><p>Alterne atribuição e atualização enquanto houver mudança relevante.</p></article>
+        <article class="km-card"><span class="km-concept-number">6</span><h3>Avalie</h3><p>Analise inércia, silhouette, estabilidade e, principalmente, significado para o domínio.</p></article>
+      </div>
+    </section>
+
+    <section class="km-section">
+      <div class="km-section-head">
+        <div>
+          <p class="km-eyebrow">Fontes e aprofundamento</p>
+          <h2>De onde vêm os conceitos desta página</h2>
+          <p>A página combina a formulação histórica do K-Means, a interpretação do algoritmo de Lloyd, a inicialização k-means++ e documentação contemporânea de bibliotecas e cursos de Machine Learning.</p>
+        </div>
+      </div>
+      <div class="km-card">
+        <ol class="km-source-list">
+          <li>MacQueen, J. (1967). <em>Some Methods for Classification and Analysis of Multivariate Observations</em>. Berkeley Symposium. <a href="https://digicoll.lib.berkeley.edu/record/113015?v=pdf" target="_blank" rel="noopener">UC Berkeley</a>.</li>
+          <li>Lloyd, S. P. (1982). <em>Least Squares Quantization in PCM</em>. IEEE Transactions on Information Theory, 28(2), 129–137. DOI: 10.1109/TIT.1982.1056489.</li>
+          <li>Arthur, D.; Vassilvitskii, S. (2007). <em>k-means++: The Advantages of Careful Seeding</em>. SODA. <a href="https://theory.stanford.edu/~sergei/papers/kMeansPP-soda.pdf" target="_blank" rel="noopener">Stanford</a>.</li>
+          <li>scikit-learn. <em>Clustering / KMeans / Silhouette analysis</em>. <a href="https://scikit-learn.org/stable/modules/clustering.html" target="_blank" rel="noopener">Documentação oficial</a>.</li>
+          <li>Google for Developers. <em>Machine Learning — Clustering: k-means, preparação de dados e limitações</em>. <a href="https://developers.google.com/machine-learning/clustering" target="_blank" rel="noopener">Curso oficial</a>.</li>
+        </ol>
+        <p class="km-footer-note">Observação didática: a visualização usa duas dimensões para tornar o processo visível, mas o mesmo algoritmo trabalha com vetores de muitas dimensões. Em alta dimensionalidade, interpretação de distância e preparação dos atributos exigem atenção adicional.</p>
+      </div>
+    </section>
+
+
+<section class="km-section">
+    <div class="km-section-head">
+        <div>
+            <p class="km-eyebrow">INTERPRETANDO OS CLUSTERS</p>
+            <h2>Como transformar centróides em perfis de clientes?</h2>
+            <p>
+                Depois que o K-Means termina, ele não devolve nomes como
+                <strong>“VIP”</strong>, <strong>“econômico”</strong> ou
+                <strong>“caçador de ofertas”</strong>. Ele devolve grupos e seus respectivos
+                <strong>centróides</strong>. A interpretação desses grupos é feita analisando
+                os valores médios de cada variável.
+            </p>
+        </div>
+    </div>
+
+    <div class="km-panel" style="padding:22px;">
+        <h3 style="margin-top:0;">1. O centróide como o “cliente médio” do grupo</h3>
+
+        <p>
+            Geometricamente, o K-Means posiciona um <strong>centróide</strong> no centro
+            matemático de cada cluster. Se sua base possui <strong>10 variáveis</strong>,
+            cada centróide também terá <strong>10 valores</strong>.
+        </p>
+
+        <div class="km-keyline" style="margin:16px 0;">
+            <strong>Ideia principal:</strong> o centróide funciona como uma espécie de
+            <strong>“cliente médio” daquele grupo</strong>.
+        </div>
+
+        <p>
+            Imagine que cada cliente seja representado por um vetor com 10 características:
+        </p>
+
+        <div class="km-formula" style="font-size:16px;">
+            x = [idade, gasto, frequência, cupons, visitas, ...]
+        </div>
+
+        <p style="margin-top:14px;">
+            Depois da convergência, um centróide poderia ter a seguinte forma:
+        </p>
+
+        <div class="km-formula" style="font-size:16px;">
+            μ₁ = [48, 450, 12, 0.05, 18, ...]
+        </div>
+
+        <p>
+            Esses números representam a <strong>média de cada característica</strong>
+            dos clientes que pertencem ao Cluster 1.
+        </p>
+
+        <p>
+            Portanto, se existirem 3 clusters, teremos 3 vetores de centróides.
+            Comparar esses vetores é uma das maneiras mais importantes de descobrir
+            <strong>o que diferencia cada grupo</strong>.
+        </p>
+    </div>
+
+    <div class="km-panel" style="padding:22px; margin-top:18px;">
+        <h3 style="margin-top:0;">2. O significado aparece no contraste</h3>
+
+        <p>
+            Um valor isolado normalmente diz pouco. Saber que um cluster possui
+            frequência média de compra igual a <strong>15</strong>, por exemplo,
+            só é realmente útil quando comparamos esse valor com os demais clusters
+            ou com a média geral da base.
+        </p>
+
+        <div class="km-grid-2" style="margin-top:16px;">
+            <article class="km-card">
+                <span class="km-concept-number">A</span>
+                <h3>Comparação entre clusters</h3>
+
+                <p>
+                    Considere a variável <strong>Frequência de Compra</strong>:
+                </p>
+
+                <div class="km-formula" style="font-size:16px;">
+                    Cluster 1 = 2<br>
+                    Cluster 2 = 15<br>
+                    Cluster 3 = 4
+                </div>
+
+                <p style="margin-top:14px;">
+                    O valor do Cluster 2 é muito maior que o dos outros grupos.
+                </p>
+
+                <p>
+                    Isso significa que <strong>comprar com muita frequência</strong>
+                    é uma característica marcante daquele cluster.
+                </p>
+            </article>
+
+            <article class="km-card">
+                <span class="km-concept-number">B</span>
+                <h3>Comparação com a média global</h3>
+
+                <p>
+                    Outra estratégia é comparar o centróide de cada cluster com a
+                    <strong>média de toda a base</strong>.
+                </p>
+
+                <div class="km-formula" style="font-size:16px;">
+                    diferença = média do cluster − média global
+                </div>
+
+                <p style="margin-top:14px;">
+                    Quanto maior essa diferença, positiva ou negativa, mais aquela
+                    variável ajuda a definir a identidade do grupo.
+                </p>
+
+                <p>
+                    Em dados padronizados, essa comparação também pode ser interpretada
+                    de maneira semelhante a um <strong>Z-Score</strong>.
+                </p>
+            </article>
+        </div>
+    </div>
+
+    <div class="km-panel" style="padding:22px; margin-top:18px;">
+        <h3 style="margin-top:0;">3. Exemplo: 3 clusters e várias características</h3>
+
+        <p>
+            Imagine uma base de clientes com 10 variáveis relacionadas ao comportamento
+            de compra. Depois de executar o K-Means, analisamos os valores dos centróides.
+        </p>
+
+        <div style="overflow-x:auto; margin-top:18px;">
+            <table style="
+                width:100%;
+                border-collapse:collapse;
+                min-width:760px;
+                font-size:14px;
+            ">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding:12px; border-bottom:1px solid var(--border-color, #dbe2ea);">
+                            Variável
+                        </th>
+                        <th style="text-align:left; padding:12px; border-bottom:1px solid var(--border-color, #dbe2ea);">
+                            Média global
+                        </th>
+                        <th style="text-align:left; padding:12px; border-bottom:1px solid var(--border-color, #dbe2ea);">
+                            Cluster 1
+                        </th>
+                        <th style="text-align:left; padding:12px; border-bottom:1px solid var(--border-color, #dbe2ea);">
+                            Cluster 2
+                        </th>
+                        <th style="text-align:left; padding:12px; border-bottom:1px solid var(--border-color, #dbe2ea);">
+                            Cluster 3
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            <strong>Gasto mensal</strong>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            R$ 150
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            <strong>R$ 450</strong><br>
+                            <small>Muito alto</small>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            R$ 50<br>
+                            <small>Baixo</small>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            R$ 120<br>
+                            <small>Próximo da média</small>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            <strong>Idade</strong>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            35 anos
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            48 anos<br>
+                            <small>Acima da média</small>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            22 anos<br>
+                            <small>Abaixo da média</small>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            36 anos<br>
+                            <small>Próximo da média</small>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            <strong>Uso de cupom</strong>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            20%
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            5%<br>
+                            <small>Muito baixo</small>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            <strong>80%</strong><br>
+                            <small>Muito alto</small>
+                        </td>
+                        <td style="padding:12px; border-bottom:1px solid var(--border-color, #e5e7eb);">
+                            15%<br>
+                            <small>Próximo da média</small>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:12px;">
+                            <strong>Outras 7 variáveis</strong>
+                        </td>
+                        <td style="padding:12px;">...</td>
+                        <td style="padding:12px;">...</td>
+                        <td style="padding:12px;">...</td>
+                        <td style="padding:12px;">...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="km-section-head" style="margin-top:34px;">
+        <div>
+            <p class="km-eyebrow">DA MATEMÁTICA PARA A INTERPRETAÇÃO</p>
+            <h2>Agora podemos dar significado aos clusters</h2>
+            <p>
+                Os nomes dos grupos não são produzidos pelo K-Means. Eles são uma
+                <strong>interpretação humana</strong> construída a partir das características
+                que mais diferenciam cada centróide.
+            </p>
+        </div>
+    </div>
+
+    <div class="km-grid-3">
+        <article class="km-card">
+            <span class="km-concept-number">1</span>
+            <h3>VIPs tradicionais</h3>
+            <p>
+                O Cluster 1 possui <strong>gasto muito acima da média</strong>,
+                idade mais elevada e uso muito baixo de cupons.
+            </p>
+            <p>
+                Uma interpretação possível é a de clientes de maior valor,
+                menos dependentes de promoções.
+            </p>
+        </article>
+
+        <article class="km-card">
+            <span class="km-concept-number">2</span>
+            <h3>Jovens caçadores de ofertas</h3>
+            <p>
+                O Cluster 2 apresenta clientes mais jovens, gasto relativamente baixo
+                e <strong>uso extremamente alto de cupons</strong>.
+            </p>
+            <p>
+                O desconto aparece como uma das características mais marcantes
+                desse grupo.
+            </p>
+        </article>
+
+        <article class="km-card">
+            <span class="km-concept-number">3</span>
+            <h3>Clientes padrão</h3>
+            <p>
+                O Cluster 3 permanece próximo da média global em grande parte
+                das variáveis analisadas.
+            </p>
+            <p>
+                Portanto, ele representa um comportamento mais próximo do
+                <strong>perfil médio da base</strong>.
+            </p>
+        </article>
+    </div>
+
+    <div class="km-keyline" style="margin-top:22px;">
+        <strong>Em resumo:</strong> em dados com muitas dimensões, interpretar um cluster
+        significa transformar seus centróides em uma <strong>tabela de médias</strong>
+        e procurar as maiores diferenças entre os grupos e em relação à média geral.
+        São esses valores extremos que ajudam a revelar a identidade de cada perfil.
+    </div>
+
+    <div class="km-panel" style="padding:22px; margin-top:18px;">
+        <h3 style="margin-top:0;">E quando existem muitas variáveis?</h3>
+
+        <p>
+            Com 2 atributos, conseguimos visualizar os clusters diretamente em um gráfico.
+            Com 10, 20 ou 100 atributos, essa visualização deixa de ser possível.
+        </p>
+
+        <p>
+            Uma estratégia comum é utilizar técnicas de
+            <strong>redução de dimensionalidade</strong>, como o
+            <strong>PCA — Principal Component Analysis</strong>, para representar parte
+            dessa estrutura em duas ou três dimensões.
+        </p>
+
+        <p style="margin-bottom:0;">
+            O PCA não substitui a análise dos centróides, mas pode ajudar a
+            <strong>visualizar a separação entre os grupos</strong> e entender quais
+            combinações de variáveis explicam grande parte da variação dos dados.
+        </p>
+    </div>
+</section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p>
+  </footer>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('kmeansCanvas');
+      const ctx = canvas.getContext('2d');
+      const datasetSelect = document.getElementById('datasetSelect');
+      const kSelect = document.getElementById('kSelect');
+      const initSelect = document.getElementById('initSelect');
+      const nextBtn = document.getElementById('nextBtn');
+      const autoBtn = document.getElementById('autoBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const statusBadge = document.getElementById('statusBadge');
+      const stepTitle = document.getElementById('stepTitle');
+      const stepText = document.getElementById('stepText');
+      const observeText = document.getElementById('observeText');
+      const calculationBox = document.getElementById('calculationBox');
+      const iterationMetric = document.getElementById('iterationMetric');
+      const inertiaMetric = document.getElementById('inertiaMetric');
+      const silhouetteMetric = document.getElementById('silhouetteMetric');
+      const silhouetteBig = document.getElementById('silhouetteBig');
+      const pointsMetric = document.getElementById('pointsMetric');
+      const elbowSvg = document.getElementById('elbowSvg');
+      const stageEls = [...document.querySelectorAll('.km-stage')];
+
+      const COLORS = [
+        { stroke: '#2563eb', fill: 'rgba(37,99,235,.11)' },
+        { stroke: '#e11d48', fill: 'rgba(225,29,72,.10)' },
+        { stroke: '#059669', fill: 'rgba(5,150,105,.10)' },
+        { stroke: '#d97706', fill: 'rgba(217,119,6,.10)' },
+        { stroke: '#7c3aed', fill: 'rgba(124,58,237,.10)' }
+      ];
+
+      let points = [];
+      let centroids = [];
+      let labels = [];
+      let phase = 'assign';
+      let iteration = 0;
+      let converged = false;
+      let autoTimer = null;
+      let rngSeed = 12345;
+      let previousCentroids = [];
+
+      function rng() {
+        rngSeed = (rngSeed * 1664525 + 1013904223) >>> 0;
+        return rngSeed / 4294967296;
+      }
+
+      function gaussian() {
+        const u = Math.max(rng(), 1e-9);
+        const v = Math.max(rng(), 1e-9);
+        return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+      }
+
+      function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+      function sqDist(a, b) { const dx = a.x - b.x, dy = a.y - b.y; return dx * dx + dy * dy; }
+      function dist(a, b) { return Math.sqrt(sqDist(a, b)); }
+
+      function generateDataset(type) {
+        points = [];
+        labels = [];
+        rngSeed = Math.floor(Math.random() * 1000000) + 1;
+
+        if (type === 'blobs') {
+          const centers = [
+            {x: .24, y: .30}, {x: .69, y: .31}, {x: .50, y: .72}
+          ];
+          centers.forEach((c, ci) => {
+            for (let i = 0; i < 30; i++) {
+              points.push({
+                x: clamp(c.x + gaussian() * .075, .05, .95),
+                y: clamp(c.y + gaussian() * .072, .07, .93),
+                truth: ci
+              });
+            }
+          });
+        } else if (type === 'elongated') {
+          const specs = [
+            {cx:.30, cy:.34, angle:.55},
+            {cx:.68, cy:.60, angle:-.58},
+            {cx:.47, cy:.76, angle:.12}
+          ];
+          specs.forEach((s, ci) => {
+            for (let i = 0; i < 30; i++) {
+              const a = gaussian() * .14;
+              const b = gaussian() * .035;
+              const ca = Math.cos(s.angle), sa = Math.sin(s.angle);
+              points.push({
+                x: clamp(s.cx + a * ca - b * sa, .05, .95),
+                y: clamp(s.cy + a * sa + b * ca, .07, .93),
+                truth: ci
+              });
+            }
+          });
+        } else {
+          // two interleaving half moons, intentionally non-convex
+          for (let i = 0; i < 45; i++) {
+            const t = Math.PI * (i / 44);
+            points.push({
+              x: clamp(.38 + .27 * Math.cos(t) + gaussian() * .018, .05, .95),
+              y: clamp(.43 + .22 * Math.sin(t) + gaussian() * .018, .07, .93),
+              truth: 0
+            });
+          }
+          for (let i = 0; i < 45; i++) {
+            const t = Math.PI * (i / 44);
+            points.push({
+              x: clamp(.61 - .27 * Math.cos(t) + gaussian() * .018, .05, .95),
+              y: clamp(.58 - .22 * Math.sin(t) + gaussian() * .018, .07, .93),
+              truth: 1
+            });
+          }
+        }
+        labels = new Array(points.length).fill(-1);
+      }
+
+      function initCentroids(k, mode) {
+        centroids = [];
+        previousCentroids = [];
+        if (mode === 'random') {
+          const chosen = new Set();
+          while (centroids.length < k) {
+            const idx = Math.floor(rng() * points.length);
+            if (!chosen.has(idx)) {
+              chosen.add(idx);
+              centroids.push({ x: points[idx].x, y: points[idx].y });
+            }
+          }
+        } else {
+          const first = Math.floor(rng() * points.length);
+          centroids.push({ x: points[first].x, y: points[first].y });
+          while (centroids.length < k) {
+            const d2 = points.map(p => Math.min(...centroids.map(c => sqDist(p, c))));
+            const total = d2.reduce((a,b) => a+b, 0);
+            let r = rng() * total;
+            let idx = d2.length - 1;
+            for (let i = 0; i < d2.length; i++) {
+              r -= d2[i];
+              if (r <= 0) { idx = i; break; }
+            }
+            centroids.push({ x: points[idx].x, y: points[idx].y });
+          }
+        }
+      }
+
+      function initialize(allNew = true) {
+        stopAuto();
+        if (allNew) generateDataset(datasetSelect.value);
+        if (datasetSelect.value === 'moons' && parseInt(kSelect.value, 10) !== 2) kSelect.value = '2';
+        const k = parseInt(kSelect.value, 10);
+        initCentroids(k, initSelect.value);
+        labels = new Array(points.length).fill(-1);
+        phase = 'assign';
+        iteration = 0;
+        converged = false;
+        previousCentroids = centroids.map(c => ({...c}));
+        updateStage(0);
+        setStatus('Inicialização', false);
+        stepTitle.textContent = 'Os centróides foram posicionados';
+        stepText.textContent = 'Agora cada ponto precisa descobrir qual centróide está mais próximo.';
+        observeText.textContent = initSelect.value === 'plusplus'
+          ? 'O k-means++ tende a espalhar melhor as sementes iniciais, reduzindo inicializações ruins.'
+          : 'Na inicialização aleatória, dois centróides podem começar muito próximos e produzir uma solução pior.';
+        calculationBox.innerHTML = `<span class="muted">Inicialização:</span><br>K = <span class="hi">${k}</span><br>método = <span class="hi">${initSelect.value === 'plusplus' ? 'k-means++' : 'aleatório'}</span><br><br>Próxima fase: calcular d(xᵢ, μⱼ) para cada ponto.`;
+        updateMetrics();
+        draw();
+        computeElbow();
+      }
+
+      function assignPoints(showCalculation = true) {
+        let changed = 0;
+        let focus = 0;
+        let bestMargin = -Infinity;
+        const distanceTable = [];
+
+        points.forEach((p, i) => {
+          const ds = centroids.map(c => dist(p, c));
+          const min = Math.min(...ds);
+          const label = ds.indexOf(min);
+          if (labels[i] !== label) changed++;
+          labels[i] = label;
+
+          const sorted = [...ds].sort((a,b) => a-b);
+          const margin = sorted.length > 1 ? sorted[1] - sorted[0] : 0;
+          if (margin > bestMargin) { bestMargin = margin; focus = i; }
+          distanceTable[i] = ds;
+        });
+
+        iteration += 1;
+        phase = 'update';
+        updateStage(1);
+        setStatus('Atribuição', false);
+        stepTitle.textContent = `Fase de atribuição · iteração ${iteration}`;
+        stepText.textContent = `${changed} ponto(s) mudaram de cluster. Cada ponto foi enviado ao centróide de menor distância Euclidiana.`;
+        observeText.textContent = 'As regiões coloridas representam as células de Voronoi: qualquer posição da mesma região tem o mesmo centróide mais próximo.';
+
+        if (showCalculation) {
+          const p = points[focus];
+          const ds = distanceTable[focus];
+          const chosen = labels[focus];
+          calculationBox.innerHTML = [
+            `<span class="muted">Exemplo com o ponto x = (${p.x.toFixed(3)}, ${p.y.toFixed(3)})</span>`,
+            ...ds.map((d,j) => `d(x, μ${j+1}) = ${d.toFixed(4)}${j===chosen ? '  <span class="good">← menor</span>' : ''}`),
+            '',
+            `<span class="hi">cᵢ = arg minⱼ d(x, μⱼ) = ${chosen + 1}</span>`
+          ].join('<br>');
+        }
+
+        updateMetrics();
+        draw();
+        return changed;
+      }
+
+      function updateCentroids(showCalculation = true) {
+        previousCentroids = centroids.map(c => ({...c}));
+        const k = centroids.length;
+        let maxMove = 0;
+        let exampleCluster = 0;
+        let exampleMembers = [];
+
+        for (let j = 0; j < k; j++) {
+          const members = points.filter((_, i) => labels[i] === j);
+          if (!members.length) continue;
+          const sx = members.reduce((s,p) => s+p.x, 0);
+          const sy = members.reduce((s,p) => s+p.y, 0);
+          const next = { x: sx / members.length, y: sy / members.length };
+          maxMove = Math.max(maxMove, dist(centroids[j], next));
+          centroids[j] = next;
+          if (members.length > exampleMembers.length) {
+            exampleCluster = j;
+            exampleMembers = members;
+          }
+        }
+
+        phase = 'assign';
+        const epsilon = 0.0005;
+        converged = maxMove < epsilon;
+
+        if (converged) {
+          updateStage(3);
+          setStatus('Convergiu', true);
+          stepTitle.textContent = `Convergência após ${iteration} iteração(ões)`;
+          stepText.textContent = 'Os centróides praticamente não se moveram. Uma nova atualização produziria a mesma solução dentro da tolerância usada.';
+          observeText.textContent = datasetSelect.value === 'moons'
+            ? 'O algoritmo convergiu, mas isso não significa que os grupos correspondam à forma natural dos dados. Convergência não é sinônimo de boa modelagem.'
+            : 'Convergir significa estabilizar a função objetivo para esta inicialização, não garantir o melhor agrupamento global possível.';
+          stopAuto();
+        } else {
+          updateStage(2);
+          setStatus('Atualização', false);
+          stepTitle.textContent = `Centróides recalculados · iteração ${iteration}`;
+          stepText.textContent = `Maior deslocamento de centróide: ${maxMove.toFixed(4)}. Agora os pontos serão comparados novamente com as novas médias.`;
+          observeText.textContent = 'As setas mostram o deslocamento do centróide antigo para a nova média do cluster.';
+        }
+
+        if (showCalculation && exampleMembers.length) {
+          const sx = exampleMembers.reduce((s,p) => s+p.x, 0);
+          const sy = exampleMembers.reduce((s,p) => s+p.y, 0);
+          calculationBox.innerHTML = [
+            `<span class="muted">Exemplo: atualização de μ${exampleCluster+1}</span>`,
+            `|C${exampleCluster+1}| = ${exampleMembers.length} pontos`,
+            `μx = Σx / |C| = ${sx.toFixed(3)} / ${exampleMembers.length} = <span class="good">${(sx/exampleMembers.length).toFixed(3)}</span>`,
+            `μy = Σy / |C| = ${sy.toFixed(3)} / ${exampleMembers.length} = <span class="good">${(sy/exampleMembers.length).toFixed(3)}</span>`,
+            '',
+            `<span class="hi">μ${exampleCluster+1} = (${(sx/exampleMembers.length).toFixed(3)}, ${(sy/exampleMembers.length).toFixed(3)})</span>`
+          ].join('<br>');
+        }
+
+        updateMetrics();
+        draw(true);
+      }
+
+      function nextPhase() {
+        if (converged) return;
+        if (phase === 'assign') assignPoints(true);
+        else updateCentroids(true);
+      }
+
+      function inertiaFor(pts, cents, labs) {
+        if (labs.some(v => v < 0)) return null;
+        return pts.reduce((sum,p,i) => sum + sqDist(p, cents[labs[i]]), 0);
+      }
+
+      function silhouetteScore(pts, labs, k) {
+        if (labs.some(v => v < 0) || k < 2) return null;
+        let total = 0;
+        let count = 0;
+        for (let i = 0; i < pts.length; i++) {
+          const own = labs[i];
+          const same = [];
+          const others = Array.from({length:k}, () => []);
+          for (let j = 0; j < pts.length; j++) {
+            if (i === j) continue;
+            const d = dist(pts[i], pts[j]);
+            if (labs[j] === own) same.push(d);
+            else if (labs[j] >= 0 && labs[j] < k) others[labs[j]].push(d);
+          }
+          if (!same.length) continue;
+          const a = same.reduce((s,v)=>s+v,0) / same.length;
+          const means = others.filter(a => a.length).map(a => a.reduce((s,v)=>s+v,0)/a.length);
+          if (!means.length) continue;
+          const b = Math.min(...means);
+          total += (b-a) / Math.max(a,b);
+          count++;
+        }
+        return count ? total / count : null;
+      }
+
+      function updateMetrics() {
+        iterationMetric.textContent = iteration;
+        pointsMetric.textContent = points.length;
+        const inertia = inertiaFor(points, centroids, labels);
+        inertiaMetric.textContent = inertia == null ? '—' : inertia.toFixed(3);
+        const s = silhouetteScore(points, labels, centroids.length);
+        const sText = s == null ? '—' : s.toFixed(3);
+        silhouetteMetric.textContent = sText;
+        silhouetteBig.textContent = sText;
+      }
+
+      function setStatus(text, ok) {
+        statusBadge.textContent = text;
+        statusBadge.classList.toggle('ok', !!ok);
+      }
+
+      function updateStage(active) {
+        stageEls.forEach((el, idx) => {
+          el.classList.toggle('active', idx === active);
+          el.classList.toggle('done', idx < active || (active === 3 && idx < 3));
+        });
+      }
+
+      function toCanvas(p) {
+        return {
+          x: 48 + p.x * (canvas.width - 76),
+          y: 22 + (1 - p.y) * (canvas.height - 62)
+        };
+      }
+
+      function drawGrid(clearBackground = false) {
+        if (clearBackground) {
+          ctx.fillStyle = '#fbfcfe';
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+        }
+        ctx.strokeStyle = '#edf1f7';
+        ctx.lineWidth = 1;
+        for (let x=48; x<canvas.width-24; x+=70) {
+          ctx.beginPath(); ctx.moveTo(x,18); ctx.lineTo(x,canvas.height-40); ctx.stroke();
+        }
+        for (let y=30; y<canvas.height-40; y+=60) {
+          ctx.beginPath(); ctx.moveTo(48,y); ctx.lineTo(canvas.width-22,y); ctx.stroke();
+        }
+        ctx.strokeStyle = '#94a3b8';
+        ctx.beginPath(); ctx.moveTo(48,18); ctx.lineTo(48,canvas.height-40); ctx.lineTo(canvas.width-22,canvas.height-40); ctx.stroke();
+        ctx.fillStyle = '#64748b';
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillText('atributo x₁', canvas.width-100, canvas.height-14);
+        ctx.save(); ctx.translate(17,100); ctx.rotate(-Math.PI/2); ctx.fillText('atributo x₂',0,0); ctx.restore();
+      }
+
+      function drawVoronoi() {
+        if (!centroids.length) return;
+        const step = 8;
+        for (let x = 48; x < canvas.width-22; x += step) {
+          for (let y = 18; y < canvas.height-40; y += step) {
+            const p = {
+              x: (x-48)/(canvas.width-76),
+              y: 1 - (y-22)/(canvas.height-62)
+            };
+            let best = 0, bestD = Infinity;
+            centroids.forEach((c,j) => {
+              const d = sqDist(p,c);
+              if (d < bestD) { bestD = d; best = j; }
+            });
+            ctx.fillStyle = COLORS[best].fill;
+            ctx.fillRect(x,y,step,step);
+          }
+        }
+      }
+
+      function draw(showMoves = false) {
+        drawGrid(true);
+        drawVoronoi();
+        drawGrid(false);
+
+        if (showMoves && previousCentroids.length === centroids.length) {
+          previousCentroids.forEach((old,j) => {
+            const a = toCanvas(old), b = toCanvas(centroids[j]);
+            ctx.strokeStyle = COLORS[j].stroke;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6,5]);
+            ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+            ctx.setLineDash([]);
+          });
+        }
+
+        points.forEach((p,i) => {
+          const c = toCanvas(p);
+          ctx.beginPath();
+          ctx.arc(c.x,c.y,4.2,0,Math.PI*2);
+          ctx.fillStyle = labels[i] < 0 ? '#8290a5' : COLORS[labels[i]].stroke;
+          ctx.fill();
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+        });
+
+        centroids.forEach((c,j) => {
+          const q = toCanvas(c);
+          ctx.save();
+          ctx.translate(q.x,q.y);
+          ctx.rotate(Math.PI/4);
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = COLORS[j].stroke;
+          ctx.lineWidth = 4;
+          ctx.fillRect(-10,-10,20,20);
+          ctx.strokeRect(-10,-10,20,20);
+          ctx.restore();
+          ctx.fillStyle = '#111827';
+          ctx.font = '700 11px system-ui, sans-serif';
+          ctx.fillText(`μ${j+1}`, q.x+13, q.y-12);
+        });
+      }
+
+      function runToConvergence(pts, k, seedOffset = 0) {
+        let seed = 991 + seedOffset * 131;
+        const rr = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+        const cents = [];
+        cents.push({...pts[Math.floor(rr()*pts.length)]});
+        while (cents.length < k) {
+          const d2 = pts.map(p => Math.min(...cents.map(c => sqDist(p,c))));
+          const total = d2.reduce((a,b)=>a+b,0);
+          let r = rr()*total, idx = d2.length-1;
+          for (let i=0;i<d2.length;i++){ r -= d2[i]; if(r<=0){idx=i;break;} }
+          cents.push({...pts[idx]});
+        }
+        let labs = new Array(pts.length).fill(-1);
+        for (let it=0; it<80; it++) {
+          const newLabs = pts.map(p => {
+            const ds = cents.map(c=>sqDist(p,c));
+            return ds.indexOf(Math.min(...ds));
+          });
+          const newC = cents.map((c,j) => {
+            const members = pts.filter((_,i)=>newLabs[i]===j);
+            if(!members.length) return {...c};
+            return {
+              x: members.reduce((s,p)=>s+p.x,0)/members.length,
+              y: members.reduce((s,p)=>s+p.y,0)/members.length
+            };
+          });
+          const move = Math.max(...newC.map((c,j)=>dist(c,cents[j])));
+          labs = newLabs;
+          newC.forEach((c,j)=>{ cents[j]=c; });
+          if(move<0.0001) break;
+        }
+        return { inertia: inertiaFor(pts,cents,labs), labels: labs, centroids: cents };
+      }
+
+      function computeElbow() {
+        const values = [];
+        for (let k=1; k<=7; k++) {
+          let best = Infinity;
+          for (let r=0; r<4; r++) best = Math.min(best, runToConvergence(points,k,r).inertia);
+          values.push(best);
+        }
+        drawElbow(values);
+      }
+
+      function drawElbow(values) {
+        const w=520,h=240,padL=50,padR=18,padT=18,padB=40;
+        const max=Math.max(...values), min=Math.min(...values);
+        const sx=k=>padL+(k-1)*(w-padL-padR)/(values.length-1);
+        const sy=v=>padT+(max-v)/(Math.max(max-min,1e-9))*(h-padT-padB);
+        const pts=values.map((v,i)=>`${sx(i+1)},${sy(v)}`).join(' ');
+        const chosen = parseInt(kSelect.value,10);
+        let html=`<line x1="${padL}" y1="${h-padB}" x2="${w-padR}" y2="${h-padB}" stroke="#94a3b8"/>
+                  <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${h-padB}" stroke="#94a3b8"/>
+                  <polyline points="${pts}" fill="none" stroke="#2563eb" stroke-width="3" stroke-linejoin="round"/>`;
+        values.forEach((v,i)=>{
+          const k=i+1, x=sx(k), y=sy(v), active=k===chosen;
+          html += `<circle cx="${x}" cy="${y}" r="${active?7:5}" fill="${active?'#e11d48':'#2563eb'}"/>
+                   <text x="${x}" y="${h-14}" text-anchor="middle" font-size="12" fill="#64748b">${k}</text>`;
+        });
+        html += `<text x="${w/2}" y="${h-1}" text-anchor="middle" font-size="12" fill="#64748b">K</text>
+                 <text x="14" y="${h/2}" transform="rotate(-90 14 ${h/2})" text-anchor="middle" font-size="12" fill="#64748b">inércia</text>`;
+        elbowSvg.innerHTML = html;
+      }
+
+      function toggleAuto() {
+        if (autoTimer) { stopAuto(); return; }
+        if (converged) initialize(false);
+        autoBtn.textContent = 'Pausar';
+        autoTimer = setInterval(() => {
+          if (converged) { stopAuto(); return; }
+          nextPhase();
+        }, 850);
+      }
+
+      function stopAuto() {
+        if (autoTimer) clearInterval(autoTimer);
+        autoTimer = null;
+        autoBtn.textContent = 'Executar automaticamente';
+      }
+
+      nextBtn.addEventListener('click', () => { stopAuto(); nextPhase(); });
+      autoBtn.addEventListener('click', toggleAuto);
+      resetBtn.addEventListener('click', () => initialize(true));
+      datasetSelect.addEventListener('change', () => initialize(true));
+      kSelect.addEventListener('change', () => initialize(false));
+      initSelect.addEventListener('change', () => initialize(false));
+
+      initialize(true);
+    })();
+  </script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>
