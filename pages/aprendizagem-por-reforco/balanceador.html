@@ -231,6 +231,30 @@
           </div>
         </div>
       </div>
+
+      <!-- Explicação Passo a Passo da Mesma Lógica do Tamagotchi aplicada no Balanceador -->
+      <div class="config-math-walkthrough" style="margin-top: 22px;">
+        <article class="config-math-card">
+          <span>PASSO A PASSO · DECISÃO vs. BELLMAN</span>
+          <h3>A exata mesma lógica do Tamagotchi aplicada nos servidores!</h3>
+          <p>Aqui não temos Fome &times; Energia, mas sim uma matriz de <strong>3 Estados de Carga &times; 3 Servidores</strong> (9 notas na memória):</p>
+          <div class="config-math-lines">
+            <code><strong>1. ANTES de enviar a requisição (Decisão &epsilon;-Greedy):</strong> O Python olha <em>apenas a linha do estado atual da rede</em> e vê as 3 notas salvas (<code>node1</code>, <code>node2</code>, <code>node3</code>). Começa com 30%–40% de chute aleatório (&epsilon;) e vai caindo a cada requisição até escolher quase sempre a maior nota!</code>
+            <code><strong>2. DEPOIS que a resposta HTTP volta (Equação de Bellman):</strong> Medimos os milissegundos da resposta, transformamos em pontos (<strong>+20</strong> se &lt;100ms ou <strong>&minus;100</strong> se deu Timeout) e atualizamos <em>apenas a nota daquele servidor que acabamos de testar</em>!</code>
+          </div>
+        </article>
+
+        <article class="config-math-card">
+          <span>EXERCÍCIO PRÁTICO EM SALA</span>
+          <h3>Sua Missão no Kit do Aluno (balanceador_rl_aluno.zip)</h3>
+          <p>Baixe o Kit do Aluno no topo desta página e implemente os 3 blocos fundamentais dentro do <code>agente.py</code>:</p>
+          <div class="config-math-lines">
+            <code>&bull; <strong>TODO 1 (select_action):</strong> Programar o sorteio &epsilon;-greedy (explorar com chance <em>&epsilon;</em> ou escolher o servidor de maior nota).</code>
+            <code>&bull; <strong>TODO 2 (calculate_reward):</strong> Dar +20 para &lt;100ms, +2 até 250ms, &minus;15 acima disso e &minus;100 em Timeout.</code>
+            <code>&bull; <strong>TODO 3 (update_q_table):</strong> Aplicar a Equação de Bellman na célula <code>Q_TABLE[state][action]</code> e testar com <code>simulador_trafego.py</code>!</code>
+          </div>
+        </article>
+      </div>
     </section>
 
     <!-- 2. SIMULADOR INTERATIVO DE MULTIPLAS REQUISICOES E TREINAMENTO -->

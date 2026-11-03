@@ -204,7 +204,12 @@
             { icone: 'fa-brain', titulo: '01 · MLP configurável', caminho: 'pages/atividades/desafios-integradores.html#atividade-mlp' },
             { icone: 'fa-broom', titulo: '02 · Dataset sujo', caminho: 'pages/atividades/desafios-integradores.html#atividade-limpeza' },
             { icone: 'fa-shield-halved', titulo: '03 · WAF com IA', caminho: 'pages/atividades/desafios-integradores.html#atividade-waf' },
-            { icone: 'fa-chart-pie', titulo: '04 · Avaliação', caminho: 'pages/atividades/desafios-integradores.html#atividade-avaliacao' }
+            { icone: 'fa-chart-pie', titulo: '04 · Avaliação', caminho: 'pages/atividades/desafios-integradores.html#atividade-avaliacao' },
+            { icone: 'fa-object-group', titulo: '05 · K-Means', caminho: 'pages/atividades/desafios-integradores.html#atividade-kmeans' },
+            { icone: 'fa-compress', titulo: '06 · PCA', caminho: 'pages/atividades/desafios-integradores.html#atividade-pca' },
+            { icone: 'fa-link', titulo: '07 · Apriori', caminho: 'pages/atividades/desafios-integradores.html#atividade-apriori' },
+            { icone: 'fa-server', titulo: '08 · Balanceador RL', caminho: 'pages/atividades/desafios-integradores.html#atividade-balanceador-rl' },
+            { icone: 'fa-dove', titulo: '09 · Flappy Bird IA', caminho: 'pages/atividades/desafios-integradores.html#atividade-flappy-rl' }
           ]
         }
       ]

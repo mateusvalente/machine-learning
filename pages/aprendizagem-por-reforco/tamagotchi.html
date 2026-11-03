@@ -148,22 +148,53 @@
     .perturb-btn:hover { background: #f1f5f9; }
     .heatmap-grid {
       display: grid;
-      grid-template-columns: 44px repeat(11, minmax(42px, 1fr));
+      grid-template-columns: 44px repeat(11, minmax(52px, 1fr));
       gap: 4px;
       margin-top: 14px;
       overflow-x: auto;
       padding-bottom: 6px;
     }
     .hm-cell, .hm-head {
-      height: 36px;
+      min-height: 52px;
+      padding: 3px 4px;
       border-radius: 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font: 700 11px/1.1 'DM Mono', monospace;
+      font: 700 10px/1.15 'DM Mono', monospace;
       border: 1px solid #e2e8f0;
       user-select: none;
+    }
+    .hm-q3 {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      font-size: 9px;
+      line-height: 1.15;
+      color: #475569;
+    }
+    .hm-q3 span {
+      display: flex;
+      justify-content: space-between;
+    }
+    .hm-q3 span.best-q {
+      color: #087d67;
+      font-weight: 900;
+    }
+    .cell-inspector-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: #f0efff;
+      border: 1px solid #d4d2f7;
+      font: 700 13px 'DM Mono', monospace;
+      color: #292f48;
     }
     .hm-head {
       background: #292f48;
@@ -204,6 +235,61 @@
         <span class="output-layer-preview">Recompensa<br><small>+10 ou &minus;10</small></span>
       </div>
     </header>
+
+    <!-- 0. EXPLICAÇÃO DIDÁTICA PASSO A PASSO DO ALGORITMO -->
+    <section class="sample-inspector" id="como-funciona-passo-a-passo" style="margin-top: 32px;">
+      <header>
+        <div>
+          <p class="eyebrow">0 · ENTENDA O CÉREBRO DO AGUMON ANTES DE TREINAR</p>
+          <h2>Como a Matriz de Fome &times; Energia e a Equação de Bellman funcionam?</h2>
+        </div>
+        <p style="max-width: 520px; margin: 0; color: var(--muted);">A IA não faz ideia do que é "fome" ou "sono". Ela apenas navega por um tabuleiro de 121 quadrados anotando quais botões dão mais pontos.</p>
+      </header>
+
+      <div class="config-math-walkthrough" style="margin-top: 20px;">
+        <article class="config-math-card">
+          <span>PASSO 1 · O TABULEIRO 11&times;11</span>
+          <h3>Uma Matriz de Fome (0–10) &times; Energia (0–10)</h3>
+          <p>Como a Fome tem 11 níveis (<code>0</code> a <code>10</code>) e a Energia tem 11 níveis (<code>0</code> a <code>10</code>), existem <strong>11 &times; 11 = 121 quadrados possíveis</strong>. Dentro de <strong>cada quadrado</strong>, a IA guarda <strong>3 notas</strong> (uma para cada botão):</p>
+          <div class="config-math-lines">
+            <code>Quadrado (Fome, Energia) &rarr; { <strong>A:</strong> notaAlimentar, <strong>D:</strong> notaDormir, <strong>I:</strong> notaIgnorar }</code>
+            <code>&bull; 121 quadrados &times; 3 botões = <strong>363 notas na memória</strong> (todas começam em <em>0.0</em>).</code>
+          </div>
+        </article>
+
+        <article class="config-math-card">
+          <span>PASSO 2 · AÇÃO E PONTUAÇÃO</span>
+          <h3>Cada ação mexe nos níveis e gera uma Recompensa</h3>
+          <p>Quando um botão é apertado, o Agumon muda de quadrado na matriz e recebe uma nota imediata (<strong>R</strong>) dependendo de onde caiu:</p>
+          <div class="config-math-lines">
+            <code>&bull; <strong>🍖 Alimentar:</strong> Fome &minus;3 e Energia &minus;1 &nbsp;|&nbsp; <strong>💤 Dormir:</strong> Energia +3 e Fome +1 &nbsp;|&nbsp; <strong>⏳ Ignorar:</strong> Fome +1 e Energia &minus;1</code>
+            <code>&bull; Caiu no <em>Centro [3..7]</em>: ganha <strong>+10 pontos</strong> &nbsp;|&nbsp; Caiu no <em>Alerta (1,2,8,9)</em>: perde <strong>&minus;1 ponto</strong></code>
+            <code>&bull; Caiu nas <em>Bordas Fatais (0 ou 10)</em>: perde <strong>&minus;10 pontos</strong> e reinicia no centro <em>(5,5)</em>.</code>
+          </div>
+        </article>
+
+        <article class="config-math-card">
+          <span>PASSO 3 · DECISÃO vs. BELLMAN</span>
+          <h3>Ele calcula Bellman para tudo na hora de decidir? Não!</h3>
+          <p>O Q-Learning separa o momento de <strong>escolher o botão</strong> do momento de <strong>atualizar a nota</strong>:</p>
+          <div class="config-math-lines">
+            <code><strong>1. ANTES de agir (Decisão Rápida):</strong> Ele NÃO faz conta nenhuma e não olha a matriz inteira. Ele olha <em>apenas o quadrado onde está agora</em> e escolhe o botão que tiver a maior nota salva ali (Greedy).</code>
+            <code><strong>2. DEPOIS de agir (Equação de Bellman):</strong> Só depois que aperta o botão e vê para qual quadrado foi parar, ele roda a Equação de Bellman para atualizar <em>apenas aquela única nota daquele único quadrado</em> de onde saiu!</code>
+          </div>
+        </article>
+
+        <article class="config-math-card">
+          <span>PASSO 4 · QUASE UMA META-HEURÍSTICA</span>
+          <h3>Por que começa com 30% de chance aleatória (&epsilon;-greedy) e vai caindo?</h3>
+          <p>Igual ao resfriamento do <em>Simulated Annealing</em>, o parâmetro <strong>&epsilon; (Epsilon)</strong> controla o equilíbrio entre explorar o desconhecido e usar o que já sabe:</p>
+          <div class="config-math-lines">
+            <code>&bull; <strong>Início (&epsilon; = 0.30 &rarr; 30% aleatório):</strong> Como tudo começa em <em>0.0</em>, ele chuta botões aleatórios 30% das vezes para não ficar preso num caminho ruim.</code>
+            <code>&bull; <strong>Decaimento (&epsilon; &larr; &epsilon; &times; 0.996):</strong> A cada passo da IA, a chance de chute cai um pouquinho até parar em <strong>2% (0.02)</strong>.</code>
+            <code>&bull; <strong>Resultado Final (Homeostase):</strong> Com 98% de decisão na maior nota, a matriz vira um "GPS" que mantém o Agumon estável para sempre no centro verde!</code>
+          </div>
+        </article>
+      </div>
+    </section>
 
     <!-- 1. CONFIGURAÇÃO DOS HIPERPARÂMETROS DE BELLMAN -->
     <section class="configuration-panel" aria-labelledby="rl-params-title">
@@ -343,10 +429,16 @@
 
         <div id="policyHeatmap" class="heatmap-grid" aria-label="Matriz 11 por 11 de estados Fome versus Energia"></div>
 
+        <div id="cellInspectorBar" class="cell-inspector-bar">
+          <span id="inspectorStateTitle">Passe o mouse ou clique em uma célula da matriz (Estado atual: F:5, E:5)</span>
+          <span id="inspectorThreeScores">🍖 Alimentar: 0.00 | 💤 Dormir: 0.00 | ⏳ Ignorar: 0.00</span>
+        </div>
+
         <div class="network-legend" style="margin-top: 12px;">
-          <span><strong>🍖 ALIM</strong>: Alimentar</span>
-          <span><strong>💤 DORM</strong>: Dormir</span>
-          <span><strong>⏳ IGNO</strong>: Ignorar</span>
+          <span><strong>A</strong>: 🍖 Alimentar</span>
+          <span><strong>D</strong>: 💤 Dormir</span>
+          <span><strong>I</strong>: ⏳ Ignorar</span>
+          <span><strong>Verde Negrito</strong>: Maior nota Q daquela casa</span>
           <span><strong>Borda Verde</strong>: Zona Ideal [3..7] (+10)</span>
           <span><strong>Fundo Rosa</strong>: Extremos 0 ou 10 (&minus;10)</span>
         </div>
@@ -756,19 +848,41 @@ function atualizarBellman(estadoKey, acao, recompensa, proximoEstadoKey) {
               }
             }
 
-            var label = allZero ? '·' : ACTION_SHORT[best];
-            var sub = allZero ? '0.0' : maxQ.toFixed(1);
+            var tooltip = 'Estado (Fome ' + h + ', Energia ' + en + ')\n' +
+              '🍖 Alimentar: ' + q.alimentar.toFixed(2) + '\n' +
+              '💤 Dormir: ' + q.dormir.toFixed(2) + '\n' +
+              '⏳ Ignorar: ' + q.ignorar.toFixed(2);
 
-            html += '<div class="' + classes + '" style="' + bgStyle + '" data-h="' + h + '" data-e="' + en + '" title="Estado (' + key + ') — Clique para mover o Agumon para cá">' +
-              '<span>' + label + '</span>' +
-              '<small style="font-size:9px; opacity:0.8;">' + sub + '</small>' +
+            html += '<div class="' + classes + '" style="' + bgStyle + '" data-h="' + h + '" data-e="' + en + '" title="' + tooltip + '">' +
+              '<div class="hm-q3">' +
+                '<span class="' + (!allZero && best === 'alimentar' ? 'best-q' : '') + '"><b>A:</b><em>' + q.alimentar.toFixed(1) + '</em></span>' +
+                '<span class="' + (!allZero && best === 'dormir' ? 'best-q' : '') + '"><b>D:</b><em>' + q.dormir.toFixed(1) + '</em></span>' +
+                '<span class="' + (!allZero && best === 'ignorar' ? 'best-q' : '') + '"><b>I:</b><em>' + q.ignorar.toFixed(1) + '</em></span>' +
+              '</div>' +
             '</div>';
           }
         }
         grid.innerHTML = html;
 
+        function updateInspectorBar(h, e) {
+          var q = qTable[h + ',' + e];
+          var best = getBestAction(h + ',' + e);
+          var allZero = (q.alimentar === 0 && q.dormir === 0 && q.ignorar === 0);
+          document.getElementById('inspectorStateTitle').textContent =
+            'Estado (Fome ' + h + ', Energia ' + e + ')' + (allZero ? ' [Não visitado]' : ' → Melhor: ' + ACTION_LABELS[best]);
+          document.getElementById('inspectorThreeScores').textContent =
+            '🍖 Alimentar: ' + q.alimentar.toFixed(2) + '  |  💤 Dormir: ' + q.dormir.toFixed(2) + '  |  ⏳ Ignorar: ' + q.ignorar.toFixed(2);
+        }
+
+        updateInspectorBar(state.hunger, state.energy);
+
         var cells = grid.querySelectorAll('.hm-cell');
         for (var i = 0; i < cells.length; i++) {
+          cells[i].addEventListener('mouseenter', function () {
+            var nh = parseInt(this.getAttribute('data-h'), 10);
+            var ne = parseInt(this.getAttribute('data-e'), 10);
+            updateInspectorBar(nh, ne);
+          });
           cells[i].addEventListener('click', function () {
             var nh = parseInt(this.getAttribute('data-h'), 10);
             var ne = parseInt(this.getAttribute('data-e'), 10);

@@ -91,14 +91,17 @@
 
     <div class="config-math-walkthrough">
       <article class="config-math-card full">
-        <span>FÓRMULA COMPLETA</span>
-        <h3>Regra de Atualização do Q-Learning (Off-Policy TD Control)</h3>
-        <p>Em todas as iterações dos nossos dois laboratórios, executamos exatamente esta equação sem nenhuma caixa-preta:</p>
+        <span>FÓRMULA COMPLETA E FUNCIONAMENTO PASSO A PASSO</span>
+        <h3>Como o Algoritmo Decide vs. Como Ele Atualiza as Notas</h3>
+        <p>Uma dúvida muito comum é achar que o agente roda a Equação de Bellman para todos os estados possíveis antes de escolher uma ação. Na prática, o ciclo tem dois momentos separados:</p>
         <div class="config-math-lines">
+          <code><strong>MOMENTO 1 (ANTES DE AGIR — Decisão &epsilon;-Greedy, quase uma Meta-Heurística):</strong></code>
+          <code>&bull; O agente olha <em>apenas o quadrado onde está agora</em> na matriz e vê as notas já salvas para cada botão.</code>
+          <code>&bull; No começo (<strong>&epsilon; = 30%</strong>), ele sorteia botões aleatórios 30% das vezes para explorar o ambiente. A cada passo, esse &epsilon; vai caindo (ex: &times;0.996) até chegar a <strong>2%</strong>, fazendo com que 98% das decisões escolham diretamente a <strong>maior nota (Greedy)</strong>.</code>
+          <code><strong>MOMENTO 2 (DEPOIS DE AGIR — Atualização pela Equação de Bellman):</strong></code>
+          <code>&bull; A ação escolhida mexe no estado (ex: Fome/Energia ou Servidor escolhido) e o ambiente devolve a Recompensa <strong>R</strong>.</code>
+          <code>&bull; Só agora rodamos a Equação de Bellman para atualizar <em>apenas a nota daquela ação naquele estado de onde o agente saiu</em>:</code>
           <code><em>Q(s, a)</em> &larr; <em>Q(s, a)</em> + <strong>&alpha;</strong> &middot; [ <strong>R</strong> + <strong>&gamma;</strong> &middot; max<sub>a'</sub> <em>Q(s', a')</em> &minus; <em>Q(s, a)</em> ]</code>
-          <code>&bull; <strong>&alpha; (Taxa de Aprendizado, ex: 0.20)</strong>: define a velocidade com que novas experiências sobrescrevem o histórico.</code>
-          <code>&bull; <strong>&gamma; (Fator de Desconto, ex: 0.90)</strong>: define o peso do futuro (&gamma;=0 é míope e só olha a recompensa imediata; &gamma;&rarr;1 planeja a longo prazo).</code>
-          <code>&bull; <strong>&epsilon; (Taxa de Exploração, ex: 0.30 &rarr; 0.02)</strong>: probabilidade de sortear uma ação aleatória para descobrir novas rotas antes de convergir.</code>
         </div>
       </article>
     </div>

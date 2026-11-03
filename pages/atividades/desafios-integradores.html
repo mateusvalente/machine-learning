@@ -30,6 +30,8 @@
         <article><b>05 · K-Means</b><span>Agrupe clientes de e-commerce e tome decisões.</span></article>
         <article><b>06 · PCA</b><span>Reduza dados de 15 sensores industriais.</span></article>
         <article><b>07 · Apriori</b><span>Descubra regras de compra em uma padaria.</span></article>
+        <article><b>08 · Balanceador RL</b><span>Roteie tráfego Docker usando Q-Learning e Bellman.</span></article>
+        <article><b>09 · Flappy Bird IA</b><span>Faça a IA aprender a voar (Q-Learning vs. Neuroevolução).</span></article>
       </div>
     </section>
 
@@ -144,6 +146,73 @@
         <div class="activity-downloads">
           <a class="primary" download href="../../assets/datasets/padaria_apriori.csv"><i class="fa-solid fa-download"></i> Baixar padaria_apriori.csv</a>
           <a href="../aprendizagem-nao-supervisionada/apriori.html"><i class="fa-solid fa-book-open"></i> Revisar a teoria do Apriori</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="challenge" id="atividade-balanceador-rl">
+      <div class="challenge-number">08</div>
+      <div>
+        <p class="eyebrow">APRENDIZADO POR REFORÇO EM INFRAESTRUTURA · Q-LEARNING</p>
+        <h2>Ensine um Balanceador de Carga a rotear tráfego entre contêineres Docker.</h2>
+        <p class="challenge-lead">Aplique exatamente a mesma lógica passo a passo vista no Agente Tamagotchi (decisão &epsilon;-greedy começando em 30% de exploração aleatória que vai caindo + atualização da nota apenas da ação executada via Equação de Bellman) para rotear requisições HTTP entre 3 servidores <code>traefik/whoami</code> com limites de CPU diferentes atrás de um proxy Nginx.</p>
+        <div class="activity-tags"><span>Q-Learning Tabular</span><span>Equação de Bellman</span><span>&epsilon;-Greedy (30% &rarr; 2%)</span><span>Docker + Nginx</span></div>
+        <div class="challenge-grid">
+          <section class="activity-card">
+            <h3>O que já está pronto no Kit</h3>
+            <ul>
+              <li><code>docker-compose.yml</code> com <code>node1</code> (1.00 CPU), <code>node2</code> (0.25 CPU), <code>node3</code> (0.05 CPU) e <code>nginx-proxy</code> na porta 8080.</li>
+              <li><code>simulador_trafego.py</code> com <code>ThreadPoolExecutor</code> para disparar rajadas de requisições simultâneas e comparar Round-Robin contra a sua IA.</li>
+              <li>Estrutura base do <code>agente.py</code> com a matriz <code>Q_TABLE[estado][servidor]</code> inicializada em <code>0.0</code>.</li>
+            </ul>
+          </section>
+          <section class="activity-card emphasis">
+            <h3>Responsabilidade do aluno (3 passos do algoritmo)</h3>
+            <ol>
+              <li><strong>Antes de agir (<code>select_action</code>):</strong> Implementar a escolha &epsilon;-greedy (começa chutando um servidor aleatório 30% das vezes e vai decaindo; nos outros casos, olha apenas o estado atual e escolhe o servidor com a maior nota).</li>
+              <li><strong>Pontuação da ação (<code>calculate_reward</code>):</strong> Converter a latência HTTP medida em recompensa (<code>+20</code> se &lt; 100ms, <code>+2</code> até 250ms, <code>&minus;15</code> acima disso e <code>&minus;100</code> se der Timeout &gt; 500ms).</li>
+              <li><strong>Depois de agir (<code>update_q_table</code>):</strong> Atualizar <em>apenas a nota do servidor testado naquele estado</em> usando a Equação de Bellman: <code>Q(s,a) &larr; Q(s,a) + &alpha; &middot; [R + &gamma; &middot; max Q(s') &minus; Q(s,a)]</code>.</li>
+            </ol>
+          </section>
+        </div>
+        <div class="activity-downloads">
+          <a class="primary" download href="../../assets/downloads/balanceador_rl_aluno.zip"><i class="fa-solid fa-file-zipper"></i> Baixar Kit do Aluno (balanceador_rl_aluno.zip)</a>
+          <a href="../aprendizagem-por-reforco/balanceador.html"><i class="fa-solid fa-server"></i> Abrir Laboratório e Simulador do Balanceador</a>
+          <a href="../aprendizagem-por-reforco/tamagotchi.html#como-funciona-passo-a-passo"><i class="fa-solid fa-book-open"></i> Revisar Passo a Passo (Tamagotchi)</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="challenge" id="atividade-flappy-rl">
+      <div class="challenge-number">09</div>
+      <div>
+        <p class="eyebrow">JOGOS AUTÔNOMOS · FLAPPY BIRD COM IA</p>
+        <h2>Faça a IA aprender a jogar Flappy Bird sem bater nos canos.</h2>
+        <p class="challenge-lead">Use o projeto de referência <a href="https://github.com/mateusvalente/FlappyLearning" target="_blank" rel="noopener"><strong>github.com/mateusvalente/FlappyLearning</strong></a> para ensinar o pássaro a voar sozinho. Adapte a tomada de decisão para usar uma matriz de <strong>Q-Learning Tabular</strong> (ou compare diretamente com a Neuroevolução original do repositório).</p>
+        <div class="activity-tags"><span>FlappyLearning</span><span>Matriz de Estados (&Delta;X, &Delta;Y)</span><span>Ações: Pular vs. Cair</span><span>Bellman / Neuroevolução</span></div>
+        <div class="challenge-grid">
+          <section class="activity-card">
+            <h3>Como modelar o Flappy Bird na mesma lógica da Matriz</h3>
+            <ol>
+              <li><strong>Estados (A Matriz):</strong> Discretize a distância horizontal até o próximo cano (<code>&Delta;X</code>) e a diferença de altura entre o pássaro e a abertura do cano (<code>&Delta;Y</code>) em uma grade (ex: <code>20 &times; 20</code> quadrados).</li>
+              <li><strong>Duas notas por quadrado (Ações):</strong> Em cada quadrado <code>(&Delta;X, &Delta;Y)</code>, guarde 2 notas: <code>Q(s, pular)</code> e <code>Q(s, nao_pular)</code>.</li>
+              <li><strong>Decisão &epsilon;-greedy:</strong> A cada frame, olhe apenas o quadrado atual <code>(&Delta;X, &Delta;Y)</code> e escolha a ação de maior nota (com chance &epsilon; decrescente de exploração).</li>
+              <li><strong>Recompensa e Bellman:</strong> Sobreviver a um frame dá <code>+1</code> ponto; passar pelo cano dá <code>+10</code>; bater no cano ou no chão dá <code>&minus;100</code>. Atualize a nota do quadrado anterior via Equação de Bellman!</li>
+            </ol>
+          </section>
+          <section class="activity-card emphasis">
+            <h3>Entrega esperada</h3>
+            <p>Faça um fork ou clone do repositório <a href="https://github.com/mateusvalente/FlappyLearning" target="_blank" rel="noopener"><code>mateusvalente/FlappyLearning</code></a> e entregue:</p>
+            <ul>
+              <li>O código funcional com o agente treinando em velocidade acelerada no Canvas.</li>
+              <li>Um comparativo mostrando quantas gerações/episódios a IA levou para ultrapassar <strong>5.000 pontos</strong> sem colidir.</li>
+              <li>Uma breve análise comparando as duas abordagens: atualizar notas na tabela a cada frame (<strong>Q-Learning / Bellman</strong>) vs. selecionar e mutar os 6 pesos da rede a cada geração (<strong>Neuroevolução</strong>).</li>
+            </ul>
+          </section>
+        </div>
+        <div class="activity-downloads">
+          <a class="primary" href="https://github.com/mateusvalente/FlappyLearning" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> Acessar Repositório FlappyLearning</a>
+          <a href="../aprendizagem-por-reforco/tamagotchi.html"><i class="fa-solid fa-gamepad"></i> Revisar Matriz Q-Learning (Lab Tamagotchi)</a>
         </div>
       </div>
     </article>
