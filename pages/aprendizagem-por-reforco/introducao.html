@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Aprendizado por Reforço — Do Zero à Infraestrutura | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/learning-theory.css">
+  <link rel="stylesheet" href="../../css/supervised-algorithms.css">
+  <link rel="stylesheet" href="../../css/configurable-network-lab.css">
+</head>
+<body>
+<header class="site-header"></header>
+<main class="learning-page">
+
+  <section class="learning-hero">
+    <div>
+      <p class="eyebrow">MÓDULO 08 · APRENDIZADO POR REFORÇO (RL)</p>
+      <h1>Do Zero à Infraestrutura: Equação de Bellman na prática.</h1>
+      <p>Bem-vindo ao módulo de práticas de Aprendizado por Reforço. Aqui desconstruímos o RL abandonando frameworks de alto nível (como Gymnasium, PyTorch ou TensorFlow) para compreender a matemática e a lógica de tomada de decisão passo a passo.</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;">
+        <a class="button" href="./tamagotchi.html">Lab 1 · Agente Tamagotchi (Digimon) →</a>
+        <a class="button secondary" href="./balanceador.html">Lab 2 · Balanceador de Carga (Docker) →</a>
+      </div>
+    </div>
+    <div class="learning-hero-visual">
+      <article><b>S · Estado</b><span>O que o agente enxerga do ambiente no instante <em>t</em> (números, sensores ou carga da rede).</span></article>
+      <article><b>A · Ação</b><span>A escolha tomada pela política <em>&epsilon;-greedy</em>: explorar o desconhecido ou explotar o melhor valor.</span></article>
+      <article><b>R · Recompensa</b><span>O sinal imediato (+ ou &minus;) que premia boas decisões e pune falhas críticas.</span></article>
+    </div>
+  </section>
+
+  <section class="learning-section" id="analogia-rl">
+    <header class="narrative-head">
+      <p class="eyebrow">01 · COMO O AGENTE APRENDE SEM GABARITO?</p>
+      <h2>Tentativa, erro e consequência acumulada.</h2>
+    </header>
+    <div class="problem-grid" style="grid-template-columns: repeat(3, 1fr);">
+      <article class="problem-card">
+        <h3>Supervisionado</h3>
+        <p>Existe um <strong>professor com gabarito</strong> (<em>y</em>). Para cada entrada <em>x</em>, o modelo compara sua saída <em>ŷ</em> com a resposta certa imediata.</p>
+        <div class="equation">Erro = y &minus; ŷ</div>
+      </article>
+      <article class="problem-card">
+        <h3>Não Supervisionado</h3>
+        <p>Não há gabarito nem ações no tempo. O algoritmo analisa dados estáticos buscando <strong>agrupamentos, eixos ou associações</strong>.</p>
+        <div class="equation">Estrutura em X</div>
+      </article>
+      <article class="problem-card">
+        <h3>Aprendizado por Reforço</h3>
+        <p>Um <strong>agente ativo</strong> toma decisões sequenciais que alteram o estado do ambiente e aprende maximizando a recompensa ao longo do tempo.</p>
+        <div class="equation">S<sub>t</sub> &rarr; A<sub>t</sub> &rarr; (R<sub>t+1</sub>, S<sub>t+1</sub>)</div>
+      </article>
+    </div>
+  </section>
+
+  <section class="sample-inspector" id="equacao-bellman" style="margin-top:42px;">
+    <header>
+      <div>
+        <p class="eyebrow">02 · A MATEMÁTICA DO Q-LEARNING TABULAR</p>
+        <h2>Decompondo a Equação de Bellman passo a passo</h2>
+      </div>
+      <p style="max-width:520px; margin:0; color:var(--muted);">A Tabela Q (<em>Q-Table</em>) guarda, para cada linha de Estado <strong>s</strong> e coluna de Ação <strong>a</strong>, a expectativa de recompensa acumulada.</p>
+    </header>
+
+    <div class="backprop-flow" aria-label="Etapas da atualização de Bellman">
+      <article>
+        <b>1 · Valor Atual Q(s, a)</b>
+        <span>O que o agente acreditava que valia tomar a ação <em>a</em> no estado <em>s</em> antes da experiência.</span>
+        <code>Q_antigo = Q[s][a]</code>
+      </article>
+      <i>&rarr;</i>
+      <article>
+        <b>2 · Alvo de Bellman (TD Target)</b>
+        <span>Soma da recompensa imediata <em>R</em> com o melhor valor possível do próximo estado <em>s'</em> descontado por <em>&gamma;</em>.</span>
+        <code>Alvo = R + &gamma; &middot; max Q[s']</code>
+      </article>
+      <i>&rarr;</i>
+      <article>
+        <b>3 · Erro Temporal (TD Error)</b>
+        <span>A surpresa do agente: diferença entre o que realmente aconteceu (Alvo) e o que ele esperava.</span>
+        <code>&delta; = Alvo &minus; Q[s][a]</code>
+      </article>
+      <i>&rarr;</i>
+      <article>
+        <b>4 · Atualização Tabular</b>
+        <span>Corrige a célula da Q-Table dando um passo proporcional à taxa de aprendizado <em>&alpha;</em>.</span>
+        <code>Q[s][a] &larr; Q[s][a] + &alpha; &middot; &delta;</code>
+      </article>
+    </div>
+
+    <div class="config-math-walkthrough">
+      <article class="config-math-card full">
+        <span>FÓRMULA COMPLETA</span>
+        <h3>Regra de Atualização do Q-Learning (Off-Policy TD Control)</h3>
+        <p>Em todas as iterações dos nossos dois laboratórios, executamos exatamente esta equação sem nenhuma caixa-preta:</p>
+        <div class="config-math-lines">
+          <code><em>Q(s, a)</em> &larr; <em>Q(s, a)</em> + <strong>&alpha;</strong> &middot; [ <strong>R</strong> + <strong>&gamma;</strong> &middot; max<sub>a'</sub> <em>Q(s', a')</em> &minus; <em>Q(s, a)</em> ]</code>
+          <code>&bull; <strong>&alpha; (Taxa de Aprendizado, ex: 0.20)</strong>: define a velocidade com que novas experiências sobrescrevem o histórico.</code>
+          <code>&bull; <strong>&gamma; (Fator de Desconto, ex: 0.90)</strong>: define o peso do futuro (&gamma;=0 é míope e só olha a recompensa imediata; &gamma;&rarr;1 planeja a longo prazo).</code>
+          <code>&bull; <strong>&epsilon; (Taxa de Exploração, ex: 0.30 &rarr; 0.02)</strong>: probabilidade de sortear uma ação aleatória para descobrir novas rotas antes de convergir.</code>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="learning-section supervised-algorithms" id="o-que-vamos-construir">
+    <header class="narrative-head">
+      <p class="eyebrow">03 · O QUE VAMOS CONSTRUIR?</p>
+      <h2>Dois laboratórios práticos orientados a tarefas.</h2>
+      <p>Muitos cursos focam apenas em labirintos abstratos. Aqui implementamos dois sistemas completos onde um agente inteligente aprende regras e comportamentos invisíveis através de tentativa, erro e recompensas.</p>
+    </header>
+
+    <div class="supervised-algorithm-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+      <article class="supervised-algorithm-card classification-family">
+        <div class="algorithm-card-top"><span>PROJETO 01</span><em>VANILLA JS · NAVEGADOR</em></div>
+        <h3>O Agente Tamagotchi (Digimon V-Pet no Navegador)</h3>
+        <p><strong>O Desafio:</strong> A IA cuida de um <strong>Agumon</strong> mas não sabe o que é fome ou energia. Ela apenas observa números de <code>0</code> a <code>10</code> (Estados) e possui 3 botões que pode apertar (Ações: <code>Alimentar</code>, <code>Dormir</code>, <code>Ignorar</code>).</p>
+        <p><strong>O Aprendizado:</strong> Através do Q-Learning Tabular, mantemos uma matriz de 121 estados em memória. Ações que mantêm o Digimon equilibrado (entre 3 e 7) ganham <code>+10</code>; deixar chegar nos extremos (0 ou 10) gera punição de <code>-10</code>. Você pode interagir manualmente ou assistir à IA treinando em tempo real.</p>
+        <p><strong>Tecnologias:</strong> HTML5, CSS3, JavaScript puro (DOM + Canvas). Zero bibliotecas externas.</p>
+        <a href="./tamagotchi.html">Abrir Laboratório 1: Agente Tamagotchi →</a>
+      </article>
+
+      <article class="supervised-algorithm-card regression-family">
+        <div class="algorithm-card-top"><span>PROJETO 02</span><em>DOCKER · PYTHON · NGINX</em></div>
+        <h3>Balanceador de Carga Inteligente (Docker + Python)</h3>
+        <p><strong>O Desafio:</strong> Temos 3 contêineres servidores (<code>traefik/whoami</code> com limites reais de CPU de <code>1.00</code>, <code>0.25</code> e <code>0.05</code>) atrás de um proxy reverso Nginx. O agente envia requisições HTTP e precisa descobrir sozinho qual servidor responde mais rápido em cada perfil de tráfego.</p>
+        <p><strong>O Aprendizado:</strong> O script Python (nosso Agente) mede a latência real da rede. Respostas rápidas (&lt; 100ms) geram recompensas altas (<code>+20</code>); lentidão ou <em>timeouts</em> geram punições severas (<code>-100</code>). Inclui simulador de rajadas de requisições e pacote <code>.zip</code> completo com Docker Compose.</p>
+        <p><strong>Tecnologias:</strong> Python (<code>requests</code>), Docker, Docker Compose, Nginx e <code>traefik/whoami</code>.</p>
+        <a href="./balanceador.html">Abrir Laboratório 2: Balanceador de Carga →</a>
+      </article>
+    </div>
+  </section>
+
+</main>
+<footer class="site-footer">
+  <div class="footer-sources">
+    <strong>Repositório Oficial:</strong> <a href="https://github.com/mateusvalente/machine-learning" target="_blank" rel="noopener">github.com/mateusvalente/machine-learning</a>
+  </div>
+  <p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p>
+</footer>
+<script src="../../js/navigation.js"></script>
+</body>
+</html>

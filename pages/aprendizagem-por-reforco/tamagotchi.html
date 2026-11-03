@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Projeto 1: O Agente Tamagotchi (Digimon Q-Learning) | Machine Learning Lab</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <link rel="stylesheet" href="../../css/configurable-network-lab.css">
+  <style>
+    .digimon-stage-grid {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 22px;
+      margin-top: 24px;
+    }
+    @media (max-width: 980px) {
+      .digimon-stage-grid { grid-template-columns: 1fr; }
+    }
+    .vpet-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 230px;
+      padding: 24px;
+      border-radius: 18px;
+      border: 3px solid #292f48;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.9), rgba(226, 242, 234, 0.95)),
+        repeating-linear-gradient(0deg, rgba(16, 36, 28, 0.04) 0px, rgba(16, 36, 28, 0.04) 2px, transparent 2px, transparent 4px);
+      box-shadow: inset 0 4px 18px rgba(15, 23, 42, 0.12);
+      position: relative;
+      text-align: center;
+    }
+    .vpet-header-bar {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      font: 800 12px 'DM Mono', monospace;
+      color: #334155;
+    }
+    .digimon-sprite-wrap {
+      width: 112px;
+      height: 112px;
+      display: grid;
+      place-items: center;
+      margin: 18px 0 8px;
+    }
+    .digimon-sprite-wrap img {
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.18));
+      transition: transform 0.2s ease;
+    }
+    .digimon-sprite-wrap.anim-bounce img {
+      animation: digiBounce 0.65s infinite alternate ease-in-out;
+    }
+    @keyframes digiBounce {
+      from { transform: translateY(0px) scale(1); }
+      to { transform: translateY(-7px) scale(1.04); }
+    }
+    .vpet-speech {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font: 800 13px Manrope, sans-serif;
+      background: #292f48;
+      color: #fff;
+    }
+    .vpet-meters {
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .vpet-meter-head {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .vpet-bar-track {
+      height: 16px;
+      border-radius: 999px;
+      background: #e9edf5;
+      border: 1px solid #cbd5e1;
+      overflow: hidden;
+      position: relative;
+    }
+    .vpet-bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      transition: width 0.2s ease, background-color 0.2s ease;
+    }
+    .manual-action-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .manual-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 10px;
+      border-radius: 12px;
+      border: 2px solid #cdd3e1;
+      background: #f8f9fc;
+      color: #1e293b;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .manual-action-btn:hover {
+      border-color: #4e46e5;
+      background: #eef0ff;
+      transform: translateY(-2px);
+    }
+    .manual-action-btn small {
+      font: 600 11px 'DM Mono', monospace;
+      color: #64748b;
+    }
+    .perturb-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed #dce3f0;
+    }
+    .perturb-btn {
+      flex: 1;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      color: #475569;
+      cursor: pointer;
+    }
+    .perturb-btn:hover { background: #f1f5f9; }
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: 44px repeat(11, minmax(42px, 1fr));
+      gap: 4px;
+      margin-top: 14px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .hm-cell, .hm-head {
+      height: 36px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font: 700 11px/1.1 'DM Mono', monospace;
+      border: 1px solid #e2e8f0;
+      user-select: none;
+    }
+    .hm-head {
+      background: #292f48;
+      color: #fff;
+      font-weight: 800;
+    }
+    .hm-cell {
+      background: #f8fafc;
+      color: #334155;
+      cursor: pointer;
+      transition: transform 0.1s ease;
+    }
+    .hm-cell:hover { transform: scale(1.08); z-index: 2; }
+    .hm-cell.current-pos {
+      outline: 3px solid #4e46e5;
+      box-shadow: 0 0 0 2px #fff inset;
+      font-weight: 900;
+    }
+    .hm-cell.zone-ideal { border-color: rgba(25, 169, 135, 0.55); }
+    .hm-cell.zone-extreme { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+  </style>
+</head>
+<body>
+  <header class="site-header"></header>
+
+  <main class="configurable-lab-page">
+    <header class="configurable-hero">
+      <div>
+        <p class="eyebrow">LABORATÓRIO 01 · Q-LEARNING TABULAR NO NAVEGADOR</p>
+        <h1>O Agente Tamagotchi (Digimon V-Pet).</h1>
+        <p class="lead">A IA cuida de um <strong>Agumon</strong> observando apenas dois números: <strong>Fome (0–10)</strong> e <strong>Energia (0–10)</strong>. Interaja manualmente com os botões ou acione o treinamento autônomo para ver a Equação de Bellman preencher a Q-Table em tempo real.</p>
+      </div>
+      <div class="architecture-preview" aria-label="Ciclo de Aprendizado por Reforço do Tamagotchi">
+        <span>Estado<br><small>(Fome, Energia)</small></span>
+        <i>&rarr;</i>
+        <span class="hidden-layer-preview">Agente Q<br><small>Alimentar<br>Dormir / Ignorar</small></span>
+        <i>&rarr;</i>
+        <span class="output-layer-preview">Recompensa<br><small>+10 ou &minus;10</small></span>
+      </div>
+    </header>
+
+    <!-- 1. CONFIGURAÇÃO DOS HIPERPARÂMETROS DE BELLMAN -->
+    <section class="configuration-panel" aria-labelledby="rl-params-title">
+      <header>
+        <div>
+          <p class="eyebrow">1 · CONFIGURE OS HIPERPARÂMETROS DA EQUAÇÃO DE BELLMAN</p>
+          <h2 id="rl-params-title">Como o Agente valoriza o aprendizado e o futuro?</h2>
+        </div>
+        <p>Altere a taxa de aprendizado (&alpha;), o fator de desconto (&gamma;) e a exploração (&epsilon;) a qualquer momento.</p>
+      </header>
+
+      <div class="configuration-grid" style="grid-template-columns: repeat(4, minmax(150px, 1fr));">
+        <label>TAXA DE APRENDIZADO (&alpha;)
+          <input id="alphaInput" type="number" min="0.05" max="1.0" step="0.05" value="0.25">
+          <small>Peso dado ao novo erro TD</small>
+        </label>
+        <label>FATOR DE DESCONTO (&gamma;)
+          <input id="gammaInput" type="number" min="0.10" max="0.99" step="0.05" value="0.90">
+          <small>Importância do futuro max Q(s')</small>
+        </label>
+        <label>EXPLORAÇÃO INICIAL (&epsilon;)
+          <input id="epsilonInput" type="number" min="0.00" max="1.00" step="0.05" value="0.30">
+          <small>Chance de ação aleatória</small>
+        </label>
+        <label>VELOCIDADE DO LOOP
+          <select id="speedSelect" aria-label="Velocidade da simulação automática">
+            <option value="350">Didática (350ms)</option>
+            <option value="150" selected>Normal (150ms)</option>
+            <option value="35">Rápida (35ms)</option>
+          </select>
+          <small>Intervalo do setInterval</small>
+        </label>
+      </div>
+
+      <div class="configuration-actions">
+        <button class="button" id="applyParamsBtn" type="button">Aplicar hiperparâmetros</button>
+        <button class="button outline" id="resetQTableBtn" type="button">Zerar Q-Table completa</button>
+        <span id="stateSummaryBadge" class="architecture-text">Espaço: 121 estados (11×11) × 3 ações = 363 valores Q</span>
+      </div>
+    </section>
+
+    <!-- 2. BARRA DE TREINAMENTO E MÉTRICAS -->
+    <section class="experiment-toolbar" aria-label="Controles de execução do Agente">
+      <div>
+        <p class="eyebrow">2 · INTERAJA MANUALMENTE OU DEIXE A IA APRENDER</p>
+        <h2>Estado (s) &rarr; Ação (a) &rarr; Recompensa (R) &rarr; Bellman</h2>
+      </div>
+      <div class="training-buttons">
+        <button class="button" id="stepAgentBtn" type="button">Passo da IA (1 tick)</button>
+        <button class="button" id="train100Btn" type="button">Treinar 100 passos</button>
+        <button class="button" id="trainUntilConvergeBtn" type="button">Treinar 1.000 passos</button>
+        <button class="button outline" id="toggleAutoBtn" type="button">Iniciar Loop Contínuo</button>
+      </div>
+    </section>
+
+    <section class="metric-strip" aria-label="Métricas em tempo real do Agente">
+      <article><span>PASSOS EXECUTADOS</span><strong id="stepMetric">0</strong></article>
+      <article><span>EPISÓDIOS (VIDAS)</span><strong id="episodeMetric">1</strong></article>
+      <article><span>RECOMPENSA ACUMULADA</span><strong id="rewardMetric">0</strong></article>
+      <article><span>TAXA DE EQUILÍBRIO (ÚLT. 50)</span><strong id="balanceRateMetric">—</strong></article>
+    </section>
+
+    <!-- 3. ARENA DO DIGIMON + MAPA DE POLÍTICA 11x11 -->
+    <section class="digimon-stage-grid">
+      <!-- Card Esquerdo: Dispositivo V-Pet Interativo -->
+      <article class="config-card">
+        <div class="card-top">
+          <div>
+            <h2>Dispositivo Digimon V-Pet</h2>
+            <p>Use os botões abaixo para agir manualmente ou testar como a IA reage.</p>
+          </div>
+        </div>
+
+        <div class="vpet-screen">
+          <div class="vpet-header-bar">
+            <span id="vpetStateLabel">ESTADO S = (5, 5)</span>
+            <span id="vpetModeLabel">PRONTO</span>
+          </div>
+          <div class="digimon-sprite-wrap anim-bounce" id="spriteContainer">
+            <img id="digimonSprite" src="../../assets/images/digimon/agumon_idle_0.png" alt="Sprite pixel-art do Agumon">
+          </div>
+          <span class="vpet-speech" id="digimonSpeech">Agumon está saudável na Zona Ideal [3..7]! (+10 pts)</span>
+        </div>
+
+        <div class="vpet-meters">
+          <div>
+            <div class="vpet-meter-head">
+              <span>🍖 Nível de Fome (0 = Cheio, 10 = Faminto)</span>
+              <strong id="hungerText">5 / 10</strong>
+            </div>
+            <div class="vpet-bar-track">
+              <div id="hungerBar" class="vpet-bar-fill" style="width: 50%; background: #19a987;"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="vpet-meter-head">
+              <span>⚡ Nível de Energia (0 = Exausto, 10 = Hiperativo)</span>
+              <strong id="energyText">5 / 10</strong>
+            </div>
+            <div class="vpet-bar-track">
+              <div id="energyBar" class="vpet-bar-fill" style="width: 50%; background: #19a987;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="manual-action-grid" aria-label="Botões de ação manual no ambiente">
+          <button type="button" class="manual-action-btn" id="btnManualFeed">
+            <span>🍖 Alimentar</span>
+            <small>Fome &minus;3 | Energia &minus;1</small>
+          </button>
+          <button type="button" class="manual-action-btn" id="btnManualSleep">
+            <span>💤 Dormir</span>
+            <small>Energia +3 | Fome +1</small>
+          </button>
+          <button type="button" class="manual-action-btn" id="btnManualIgnore">
+            <span>⏳ Ignorar</span>
+            <small>Fome +1 | Energia &minus;1</small>
+          </button>
+        </div>
+
+        <div class="perturb-strip">
+          <button type="button" class="perturb-btn" id="btnForceHungry" title="Coloca Fome=8, Energia=5 para ver o que o Agente faz">🔥 Forçar Fome (F:8, E:5)</button>
+          <button type="button" class="perturb-btn" id="btnForceTired" title="Coloca Fome=5, Energia=2 para ver o que o Agente faz">😴 Forçar Cansaço (F:5, E:2)</button>
+          <button type="button" class="perturb-btn" id="btnCenterState">🎯 Centralizar (F:5, E:5)</button>
+        </div>
+      </article>
+
+      <!-- Card Direito: Mapa Visual de Política 11x11 + Gráfico de Recompensa -->
+      <article class="config-card">
+        <div class="card-top">
+          <div>
+            <h2>Mapa da Política Aprendida &pi;(Fome, Energia)</h2>
+            <p>Cada célula mostra a melhor ação descoberta para o par <strong>(Fome F, Energia E)</strong>. Clique em qualquer célula para teletransportar o Agumon para aquele estado!</p>
+          </div>
+        </div>
+
+        <div id="policyHeatmap" class="heatmap-grid" aria-label="Matriz 11 por 11 de estados Fome versus Energia"></div>
+
+        <div class="network-legend" style="margin-top: 12px;">
+          <span><strong>🍖 ALIM</strong>: Alimentar</span>
+          <span><strong>💤 DORM</strong>: Dormir</span>
+          <span><strong>⏳ IGNO</strong>: Ignorar</span>
+          <span><strong>Borda Verde</strong>: Zona Ideal [3..7] (+10)</span>
+          <span><strong>Fundo Rosa</strong>: Extremos 0 ou 10 (&minus;10)</span>
+        </div>
+
+        <div class="card-top" style="margin-top: 22px; margin-bottom: 10px;">
+          <div>
+            <h2 style="font-size: 20px;">Evolução da Recompensa Média</h2>
+            <p style="margin:0; color:var(--muted); font-size:14px;">Média móvel das últimas 30 interações (converge para +10 quando o Agumon aprende a nunca sair da zona ideal).</p>
+          </div>
+        </div>
+        <canvas id="rewardChartCanvas" width="820" height="210" style="width:100%; height:auto; border-radius:12px;" aria-label="Gráfico de evolução da recompensa"></canvas>
+      </article>
+    </section>
+
+    <!-- 4. INSPETOR MATEMÁTICO DA EQUAÇÃO DE BELLMAN -->
+    <section class="sample-inspector" aria-labelledby="bellman-inspector-title">
+      <header>
+        <div>
+          <p class="eyebrow">3 · RAIO-X DA ÚLTIMA DECISÃO</p>
+          <h2 id="bellman-inspector-title">Substituição numérica na Equação de Bellman</h2>
+        </div>
+        <p style="max-width: 500px; margin:0; color:var(--muted);">Acompanhe os números exatos da última transição <strong>(s, a, R, s')</strong> que acabou de atualizar a Q-Table.</p>
+      </header>
+
+      <div class="forward-summary" id="lastTransitionSummary">
+        <div>
+          <b>1. Estado Anterior (s) e Ação (a)</b>
+          <code id="summaryStateAction">s = (5, 5) | a = ignorar</code>
+        </div>
+        <div>
+          <b>2. Novo Estado (s') e Recompensa (R)</b>
+          <code id="summaryNextReward">s' = (6, 4) | R = +10</code>
+        </div>
+        <div>
+          <b>3. Atualização na Tabela Q(s, a)</b>
+          <code id="summaryQDelta">0.00 &rarr; +2.50 (&Delta; = +2.50)</code>
+        </div>
+      </div>
+
+      <div id="bellmanMathWalkthrough" class="config-math-walkthrough" aria-live="polite"></div>
+    </section>
+
+    <!-- 5. Q-TABLE COMPLETA EM TEMPO REAL -->
+    <section class="adaptive-results" aria-labelledby="qtable-full-title">
+      <header>
+        <div>
+          <p class="eyebrow">4 · TABELA Q COMPLETA EM MEMÓRIA (121 ESTADOS)</p>
+          <h2 id="qtable-full-title">Valores Q(s, a) atualizados em tempo real</h2>
+        </div>
+        <label style="display:grid; gap:6px; font-weight:800; font-size:13px; color:#4f5a72;">
+          FILTRAR ESTADOS
+          <select id="filterQTableSelect" style="height:44px; padding:0 12px; border:1px solid #cdd3e1; border-radius:9px; font:700 14px Manrope;">
+            <option value="visited">Apenas estados já visitados / não-zero + Estado Atual</option>
+            <option value="ideal">Apenas Zona Ideal (Fome 3..7 e Energia 3..7)</option>
+            <option value="all">Todos os 121 estados (0,0 até 10,10)</option>
+          </select>
+        </label>
+      </header>
+      <div class="adaptive-table-wrap" style="max-height: 520px;">
+        <table class="adaptive-results-table" id="qTableElement">
+          <thead>
+            <tr>
+              <th>Estado (Fome, Energia)</th>
+              <th>Zona do Ambiente</th>
+              <th class="output-group">Q(s, Alimentar)</th>
+              <th class="output-group">Q(s, Dormir)</th>
+              <th class="output-group">Q(s, Ignorar)</th>
+              <th class="cost-group">Melhor Ação &pi;(s)</th>
+            </tr>
+          </thead>
+          <tbody id="qTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 6. CÓDIGO DIDÁTICO EXPLICADO -->
+    <section class="algorithm-section" aria-labelledby="tamagotchi-code-title">
+      <header>
+        <p class="eyebrow">5 · CÓDIGO COMPLETO E COMENTADO (VANILLA JS)</p>
+        <h2 id="tamagotchi-code-title">Como programar o Q-Learning Tabular do zero</h2>
+        <p>Sem bibliotecas externas: o algoritmo inteiro resume-se a uma tabela de estados, a escolha <span class="mono">&epsilon;-greedy</span>, a regra de transição do ambiente e a linha da Equação de Bellman.</p>
+        <div class="algorithm-flow">
+          <span>criarQTable()</span>
+          <span>escolherAcao()</span>
+          <span>executarAcaoNoAmbiente()</span>
+          <span>atualizarBellman()</span>
+          <span>treinarPasso()</span>
+        </div>
+      </header>
+      <div class="code-window">
+        <div class="code-window-bar"><span>tamagotchi-qlearning.js</span><i>100% JavaScript puro · Equação de Bellman explícita</i></div>
+<pre><code>// 1. ESPAÇO DE AÇÕES E HIPERPARÂMETROS DA EQUAÇÃO DE BELLMAN
+const ACOES = ['alimentar', 'dormir', 'ignorar'];
+let alpha = 0.25;   // Taxa de aprendizado (learning rate)
+let gamma = 0.90;   // Fator de desconto para recompensas futuras
+let epsilon = 0.30; // Probabilidade de explorar uma ação aleatória
+
+// 2. INICIALIZAÇÃO DA Q-TABLE: 11 níveis de Fome (0..10) x 11 níveis de Energia (0..10)
+const qTable = {};
+for (let fome = 0; fome &lt;= 10; fome++) {
+  for (let energia = 0; energia &lt;= 10; energia++) {
+    qTable[`${fome},${energia}`] = { alimentar: 0.0, dormir: 0.0, ignorar: 0.0 };
+  }
+}
+
+// 3. POLÍTICA EPSILON-GREEDY: Equilíbrio entre Exploração e Explotação
+function escolherAcao(estadoKey) {
+  if (Math.random() &lt; epsilon) {
+    // EXPLORAÇÃO: testa uma ação aleatória para descobrir novas rotas
+    const indiceAleatorio = Math.floor(Math.random() * ACOES.length);
+    return ACOES[indiceAleatorio];
+  }
+  // EXPLOTAÇÃO: escolhe a ação com o maior valor Q(s, a) conhecido
+  const valoresQ = qTable[estadoKey];
+  return ACOES.reduce((melhor, acao) =&gt; valoresQ[acao] &gt; valoresQ[melhor] ? acao : melhor, ACOES[0]);
+}
+
+// 4. DINÂMICA DO AMBIENTE E FUNÇÃO DE RECOMPENSA
+function executarAcaoNoAmbiente(estado, acao) {
+  let { fome, energia } = estado;
+
+  if (acao === 'alimentar') {
+    fome = Math.max(0, fome - 3);    // Matar a fome reduz o nível em 3
+    energia = Math.max(0, energia - 1); // Digestão consome 1 de energia
+  } else if (acao === 'dormir') {
+    energia = Math.min(10, energia + 3); // Dormir recupera 3 de energia
+    fome = Math.min(10, fome + 1);       // Metabolismo durante o sono dá fome (+1)
+  } else if (acao === 'ignorar') {
+    fome = Math.min(10, fome + 1);       // Fome sobe naturalmente
+    energia = Math.max(0, energia - 1);  // Energia cai naturalmente
+  }
+
+  // Cálculo da Recompensa (Reward Shaping):
+  // +10 se mantiver Fome e Energia equilibradas entre 3 e 7
+  // -10 se deixar chegar nos extremos fatais (0 ou 10)
+  const extremo = (fome === 0 || fome === 10 || energia === 0 || energia === 10);
+  const equilibrado = (fome &gt;= 3 &amp;&amp; fome &lt;= 7 &amp;&amp; energia &gt;= 3 &amp;&amp; energia &lt;= 7);
+
+  let recompensa = -1; // Zona de alerta intermediária (1, 2, 8, 9)
+  if (extremo) recompensa = -10;
+  else if (equilibrado) recompensa = +10;
+
+  return { proximoEstado: { fome, energia }, recompensa, fimDeEpisodio: extremo };
+}
+
+// 5. ATUALIZAÇÃO PELA EQUAÇÃO DE BELLMAN (Q-LEARNING)
+// Q(s,a) &lt;- Q(s,a) + alpha * [ R + gamma * max_a' Q(s',a') - Q(s,a) ]
+function atualizarBellman(estadoKey, acao, recompensa, proximoEstadoKey) {
+  const qAtual = qTable[estadoKey][acao];
+  const maxQFuturo = Math.max(...Object.values(qTable[proximoEstadoKey]));
+
+  const alvoBellman = recompensa + gamma * maxQFuturo;
+  const erroTD = alvoBellman - qAtual;
+
+  qTable[estadoKey][acao] = qAtual + alpha * erroTD;
+}</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-sources">
+      <strong>Fontes:</strong> Sutton &amp; Barto — <em>Reinforcement Learning: An Introduction</em> (Capítulo 6: Temporal-Difference Learning / Q-Learning).
+    </div>
+    <p class="footer-credit">Material produzido para a disciplina de Machine Learning — Uniube · Prof. Me. Mateus de Sousa Valente</p>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var ACTIONS = ['alimentar', 'dormir', 'ignorar'];
+      var ACTION_LABELS = { alimentar: '🍖 Alimentar', dormir: '💤 Dormir', ignorar: '⏳ Ignorar' };
+      var ACTION_SHORT = { alimentar: '🍖 ALIM', dormir: '💤 DORM', ignorar: '⏳ IGNO' };
+
+      var SPRITES = {
+        idle: ['../../assets/images/digimon/agumon_idle_0.png', '../../assets/images/digimon/agumon_idle_1.png'],
+        happy: ['../../assets/images/digimon/agumon_win_0.png', '../../assets/images/digimon/agumon_win_1.png'],
+        sleep: ['../../assets/images/digimon/agumon_recover_0.png', '../../assets/images/digimon/agumon_recover_1.png'],
+        warn: ['../../assets/images/digimon/agumon_shocked_0.png'],
+        ko: ['../../assets/images/digimon/agumon_lose_0.png']
+      };
+
+      var alpha = 0.25;
+      var gamma = 0.90;
+      var epsilon = 0.30;
+      var speedMs = 150;
+
+      var qTable = {};
+      var visitedStates = { '5,5': true };
+      var state = { hunger: 5, energy: 5 };
+      var steps = 0;
+      var episodes = 1;
+      var totalReward = 0;
+      var recentHistory = []; // últimos 50: 1 se equilibrado, 0 caso contrário
+      var rewardCurve = [];   // média móvel para o gráfico Canvas
+      var loopTimer = null;
+      var spriteFrame = 0;
+      var currentSpriteMood = 'idle';
+
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function initQTable() {
+        qTable = {};
+        visitedStates = { '5,5': true };
+        for (var h = 0; h <= 10; h++) {
+          for (var e = 0; e <= 10; e++) {
+            qTable[h + ',' + e] = { alimentar: 0.0, dormir: 0.0, ignorar: 0.0 };
+          }
+        }
+      }
+
+      function getBestAction(stateKey) {
+        var q = qTable[stateKey];
+        var best = ACTIONS[0];
+        for (var i = 1; i < ACTIONS.length; i++) {
+          if (q[ACTIONS[i]] > q[best]) best = ACTIONS[i];
+        }
+        return best;
+      }
+
+      function chooseEpsilonGreedyAction(stateKey) {
+        if (Math.random() < epsilon) {
+          var idx = Math.floor(Math.random() * ACTIONS.length);
+          return { action: ACTIONS[idx], mode: 'EXPLORAÇÃO (ε)' };
+        }
+        var q = qTable[stateKey];
+        var maxVal = Math.max(q.alimentar, q.dormir, q.ignorar);
+        var ties = ACTIONS.filter(function (a) { return q[a] === maxVal; });
+        var chosen = ties[Math.floor(Math.random() * ties.length)];
+        return { action: chosen, mode: 'EXPLOTAÇÃO (max Q)' };
+      }
+
+      function stepEnvironment(s, action) {
+        var h = s.hunger;
+        var e = s.energy;
+
+        if (action === 'alimentar') {
+          h = clamp(h - 3, 0, 10);
+          e = clamp(e - 1, 0, 10);
+        } else if (action === 'dormir') {
+          e = clamp(e + 3, 0, 10);
+          h = clamp(h + 1, 0, 10);
+        } else if (action === 'ignorar') {
+          h = clamp(h + 1, 0, 10);
+          e = clamp(e - 1, 0, 10);
+        }
+
+        var hitExtreme = (h === 0 || h === 10 || e === 0 || e === 10);
+        var inIdeal = (h >= 3 && h <= 7 && e >= 3 && e <= 7);
+
+        var reward = -1;
+        if (hitExtreme) reward = -10;
+        else if (inIdeal) reward = +10;
+
+        return {
+          nextState: { hunger: h, energy: e },
+          reward: reward,
+          done: hitExtreme,
+          inIdeal: inIdeal
+        };
+      }
+
+      function executeTransition(forcedAction, originMode) {
+        steps++;
+        var prevState = { hunger: state.hunger, energy: state.energy };
+        var prevKey = prevState.hunger + ',' + prevState.energy;
+        visitedStates[prevKey] = true;
+
+        var decision = forcedAction
+          ? { action: forcedAction, mode: originMode || 'MANUAL (HUMANO)' }
+          : chooseEpsilonGreedyAction(prevKey);
+
+        var action = decision.action;
+        var mode = decision.mode;
+
+        var result = stepEnvironment(prevState, action);
+        var nextState = result.nextState;
+        var nextKey = nextState.hunger + ',' + nextState.energy;
+        visitedStates[nextKey] = true;
+
+        // Cálculo explícito da Equação de Bellman
+        var oldQ = qTable[prevKey][action];
+        var nextQObj = qTable[nextKey];
+        var maxNextQ = Math.max(nextQObj.alimentar, nextQObj.dormir, nextQObj.ignorar);
+        var tdTarget = result.reward + gamma * maxNextQ;
+        var tdError = tdTarget - oldQ;
+        var newQ = oldQ + alpha * tdError;
+
+        qTable[prevKey][action] = newQ;
+
+        // Métricas
+        totalReward += result.reward;
+        recentHistory.push(result.inIdeal ? 1 : 0);
+        if (recentHistory.length > 50) recentHistory.shift();
+
+        // Média móvel de recompensa para o gráfico
+        var lastAvg = rewardCurve.length ? rewardCurve[rewardCurve.length - 1] : result.reward;
+        var smoothed = lastAvg * 0.9 + result.reward * 0.1;
+        rewardCurve.push(smoothed);
+        if (rewardCurve.length > 120) rewardCurve.shift();
+
+        // Decaimento leve de epsilon apenas em modo automático/IA
+        if (!forcedAction && epsilon > 0.02) {
+          epsilon = Math.max(0.02, +(epsilon * 0.996).toFixed(4));
+          document.getElementById('epsilonInput').value = epsilon.toFixed(2);
+        }
+
+        // Atualiza estado atual (ou reseta após colapso nos extremos 0 ou 10)
+        if (result.done) {
+          currentSpriteMood = 'ko';
+          state = { hunger: 5, energy: 5 };
+          episodes++;
+        } else {
+          if (action === 'dormir') currentSpriteMood = 'sleep';
+          else if (result.inIdeal) currentSpriteMood = 'happy';
+          else currentSpriteMood = 'warn';
+          state = nextState;
+        }
+
+        renderAll({
+          prevKey: prevKey,
+          action: action,
+          mode: mode,
+          reward: result.reward,
+          nextKey: nextKey,
+          done: result.done,
+          inIdeal: result.inIdeal,
+          oldQ: oldQ,
+          maxNextQ: maxNextQ,
+          tdTarget: tdTarget,
+          tdError: tdError,
+          newQ: newQ,
+          displayState: result.done ? nextState : state
+        });
+      }
+
+      function renderBellmanWalkthrough(info) {
+        var signR = info.reward > 0 ? '+' + info.reward : String(info.reward);
+        var deltaSign = info.newQ - info.oldQ >= 0 ? '+' + (info.newQ - info.oldQ).toFixed(2) : (info.newQ - info.oldQ).toFixed(2);
+
+        document.getElementById('summaryStateAction').textContent =
+          's = (' + info.prevKey + ') | a = ' + info.action.toUpperCase() + ' [' + info.mode + ']';
+        document.getElementById('summaryNextReward').textContent =
+          "s' = (" + info.nextKey + ') | R = ' + signR + (info.done ? ' (EXTREMO -> RESET)' : '');
+        document.getElementById('summaryQDelta').textContent =
+          info.oldQ.toFixed(2) + ' → ' + info.newQ.toFixed(2) + ' (Δ = ' + deltaSign + ')';
+
+        var container = document.getElementById('bellmanMathWalkthrough');
+        container.innerHTML =
+          '<article class="config-math-card">' +
+            '<span>ETAPA 1 E 2</span>' +
+            '<h3>Alvo de Bellman (TD Target)</h3>' +
+            '<p>Somamos a recompensa imediata R com a melhor expectativa futura no estado s\'=(' + info.nextKey + '):</p>' +
+            '<div class="config-math-lines">' +
+              '<code>max<sub>a\'</sub> Q(' + info.nextKey + ', a\') = <strong>' + info.maxNextQ.toFixed(2) + '</strong></code>' +
+              '<code>Alvo = R + &gamma; &middot; max Q(s\', a\')</code>' +
+              '<code>Alvo = <em>' + signR + '</em> + <em>' + gamma.toFixed(2) + '</em> &middot; <em>' + info.maxNextQ.toFixed(2) + '</em> = <strong>' + info.tdTarget.toFixed(2) + '</strong></code>' +
+            '</div>' +
+          '</article>' +
+          '<article class="config-math-card">' +
+            '<span>ETAPA 3 E 4</span>' +
+            '<h3>Erro Temporal (TD Error) e Novo Q(s, a)</h3>' +
+            '<p>Atualizamos a célula Q((' + info.prevKey + '), ' + info.action + ') usando a taxa &alpha; = ' + alpha.toFixed(2) + ':</p>' +
+            '<div class="config-math-lines">' +
+              '<code>Erro TD (&delta;) = Alvo &minus; Q<sub>antigo</sub> = ' + info.tdTarget.toFixed(2) + ' &minus; ' + info.oldQ.toFixed(2) + ' = <strong>' + info.tdError.toFixed(2) + '</strong></code>' +
+              '<code>Q<sub>novo</sub> = ' + info.oldQ.toFixed(2) + ' + ' + alpha.toFixed(2) + ' &middot; (' + info.tdError.toFixed(2) + ') = <strong>' + info.newQ.toFixed(2) + '</strong></code>' +
+            '</div>' +
+          '</article>';
+      }
+
+      function renderHeatmap() {
+        var grid = document.getElementById('policyHeatmap');
+        var html = '<div class="hm-head">F\\E</div>';
+        for (var e = 0; e <= 10; e++) {
+          html += '<div class="hm-head">E' + e + '</div>';
+        }
+
+        for (var h = 0; h <= 10; h++) {
+          html += '<div class="hm-head">F' + h + '</div>';
+          for (var en = 0; en <= 10; en++) {
+            var key = h + ',' + en;
+            var q = qTable[key];
+            var allZero = (q.alimentar === 0 && q.dormir === 0 && q.ignorar === 0);
+            var best = getBestAction(key);
+            var maxQ = q[best];
+
+            var isCurrent = (state.hunger === h && state.energy === en);
+            var isExtreme = (h === 0 || h === 10 || en === 0 || en === 10);
+            var isIdeal = (h >= 3 && h <= 7 && en >= 3 && en <= 7);
+
+            var classes = 'hm-cell';
+            if (isCurrent) classes += ' current-pos';
+            if (isExtreme) classes += ' zone-extreme';
+            else if (isIdeal) classes += ' zone-ideal';
+
+            var bgStyle = '';
+            if (!allZero && !isExtreme) {
+              if (maxQ > 0) {
+                var intensity = Math.min(0.35, maxQ / 80);
+                bgStyle = 'background: rgba(25, 169, 135, ' + (0.08 + intensity).toFixed(2) + ');';
+              } else if (maxQ < 0) {
+                var negIntensity = Math.min(0.35, Math.abs(maxQ) / 30);
+                bgStyle = 'background: rgba(227, 92, 110, ' + (0.08 + negIntensity).toFixed(2) + ');';
+              }
+            }
+
+            var label = allZero ? '·' : ACTION_SHORT[best];
+            var sub = allZero ? '0.0' : maxQ.toFixed(1);
+
+            html += '<div class="' + classes + '" style="' + bgStyle + '" data-h="' + h + '" data-e="' + en + '" title="Estado (' + key + ') — Clique para mover o Agumon para cá">' +
+              '<span>' + label + '</span>' +
+              '<small style="font-size:9px; opacity:0.8;">' + sub + '</small>' +
+            '</div>';
+          }
+        }
+        grid.innerHTML = html;
+
+        var cells = grid.querySelectorAll('.hm-cell');
+        for (var i = 0; i < cells.length; i++) {
+          cells[i].addEventListener('click', function () {
+            var nh = parseInt(this.getAttribute('data-h'), 10);
+            var ne = parseInt(this.getAttribute('data-e'), 10);
+            state = { hunger: nh, energy: ne };
+            visitedStates[nh + ',' + ne] = true;
+            renderVPetStatus(state, false, nh >= 3 && nh <= 7 && ne >= 3 && ne <= 7, 'TELETRANSPORTE');
+            renderHeatmap();
+            renderQTableDOM();
+          });
+        }
+      }
+
+      function renderQTableDOM() {
+        var filter = document.getElementById('filterQTableSelect').value;
+        var tbody = document.getElementById('qTableBody');
+        var currentKey = state.hunger + ',' + state.energy;
+        var rowsHtml = '';
+
+        for (var h = 0; h <= 10; h++) {
+          for (var e = 0; e <= 10; e++) {
+            var key = h + ',' + e;
+            var q = qTable[key];
+            var isIdeal = (h >= 3 && h <= 7 && e >= 3 && e <= 7);
+            var isExtreme = (h === 0 || h === 10 || e === 0 || e === 10);
+            var isVisited = visitedStates[key] || q.alimentar !== 0 || q.dormir !== 0 || q.ignorar !== 0;
+
+            if (filter === 'visited' && !isVisited && key !== currentKey) continue;
+            if (filter === 'ideal' && !isIdeal && key !== currentKey) continue;
+
+            var best = getBestAction(key);
+            var allZero = (q.alimentar === 0 && q.dormir === 0 && q.ignorar === 0);
+            var zoneBadge = isExtreme
+              ? '<span class="predicted-zero">Extremo (&minus;10)</span>'
+              : (isIdeal ? '<span class="predicted-one">Equilíbrio (+10)</span>' : 'Alerta (&minus;1)');
+
+            rowsHtml += '<tr class="' + (key === currentKey ? 'selected' : '') + '">' +
+              '<td><strong>Fome ' + h + ' · Energia ' + e + '</strong></td>' +
+              '<td>' + zoneBadge + '</td>' +
+              '<td class="' + (!allZero && best === 'alimentar' ? 'predicted-one' : '') + '">' + q.alimentar.toFixed(2) + '</td>' +
+              '<td class="' + (!allZero && best === 'dormir' ? 'predicted-one' : '') + '">' + q.dormir.toFixed(2) + '</td>' +
+              '<td class="' + (!allZero && best === 'ignorar' ? 'predicted-one' : '') + '">' + q.ignorar.toFixed(2) + '</td>' +
+              '<td class="sample-loss">' + (allZero ? 'Indefinido (0.00)' : ACTION_LABELS[best]) + '</td>' +
+            '</tr>';
+          }
+        }
+        tbody.innerHTML = rowsHtml;
+      }
+
+      function renderRewardChart() {
+        var canvas = document.getElementById('rewardChartCanvas');
+        var ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        var w = canvas.width;
+        var h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        // Fundo e linhas de referência (+10, 0, -10)
+        ctx.fillStyle = '#fbfcff';
+        ctx.fillRect(0, 0, w, h);
+
+        var padL = 48, padR = 18, padT = 18, padB = 26;
+        var plotW = w - padL - padR;
+        var plotH = h - padT - padB;
+
+        function yForReward(r) {
+          // r in [-10, +10]
+          var norm = (r - (-10)) / 20;
+          return padT + plotH * (1 - clamp(norm, 0, 1));
+        }
+
+        var refs = [
+          { val: 10, label: '+10', color: 'rgba(25, 169, 135, 0.35)' },
+          { val: 0, label: '0', color: 'rgba(100, 116, 139, 0.25)' },
+          { val: -10, label: '-10', color: 'rgba(227, 92, 110, 0.35)' }
+        ];
+
+        ctx.font = '700 11px "DM Mono", monospace';
+        ctx.textAlign = 'right';
+        for (var i = 0; i < refs.length; i++) {
+          var ry = yForReward(refs[i].val);
+          ctx.strokeStyle = refs[i].color;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(padL, ry);
+          ctx.lineTo(w - padR, ry);
+          ctx.stroke();
+
+          ctx.fillStyle = '#64748b';
+          ctx.fillText(refs[i].label, padL - 6, ry + 4);
+        }
+
+        if (rewardCurve.length < 2) return;
+
+        ctx.strokeStyle = '#4e46e5';
+        ctx.lineWidth = 2.6;
+        ctx.beginPath();
+        for (var j = 0; j < rewardCurve.length; j++) {
+          var x = padL + (j / (rewardCurve.length - 1)) * plotW;
+          var y = yForReward(rewardCurve[j]);
+          if (j === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      }
+
+      function renderVPetStatus(s, done, inIdeal, modeText) {
+        var h = s.hunger;
+        var e = s.energy;
+
+        document.getElementById('vpetStateLabel').textContent = 'ESTADO S = (' + h + ', ' + e + ')';
+        document.getElementById('vpetModeLabel').textContent = modeText || 'PRONTO';
+
+        document.getElementById('hungerText').textContent = h + ' / 10';
+        document.getElementById('energyText').textContent = e + ' / 10';
+
+        var hBar = document.getElementById('hungerBar');
+        var eBar = document.getElementById('energyBar');
+        hBar.style.width = (h * 10) + '%';
+        eBar.style.width = (e * 10) + '%';
+
+        function barColor(v) {
+          if (v === 0 || v === 10) return '#e35c6e';
+          if (v >= 3 && v <= 7) return '#19a987';
+          return '#f39149';
+        }
+        hBar.style.backgroundColor = barColor(h);
+        eBar.style.backgroundColor = barColor(e);
+
+        var speech = document.getElementById('digimonSpeech');
+        if (done) {
+          speech.textContent = '😵 Extremo atingido (0 ou 10)! Punição R = -10 · Reiniciando no centro (5,5)...';
+          speech.style.background = '#c14d5c';
+        } else if (inIdeal) {
+          speech.textContent = '🦖 Agumon equilibrado [3..7]! Recompensa máxima R = +10';
+          speech.style.background = '#087d67';
+        } else {
+          speech.textContent = '⚠️ Agumon em zona de alerta! Custo metabólico R = -1';
+          speech.style.background = '#b65d33';
+        }
+
+        // Atualiza métricas do topo
+        document.getElementById('stepMetric').textContent = steps;
+        document.getElementById('episodeMetric').textContent = episodes;
+        document.getElementById('rewardMetric').textContent = totalReward > 0 ? '+' + totalReward : totalReward;
+
+        if (recentHistory.length > 0) {
+          var sum = recentHistory.reduce(function (a, b) { return a + b; }, 0);
+          var pct = Math.round((sum / recentHistory.length) * 100);
+          document.getElementById('balanceRateMetric').textContent = pct + '%';
+        }
+      }
+
+      function renderAll(info) {
+        renderVPetStatus(info.displayState, info.done, info.inIdeal, info.mode);
+        renderBellmanWalkthrough(info);
+        renderHeatmap();
+        renderQTableDOM();
+        renderRewardChart();
+      }
+
+      // Animação contínua dos frames do sprite do Agumon
+      setInterval(function () {
+        spriteFrame = (spriteFrame + 1) % 2;
+        var frames = SPRITES[currentSpriteMood] || SPRITES.idle;
+        var img = document.getElementById('digimonSprite');
+        if (img) img.src = frames[spriteFrame % frames.length];
+      }, 450);
+
+      // Eventos dos botões manuais (Interação Humana)
+      document.getElementById('btnManualFeed').addEventListener('click', function () {
+        executeTransition('alimentar', 'MANUAL (VOCÊ)');
+      });
+      document.getElementById('btnManualSleep').addEventListener('click', function () {
+        executeTransition('dormir', 'MANUAL (VOCÊ)');
+      });
+      document.getElementById('btnManualIgnore').addEventListener('click', function () {
+        executeTransition('ignorar', 'MANUAL (VOCÊ)');
+      });
+
+      // Perturbações didáticas
+      document.getElementById('btnForceHungry').addEventListener('click', function () {
+        state = { hunger: 8, energy: 5 };
+        visitedStates['8,5'] = true;
+        currentSpriteMood = 'warn';
+        renderVPetStatus(state, false, false, 'TESTE DE FOME');
+        renderHeatmap();
+        renderQTableDOM();
+      });
+      document.getElementById('btnForceTired').addEventListener('click', function () {
+        state = { hunger: 5, energy: 2 };
+        visitedStates['5,2'] = true;
+        currentSpriteMood = 'warn';
+        renderVPetStatus(state, false, false, 'TESTE DE CANSAÇO');
+        renderHeatmap();
+        renderQTableDOM();
+      });
+      document.getElementById('btnCenterState').addEventListener('click', function () {
+        state = { hunger: 5, energy: 5 };
+        currentSpriteMood = 'happy';
+        renderVPetStatus(state, false, true, 'CENTRALIZADO');
+        renderHeatmap();
+        renderQTableDOM();
+      });
+
+      // Controles de Treinamento da IA
+      document.getElementById('stepAgentBtn').addEventListener('click', function () {
+        executeTransition(null, null);
+      });
+
+      document.getElementById('train100Btn').addEventListener('click', function () {
+        for (var i = 0; i < 100; i++) executeTransition(null, null);
+      });
+
+      document.getElementById('trainUntilConvergeBtn').addEventListener('click', function () {
+        for (var i = 0; i < 1000; i++) executeTransition(null, null);
+      });
+
+      function stopAutoLoop() {
+        if (loopTimer) {
+          clearInterval(loopTimer);
+          loopTimer = null;
+        }
+        document.getElementById('toggleAutoBtn').textContent = 'Iniciar Loop Contínuo';
+      }
+
+      document.getElementById('toggleAutoBtn').addEventListener('click', function () {
+        if (loopTimer) {
+          stopAutoLoop();
+        } else {
+          speedMs = parseInt(document.getElementById('speedSelect').value, 10) || 150;
+          loopTimer = setInterval(function () {
+            executeTransition(null, null);
+          }, speedMs);
+          this.textContent = 'Pausar Loop Contínuo';
+        }
+      });
+
+      document.getElementById('speedSelect').addEventListener('change', function () {
+        speedMs = parseInt(this.value, 10) || 150;
+        if (loopTimer) {
+          clearInterval(loopTimer);
+          loopTimer = setInterval(function () {
+            executeTransition(null, null);
+          }, speedMs);
+        }
+      });
+
+      document.getElementById('applyParamsBtn').addEventListener('click', function () {
+        alpha = clamp(parseFloat(document.getElementById('alphaInput').value) || 0.25, 0.01, 1.0);
+        gamma = clamp(parseFloat(document.getElementById('gammaInput').value) || 0.90, 0.0, 0.99);
+        epsilon = clamp(parseFloat(document.getElementById('epsilonInput').value) || 0.30, 0.0, 1.0);
+      });
+
+      document.getElementById('resetQTableBtn').addEventListener('click', function () {
+        stopAutoLoop();
+        initQTable();
+        state = { hunger: 5, energy: 5 };
+        steps = 0;
+        episodes = 1;
+        totalReward = 0;
+        recentHistory = [];
+        rewardCurve = [];
+        epsilon = 0.30;
+        document.getElementById('epsilonInput').value = '0.30';
+        renderVPetStatus(state, false, true, 'REINICIADO');
+        renderHeatmap();
+        renderQTableDOM();
+        renderRewardChart();
+      });
+
+      document.getElementById('filterQTableSelect').addEventListener('change', renderQTableDOM);
+
+      // Inicialização
+      initQTable();
+      renderVPetStatus(state, false, true, 'PRONTO');
+      renderBellmanWalkthrough({
+        prevKey: '5,5',
+        action: 'ignorar',
+        mode: 'INICIAL',
+        reward: 10,
+        nextKey: '5,5',
+        done: false,
+        inIdeal: true,
+        oldQ: 0,
+        maxNextQ: 0,
+        tdTarget: 10,
+        tdError: 10,
+        newQ: 2.5
+      });
+      renderHeatmap();
+      renderQTableDOM();
+      renderRewardChart();
+    }());
+  </script>
+  <script src="../../js/code-highlighting.js"></script>
+  <script src="../../js/navigation.js"></script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+# Balanceador de Carga Autônomo via Q-Learning Tabular
+# Infraestrutura: 3 nós traefik/whoami com limites assimétricos de CPU + 1 Proxy Reverso Nginx
+
+services:
+  # Nó 1: Alta Capacidade (1.00 CPU completa) -> Responde em < 50ms mesmo sob rajadas
+  node1:
+    image: traefik/whoami:latest
+    container_name: rl_lb_node1
+    cpus: 1.00
+    mem_limit: 128m
+    networks:
+      - rl_net
+
+  # Nó 2: Capacidade Intermediária (0.25 CPU) -> Sofre contenção moderada (~140ms a 220ms)
+  node2:
+    image: traefik/whoami:latest
+    container_name: rl_lb_node2
+    cpus: 0.25
+    mem_limit: 128m
+    networks:
+      - rl_net
+
+  # Nó 3: Capacidade Estrangulada (0.05 CPU) -> Sofre throttling severo e timeouts (> 500ms)
+  node3:
+    image: traefik/whoami:latest
+    container_name: rl_lb_node3
+    cpus: 0.05
+    mem_limit: 64m
+    networks:
+      - rl_net
+
+  # Proxy Reverso Nginx: Expõe http://localhost:8080 e roteia para o nó escolhido pelo Agente RL
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: rl_lb_nginx
+    ports:
+      - "8080:8080"
+    depends_on:
+      - node1
+      - node2
+      - node3
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - rl_net
+
+networks:
+  rl_net:
+    driver: bridge
