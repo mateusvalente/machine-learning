@@ -598,19 +598,58 @@
       <div class="forward-summary" id="lastTransitionSummary" style="margin-top: 18px;">
         <div>
           <b>1. Onde estava (s) e Botão apertado (a)</b>
-          <code id="summaryStateAction">s = (5, 5) | a = ignorar</code>
+          <code id="summaryStateAction">Estava em s = (5,5) | Apertou a = IGNORAR [EXEMPLO INICIAL]</code>
         </div>
         <div>
           <b>2. Novo Quadrado (s') e Pontos ganhos (R)</b>
-          <code id="summaryNextReward">s' = (6, 4) | R = +10</code>
+          <code id="summaryNextReward">Caiu em s' = (6,4) | Ganhou R = +10 pts</code>
         </div>
         <div>
           <b>3. Mudança na Nota Q(s, a) daquele quadrado</b>
-          <code id="summaryQDelta">0.00 &rarr; +2.50 (&Delta; = +2.50)</code>
+          <code id="summaryQDelta">Nota(ignorar) em (5,5): 0.00 &rarr; 2.50 (&Delta; = +2.50)</code>
         </div>
       </div>
 
-      <div id="bellmanMathWalkthrough" class="config-math-walkthrough" aria-live="polite"></div>
+      <div id="bellmanMathWalkthrough" class="qa-step-grid" aria-live="polite">
+        <article class="qa-card">
+          <span class="qa-question">PASSO 1 DA CONTA · ONDE ESTAVA E NOTA ANTIGA</span>
+          <h3>1. Olhar a Nota Antiga Q<sub>antigo</sub>(s, a)</h3>
+          <p>O Agumon estava no quadrado <strong>s = (5,5)</strong> e escolheu a ação <strong>a = IGNORAR</strong>. Antes dessa jogada acontecer, olhamos quanto valia a nota desse botão lá naquele quadrado:</p>
+          <div class="qa-mini-box">
+            &bull; Quadrado Antigo (s): <strong>(5,5)</strong><br>
+            &bull; Botão escolhido (a): <strong>ignorar</strong><br>
+            &bull; Nota Antiga salva lá: <strong>Q<sub>antigo</sub>(5,5, ignorar) = 0.00</strong>
+          </div>
+        </article>
+        <article class="qa-card qa-green">
+          <span class="qa-question">PASSO 2 DA CONTA · PARA ONDE FOI E MAIOR NOTA DE LÁ</span>
+          <h3>2. Olhar os Pontos (R) e a Maior Nota do Novo Quadrado s'</h3>
+          <p>A ação mexeu nos níveis de Fome/Energia e levou o Agumon para o <strong>novo quadrado s' = (6,4)</strong>, ganhando <strong>R = +10 pontos</strong>. Olhamos as 3 notas salvas lá no novo quadrado <strong>(6,4)</strong> e pegamos a maior:</p>
+          <div class="qa-mini-box">
+            &bull; 3 notas do novo quadrado (6,4): <code>A=0.00 | D=0.00 | I=0.00</code><br>
+            &bull; Maior nota do novo quadrado: <strong>max<sub>a'</sub> Q(6,4, a') = 0.00</strong><br>
+            &bull; Pontos ganhos agora: <strong>R = +10</strong>
+          </div>
+        </article>
+        <article class="qa-card qa-orange">
+          <span class="qa-question">PASSO 3 DA CONTA · O ALVO E A DIFERENÇA (ERRO TD)</span>
+          <h3>3. Somar Pontos de Agora + Futuro (Alvo) e achar a Diferença</h3>
+          <p>Somamos os pontos de agora (<strong>R = +10</strong>) com <strong>90% (&gamma; = 0.90)</strong> da maior nota do novo quadrado para descobrir o <strong>Alvo</strong>, e subtraímos a Nota Antiga:</p>
+          <div class="qa-mini-box">
+            &bull; <strong>Alvo</strong> = R + (&gamma; &times; MaiorNotaNovoQuadrado) = +10 + (0.90 &times; 0.00) = <strong>10.00</strong><br>
+            &bull; <strong>Diferença (Erro &delta;)</strong> = Alvo &minus; Q<sub>antigo</sub> = 10.00 &minus; 0.00 = <strong>10.00</strong>
+          </div>
+        </article>
+        <article class="qa-card qa-cyan">
+          <span class="qa-question">PASSO 4 DA CONTA · ATUALIZAR A NOTA NA MATRIZ</span>
+          <h3>4. Gravar a Nova Nota Q<sub>novo</sub>(s, a) no quadrado de onde saiu</h3>
+          <p>Pegamos a Nota Antiga (<strong>0.00</strong>) e somamos <strong>25% (&alpha; = 0.25)</strong> da Diferença para atualizar <em>apenas a nota de IGNORAR no quadrado (5,5)</em>:</p>
+          <div class="qa-mini-box">
+            &bull; <strong>Q<sub>novo</sub></strong> = Q<sub>antigo</sub> + (&alpha; &times; Diferença) = 0.00 + (0.25 &times; 10.00) = <strong>2.50</strong><br>
+            &bull; <strong>Resultado na Matriz:</strong> No quadrado <strong>(5,5)</strong>, a nota de <strong>IGNORAR</strong> mudou de <strong>0.00</strong> para <strong>2.50</strong>!
+          </div>
+        </article>
+      </div>
     </section>
 
     <!-- 5. Q-TABLE COMPLETA EM TEMPO REAL -->
@@ -924,44 +963,44 @@ function atualizarBellman(estadoKey, acao, recompensa, proximoEstadoKey) {
           'Nota(' + info.action + ') em (' + info.prevKey + '): ' + info.oldQ.toFixed(2) + ' → ' + info.newQ.toFixed(2) + ' (Δ = ' + deltaSign + ')';
 
         var container = document.getElementById('bellmanMathWalkthrough');
+        container.className = 'qa-step-grid';
         container.innerHTML =
-          '<article class="config-math-card">' +
-            '<span>PASSO 1 DA CONTA · ONDE ESTAVA E NOTA ANTIGA</span>' +
+          '<article class="qa-card">' +
+            '<span class="qa-question">PASSO 1 DA CONTA · ONDE ESTAVA E NOTA ANTIGA</span>' +
             '<h3>1. Olhar a Nota Antiga Q<sub>antigo</sub>(s, a)</h3>' +
-            '<p>O Agumon estava no quadrado <strong>s = (' + info.prevKey + ')</strong> e escolheu a ação <strong>a = ' + info.action.toUpperCase() + '</strong>. Antes dessa jogada, quanto valia a nota desse botão lá naquele quadrado?</p>' +
-            '<div class="config-math-lines">' +
-              '<code>Quadrado onde estava: <strong>s = (' + info.prevKey + ')</strong></code>' +
-              '<code>Botão escolhido: <strong>a = ' + info.action + '</strong></code>' +
-              '<code>Nota Antiga salva lá: <strong>Q<sub>antigo</sub>(' + info.prevKey + ', ' + info.action + ') = ' + info.oldQ.toFixed(2) + '</strong></code>' +
+            '<p>O Agumon estava no quadrado <strong>s = (' + info.prevKey + ')</strong> e escolheu a ação <strong>a = ' + info.action.toUpperCase() + '</strong>. Antes dessa jogada acontecer, olhamos quanto valia a nota desse botão lá naquele quadrado:</p>' +
+            '<div class="qa-mini-box">' +
+              '&bull; Quadrado Antigo (s): <strong>(' + info.prevKey + ')</strong><br>' +
+              '&bull; Botão escolhido (a): <strong>' + info.action + '</strong><br>' +
+              '&bull; Nota Antiga salva lá: <strong>Q<sub>antigo</sub>(' + info.prevKey + ', ' + info.action + ') = ' + info.oldQ.toFixed(2) + '</strong>' +
             '</div>' +
           '</article>' +
-          '<article class="config-math-card">' +
-            '<span>PASSO 2 DA CONTA · PARA ONDE FOI E MAIOR NOTA DE LÁ</span>' +
+          '<article class="qa-card qa-green">' +
+            '<span class="qa-question">PASSO 2 DA CONTA · PARA ONDE FOI E MAIOR NOTA DE LÁ</span>' +
             '<h3>2. Olhar os Pontos (R) e a Maior Nota do Novo Quadrado s\'</h3>' +
-            '<p>A ação mexeu nos níveis e levou o Agumon para o <strong>novo quadrado s\' = (' + info.nextKey + ')</strong>, dando <strong>R = ' + signR + ' pontos</strong>. Agora olhamos as 3 notas salvas lá no novo quadrado <strong>(' + info.nextKey + ')</strong> e pegamos a maior:</p>' +
-            '<div class="config-math-lines">' +
-              '<code>3 notas lá no novo quadrado (' + info.nextKey + '): A=' + nextQObj.alimentar.toFixed(2) + ' | D=' + nextQObj.dormir.toFixed(2) + ' | I=' + nextQObj.ignorar.toFixed(2)</code>' +
-              '<code>Maior nota do novo quadrado: <strong>max<sub>a\'</sub> Q(' + info.nextKey + ', a\') = ' + info.maxNextQ.toFixed(2) + '</strong></code>' +
-              '<code>Pontos imediatos recebidos: <strong>R = ' + signR + '</strong></code>' +
+            '<p>A ação mexeu nos níveis de Fome/Energia e levou o Agumon para o <strong>novo quadrado s\' = (' + info.nextKey + ')</strong>, ganhando <strong>R = ' + signR + ' pontos</strong>. Olhamos as 3 notas salvas lá no novo quadrado <strong>(' + info.nextKey + ')</strong> e pegamos a maior:</p>' +
+            '<div class="qa-mini-box">' +
+              '&bull; 3 notas do novo quadrado (' + info.nextKey + '): <code>A=' + nextQObj.alimentar.toFixed(2) + ' | D=' + nextQObj.dormir.toFixed(2) + ' | I=' + nextQObj.ignorar.toFixed(2) + '</code><br>' +
+              '&bull; Maior nota do novo quadrado: <strong>max<sub>a\'</sub> Q(' + info.nextKey + ', a\') = ' + info.maxNextQ.toFixed(2) + '</strong><br>' +
+              '&bull; Pontos ganhos agora: <strong>R = ' + signR + '</strong>' +
             '</div>' +
           '</article>' +
-          '<article class="config-math-card">' +
-            '<span>PASSO 3 DA CONTA · ALVO DE BELLMAN E DIFERENÇA (ERRO TD)</span>' +
-            '<h3>3. Quanto essa jogada realmente valeu? (Alvo e Diferença)</h3>' +
-            '<p>Somamos os pontos ganhos agora (<strong>R = ' + signR + '</strong>) com <strong>' + Math.round(gamma * 100) + '% (&gamma; = ' + gamma.toFixed(2) + ')</strong> da maior nota do novo quadrado para descobrir o <strong>Alvo</strong>, e subtraímos a Nota Antiga:</p>' +
-            '<div class="config-math-lines">' +
-              '<code>Alvo = R + (&gamma; &times; MaiorNotaNovoQuadrado) = <em>' + signR + '</em> + (<em>' + gamma.toFixed(2) + '</em> &times; <em>' + info.maxNextQ.toFixed(2) + '</em>) = ' + signR + ' + ' + futureWeighted.toFixed(2) + ' = <strong>' + info.tdTarget.toFixed(2) + '</strong></code>' +
-              '<code>Diferença (Erro &delta;) = Alvo &minus; Q<sub>antigo</sub> = ' + info.tdTarget.toFixed(2) + ' &minus; ' + info.oldQ.toFixed(2) + ' = <strong>' + info.tdError.toFixed(2) + '</strong></code>' +
+          '<article class="qa-card qa-orange">' +
+            '<span class="qa-question">PASSO 3 DA CONTA · O ALVO E A DIFERENÇA (ERRO TD)</span>' +
+            '<h3>3. Somar Pontos de Agora + Futuro (Alvo) e achar a Diferença</h3>' +
+            '<p>Somamos os pontos de agora (<strong>R = ' + signR + '</strong>) com <strong>' + Math.round(gamma * 100) + '% (&gamma; = ' + gamma.toFixed(2) + ')</strong> da maior nota do novo quadrado para descobrir o <strong>Alvo</strong>, e subtraímos a Nota Antiga:</p>' +
+            '<div class="qa-mini-box">' +
+              '&bull; <strong>Alvo</strong> = R + (&gamma; &times; MaiorNotaNovoQuadrado) = ' + signR + ' + (' + gamma.toFixed(2) + ' &times; ' + info.maxNextQ.toFixed(2) + ') = <strong>' + info.tdTarget.toFixed(2) + '</strong><br>' +
+              '&bull; <strong>Diferença (Erro &delta;)</strong> = Alvo &minus; Q<sub>antigo</sub> = ' + info.tdTarget.toFixed(2) + ' &minus; ' + info.oldQ.toFixed(2) + ' = <strong>' + info.tdError.toFixed(2) + '</strong>' +
             '</div>' +
           '</article>' +
-          '<article class="config-math-card">' +
-            '<span>PASSO 4 DA CONTA · ATUALIZAR A NOTA NA MATRIZ</span>' +
+          '<article class="qa-card qa-cyan">' +
+            '<span class="qa-question">PASSO 4 DA CONTA · ATUALIZAR A NOTA NA MATRIZ</span>' +
             '<h3>4. Gravar a Nova Nota Q<sub>novo</sub>(s, a) no quadrado de onde saiu</h3>' +
-            '<p>Por fim, pegamos a Nota Antiga (<strong>' + info.oldQ.toFixed(2) + '</strong>) e somamos <strong>' + Math.round(alpha * 100) + '% (&alpha; = ' + alpha.toFixed(2) + ')</strong> da diferença para atualizar <em>apenas a nota de ' + info.action.toUpperCase() + ' no quadrado (' + info.prevKey + ')</em>:</p>' +
-            '<div class="config-math-lines">' +
-              '<code>Q<sub>novo</sub> = Q<sub>antigo</sub> + (&alpha; &times; Diferença)</code>' +
-              '<code>Q<sub>novo</sub> = ' + info.oldQ.toFixed(2) + ' + (' + alpha.toFixed(2) + ' &times; ' + info.tdError.toFixed(2) + ') = ' + info.oldQ.toFixed(2) + ' + ' + (alpha * info.tdError).toFixed(2) + ' = <strong>' + info.newQ.toFixed(2) + '</strong></code>' +
-              '<code>&rarr; Na matriz, o quadrado <strong>(' + info.prevKey + ')</strong> teve a nota <strong>' + info.action.toUpperCase() + '</strong> alterada de <strong>' + info.oldQ.toFixed(2) + '</strong> para <strong>' + info.newQ.toFixed(2) + '</strong>!</code>' +
+            '<p>Pegamos a Nota Antiga (<strong>' + info.oldQ.toFixed(2) + '</strong>) e somamos <strong>' + Math.round(alpha * 100) + '% (&alpha; = ' + alpha.toFixed(2) + ')</strong> da Diferença para atualizar <em>apenas a nota de ' + info.action.toUpperCase() + ' no quadrado (' + info.prevKey + ')</em>:</p>' +
+            '<div class="qa-mini-box">' +
+              '&bull; <strong>Q<sub>novo</sub></strong> = Q<sub>antigo</sub> + (&alpha; &times; Diferença) = ' + info.oldQ.toFixed(2) + ' + (' + alpha.toFixed(2) + ' &times; ' + info.tdError.toFixed(2) + ') = <strong>' + info.newQ.toFixed(2) + '</strong><br>' +
+              '&bull; <strong>Resultado na Matriz:</strong> No quadrado <strong>(' + info.prevKey + ')</strong>, a nota de <strong>' + info.action.toUpperCase() + '</strong> mudou de <strong>' + info.oldQ.toFixed(2) + '</strong> para <strong>' + info.newQ.toFixed(2) + '</strong>!' +
             '</div>' +
           '</article>';
       }
