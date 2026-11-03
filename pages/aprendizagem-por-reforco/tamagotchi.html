@@ -215,6 +215,65 @@
     }
     .hm-cell.zone-ideal { border-color: rgba(25, 169, 135, 0.55); }
     .hm-cell.zone-extreme { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+
+    /* Passo a passo didático no formato da conversa */
+    .qa-step-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+    @media (max-width: 900px) {
+      .qa-step-grid { grid-template-columns: 1fr; }
+    }
+    .qa-card {
+      background: #ffffff;
+      border: 1px solid #dce3f0;
+      border-left: 5px solid #4e46e5;
+      border-radius: 14px;
+      padding: 20px 22px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+    }
+    .qa-card.qa-green { border-left-color: #19a987; }
+    .qa-card.qa-orange { border-left-color: #f39149; }
+    .qa-card.qa-cyan { border-left-color: #20c9e8; }
+    .qa-question {
+      display: inline-block;
+      margin-bottom: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef0ff;
+      color: #4e46e5;
+      font: 800 12px Manrope, sans-serif;
+    }
+    .qa-card h3 {
+      margin: 0 0 10px;
+      font-size: 19px;
+      color: #1e293b;
+      line-height: 1.3;
+    }
+    .qa-card p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #334155;
+    }
+    .qa-card ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+      color: #334155;
+      font-size: 14.5px;
+      line-height: 1.65;
+    }
+    .qa-mini-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font: 700 13px/1.55 'DM Mono', monospace;
+      color: #1e293b;
+    }
   </style>
 </head>
 <body>
@@ -240,52 +299,92 @@
     <section class="sample-inspector" id="como-funciona-passo-a-passo" style="margin-top: 32px;">
       <header>
         <div>
-          <p class="eyebrow">0 · ENTENDA O CÉREBRO DO AGUMON ANTES DE TREINAR</p>
-          <h2>Como a Matriz de Fome &times; Energia e a Equação de Bellman funcionam?</h2>
+          <p class="eyebrow">0 · EXPLICAÇÃO ESTRUTURADA DO ALGORITMO</p>
+          <h2>Como funciona o Algoritmo do Tamagotchi (Q-Learning Passo a Passo)</h2>
         </div>
-        <p style="max-width: 520px; margin: 0; color: var(--muted);">A IA não faz ideia do que é "fome" ou "sono". Ela apenas navega por um tabuleiro de 121 quadrados anotando quais botões dão mais pontos.</p>
+        <p style="max-width: 540px; margin: 0; color: var(--muted);">Entenda a lógica completa em 6 passos encadeados antes de usar o simulador abaixo.</p>
       </header>
 
-      <div class="config-math-walkthrough" style="margin-top: 20px;">
-        <article class="config-math-card">
-          <span>PASSO 1 · O TABULEIRO 11&times;11</span>
-          <h3>Uma Matriz de Fome (0–10) &times; Energia (0–10)</h3>
-          <p>Como a Fome tem 11 níveis (<code>0</code> a <code>10</code>) e a Energia tem 11 níveis (<code>0</code> a <code>10</code>), existem <strong>11 &times; 11 = 121 quadrados possíveis</strong>. Dentro de <strong>cada quadrado</strong>, a IA guarda <strong>3 notas</strong> (uma para cada botão):</p>
-          <div class="config-math-lines">
-            <code>Quadrado (Fome, Energia) &rarr; { <strong>A:</strong> notaAlimentar, <strong>D:</strong> notaDormir, <strong>I:</strong> notaIgnorar }</code>
-            <code>&bull; 121 quadrados &times; 3 botões = <strong>363 notas na memória</strong> (todas começam em <em>0.0</em>).</code>
+      <div class="qa-step-grid">
+        <article class="qa-card">
+          <span class="qa-question">PASSO 1</span>
+          <h3>1. O Tabuleiro: A Matriz de Fome &times; Energia</h3>
+          <p>O algoritmo enxerga a vida do Tamagotchi como uma <strong>matriz de 11 &times; 11</strong> (121 quadrados no total):</p>
+          <ul>
+            <li><strong>Linhas:</strong> nível de <strong>Fome</strong> de <code>0</code> (cheio) até <code>10</code> (faminto).</li>
+            <li><strong>Colunas:</strong> nível de <strong>Energia</strong> de <code>0</code> (exausto) até <code>10</code> (hiperativo).</li>
+            <li>A posição atual do bichinho nesse tabuleiro é o seu <strong>Estado atual (<em>s</em>)</strong>. Por exemplo, se ele está com Fome <code>5</code> e Energia <code>5</code>, ele está parado no quadrado <code>(5, 5)</code>.</li>
+          </ul>
+        </article>
+
+        <article class="qa-card qa-green">
+          <span class="qa-question">PASSO 2</span>
+          <h3>2. O que fica guardado em cada quadrado: As 3 Notas</h3>
+          <p>Em vez de guardar uma nota só, <strong>cada quadrado da matriz guarda 3 notas separadas</strong> — uma para cada ação (botão) que a IA pode escolher quando estiver parada ali:</p>
+          <ul>
+            <li><strong>Nota A (<code>Alimentar</code>):</strong> o quão bom é dar comida estando nesse quadrado.</li>
+            <li><strong>Nota D (<code>Dormir</code>):</strong> o quão bom é colocar para dormir estando nesse quadrado.</li>
+            <li><strong>Nota I (<code>Ignorar</code>):</strong> o quão bom é não fazer nada estando nesse quadrado.</li>
+          </ul>
+          <div class="qa-mini-box">
+            No começo, a IA não sabe nada, então todas as 3 notas de todos os 121 quadrados começam zeradas (<code>0.00</code>).
           </div>
         </article>
 
-        <article class="config-math-card">
-          <span>PASSO 2 · AÇÃO E PONTUAÇÃO</span>
-          <h3>Cada ação mexe nos níveis e gera uma Recompensa</h3>
-          <p>Quando um botão é apertado, o Agumon muda de quadrado na matriz e recebe uma nota imediata (<strong>R</strong>) dependendo de onde caiu:</p>
-          <div class="config-math-lines">
-            <code>&bull; <strong>🍖 Alimentar:</strong> Fome &minus;3 e Energia &minus;1 &nbsp;|&nbsp; <strong>💤 Dormir:</strong> Energia +3 e Fome +1 &nbsp;|&nbsp; <strong>⏳ Ignorar:</strong> Fome +1 e Energia &minus;1</code>
-            <code>&bull; Caiu no <em>Centro [3..7]</em>: ganha <strong>+10 pontos</strong> &nbsp;|&nbsp; Caiu no <em>Alerta (1,2,8,9)</em>: perde <strong>&minus;1 ponto</strong></code>
-            <code>&bull; Caiu nas <em>Bordas Fatais (0 ou 10)</em>: perde <strong>&minus;10 pontos</strong> e reinicia no centro <em>(5,5)</em>.</code>
+        <article class="qa-card qa-orange">
+          <span class="qa-question">PASSO 3</span>
+          <h3>3. Ação e Consequência: Mexe nos níveis e Pontua</h3>
+          <p>A cada rodada, quando o algoritmo escolhe uma das 3 ações, acontecem duas coisas:</p>
+          <p><strong>1. Mexe nos níveis de Fome e Energia</strong> (fazendo o Tamagotchi andar para outro quadrado da matriz):</p>
+          <ul>
+            <li><strong>🍖 Alimentar:</strong> Fome <code>&minus;3</code> e Energia <code>&minus;1</code></li>
+            <li><strong>💤 Dormir:</strong> Energia <code>+3</code> e Fome <code>+1</code></li>
+            <li><strong>⏳ Ignorar:</strong> Fome <code>+1</code> e Energia <code>&minus;1</code></li>
+          </ul>
+          <div class="qa-mini-box">
+            <strong>2. Pontua (Recompensa <em>R</em>) de acordo com o novo quadrado onde ele caiu:</strong><br>
+            &bull; Caiu no <strong>centro equilibrado (<code>3</code> a <code>7</code>)</strong>: ganha <strong><code>+10</code> pontos</strong>.<br>
+            &bull; Caiu na <strong>zona de alerta (<code>1, 2, 8</code> ou <code>9</code>)</strong>: perde <strong><code>&minus;1</code> ponto</strong>.<br>
+            &bull; Bateu nos <strong>extremos fatais (<code>0</code> ou <code>10</code>)</strong>: perde <strong><code>&minus;10</code> pontos</strong> (morre/desmaia e reinicia no centro).
           </div>
         </article>
 
-        <article class="config-math-card">
-          <span>PASSO 3 · DECISÃO vs. BELLMAN</span>
-          <h3>Ele calcula Bellman para tudo na hora de decidir? Não!</h3>
-          <p>O Q-Learning separa o momento de <strong>escolher o botão</strong> do momento de <strong>atualizar a nota</strong>:</p>
-          <div class="config-math-lines">
-            <code><strong>1. ANTES de agir (Decisão Rápida):</strong> Ele NÃO faz conta nenhuma e não olha a matriz inteira. Ele olha <em>apenas o quadrado onde está agora</em> e escolhe o botão que tiver a maior nota salva ali (Greedy).</code>
-            <code><strong>2. DEPOIS de agir (Equação de Bellman):</strong> Só depois que aperta o botão e vê para qual quadrado foi parar, ele roda a Equação de Bellman para atualizar <em>apenas aquela única nota daquele único quadrado</em> de onde saiu!</code>
+        <article class="qa-card qa-cyan">
+          <span class="qa-question">PASSO 4</span>
+          <h3>4. Como o algoritmo toma decisões: Greedy + 30% Aleatório que vai caindo (quase uma Meta-Heurística)</h3>
+          <p>Na hora de decidir qual botão apertar, o algoritmo <strong>não calcula a Equação de Bellman para cada decisão possível na matriz</strong>.</p>
+          <ul>
+            <li>Ele olha <strong>apenas para o quadrado onde está agora</strong> e lê as 3 notas que já estão salvas lá.</li>
+            <li>A regra de decisão é <strong>&epsilon;-greedy</strong> (funciona quase como uma meta-heurística, parecida com o resfriamento do <em>Simulated Annealing</em>):</li>
+            <li><strong>Começa com 30% de chance aleatória (&epsilon; = 0.30):</strong> No início, 30% das vezes ele chuta uma ação aleatória para explorar o mapa e descobrir o que cada botão faz, e nos outros 70% escolhe a ação de <strong>maior nota (Greedy)</strong>.</li>
+            <li><strong>Vai caindo a cada iteração:</strong> Conforme o tempo passa, essa taxa de chute diminui passo a passo (<code>30% &rarr; 20% &rarr; 10%...</code>) até travar em <strong>2%</strong>. Assim, no final, ele toma <strong>98% das decisões indo direto na maior nota</strong>.</li>
+          </ul>
+        </article>
+
+        <article class="qa-card">
+          <span class="qa-question">PASSO 5</span>
+          <h3>5. Onde entra a Equação de Bellman: Atualiza a nota de onde estava</h3>
+          <p>A Equação de Bellman roda <strong>só depois que a ação acontece</strong> e serve para <strong>mudar a nota daquela ação no quadrado onde ele estava</strong>:</p>
+          <ul>
+            <li><strong>1.</strong> Ele estava no quadrado antigo <em>s</em>, escolheu a ação <em>a</em> e foi parar no novo quadrado <em>s'</em> ganhando a pontuação <em>R</em>.</li>
+            <li><strong>2.</strong> Ele atualiza <strong>apenas a nota da ação <em>a</em> daquele quadrado <em>s</em> de onde saiu</strong>, somando os pontos que acabou de ganhar com a maior nota disponível no próximo quadrado <em>s'</em>:</li>
+          </ul>
+          <div class="qa-mini-box">
+            <code>Nova Nota = Nota Antiga + &alpha; &middot; [ Pontos + &gamma; &middot; (Maior Nota do Novo Quadrado) &minus; Nota Antiga ]</code>
           </div>
         </article>
 
-        <article class="config-math-card">
-          <span>PASSO 4 · QUASE UMA META-HEURÍSTICA</span>
-          <h3>Por que começa com 30% de chance aleatória (&epsilon;-greedy) e vai caindo?</h3>
-          <p>Igual ao resfriamento do <em>Simulated Annealing</em>, o parâmetro <strong>&epsilon; (Epsilon)</strong> controla o equilíbrio entre explorar o desconhecido e usar o que já sabe:</p>
-          <div class="config-math-lines">
-            <code>&bull; <strong>Início (&epsilon; = 0.30 &rarr; 30% aleatório):</strong> Como tudo começa em <em>0.0</em>, ele chuta botões aleatórios 30% das vezes para não ficar preso num caminho ruim.</code>
-            <code>&bull; <strong>Decaimento (&epsilon; &larr; &epsilon; &times; 0.996):</strong> A cada passo da IA, a chance de chute cai um pouquinho até parar em <strong>2% (0.02)</strong>.</code>
-            <code>&bull; <strong>Resultado Final (Homeostase):</strong> Com 98% de decisão na maior nota, a matriz vira um "GPS" que mantém o Agumon estável para sempre no centro verde!</code>
+        <article class="qa-card qa-green">
+          <span class="qa-question">PASSO 6</span>
+          <h3>6. O Resultado Final: Padrão de Comportamento Estável</h3>
+          <p>Depois de várias iterações mudando as notas por onde passa, a matriz inteira fica preenchida com notas certeiras:</p>
+          <ul>
+            <li>Nos quadrados onde a <strong>Fome está alta (<code>7, 8</code>)</strong>, a maior nota passa a ser <strong>🍖 Alimentar</strong>.</li>
+            <li>Nos quadrados onde a <strong>Energia está baixa (<code>2, 3</code>)</strong>, a maior nota passa a ser <strong>💤 Dormir</strong>.</li>
+            <li>Nos quadrados do <strong>meio (<code>5, 5</code>)</strong>, a maior nota permite <strong>⏳ Ignorar</strong>.</li>
+          </ul>
+          <div class="qa-mini-box">
+            Com isso, o Tamagotchi atinge um <strong>padrão de comportamento autônomo que o mantém estável</strong>, ficando em um ciclo infinito dentro da zona verde (<code>3</code> a <code>7</code>) sem nunca deixar a fome ou a energia baterem nos extremos.
           </div>
         </article>
       </div>
@@ -457,23 +556,56 @@
     <section class="sample-inspector" aria-labelledby="bellman-inspector-title">
       <header>
         <div>
-          <p class="eyebrow">3 · RAIO-X DA ÚLTIMA DECISÃO</p>
+          <p class="eyebrow">3 · RAIO-X DA ÚLTIMA DECISÃO (MATEMÁTICA PASSO A PASSO)</p>
           <h2 id="bellman-inspector-title">Substituição numérica na Equação de Bellman</h2>
         </div>
-        <p style="max-width: 500px; margin:0; color:var(--muted);">Acompanhe os números exatos da última transição <strong>(s, a, R, s')</strong> que acabou de atualizar a Q-Table.</p>
+        <p style="max-width: 540px; margin:0; color:var(--muted);">Veja primeiro o que significa cada letra da fórmula e, logo abaixo, acompanhe a conta da última jogada dividida em <strong>4 passos simples</strong>.</p>
       </header>
 
-      <div class="forward-summary" id="lastTransitionSummary">
+      <!-- Fórmula Geral e Dicionário de Cada Termo -->
+      <div class="qa-mini-box" style="margin-top: 18px; padding: 16px 20px; background: #eef0ff; border-color: #c7d2fe; font-size: 15px;">
+        <div style="font-size: 12px; font-weight: 800; color: #4e46e5; margin-bottom: 6px;">A EQUAÇÃO DE BELLMAN COMPLETA:</div>
+        <div style="font-size: 16px; font-weight: 900; color: #1e293b;">
+          Q<sub>novo</sub>(s, a) = Q<sub>antigo</sub>(s, a) + &alpha; &middot; [ R + &gamma; &middot; max<sub>a'</sub> Q(s', a') &minus; Q<sub>antigo</sub>(s, a) ]
+        </div>
+      </div>
+
+      <div class="qa-step-grid" style="grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px;">
+        <div class="qa-mini-box" style="margin:0;">
+          <strong style="color:#4e46e5;">1. s e a (Onde estava e o que fez)</strong><br>
+          &bull; <strong>s:</strong> Quadrado antigo <code>(Fome, Energia)</code> onde o Agumon estava antes de agir.<br>
+          &bull; <strong>a:</strong> O botão que foi apertado (<code>Alimentar</code>, <code>Dormir</code> ou <code>Ignorar</code>).<br>
+          &bull; <strong>Q<sub>antigo</sub>(s, a):</strong> A nota que estava salva naquele botão antes da jogada.
+        </div>
+        <div class="qa-mini-box" style="margin:0;">
+          <strong style="color:#087d67;">2. s' e R (Para onde foi e pontos)</strong><br>
+          &bull; <strong>s':</strong> O <em>novo quadrado</em> para onde o Agumon foi depois que a ação mexeu na Fome e na Energia.<br>
+          &bull; <strong>R (Recompensa):</strong> Os pontos ganhos agora por cair em <code>s'</code> (<code>+10</code> no centro, <code>&minus;1</code> no alerta ou <code>&minus;10</code> nos extremos).
+        </div>
+        <div class="qa-mini-box" style="margin:0;">
+          <strong style="color:#d97706;">3. &gamma; e max<sub>a'</sub> Q(s', a') (O Futuro)</strong><br>
+          &bull; <strong>max<sub>a'</sub> Q(s', a'):</strong> Olhamos as 3 notas lá do <em>novo quadrado s'</em> (<code>A</code>, <code>D</code> e <code>I</code>) e pegamos apenas a <strong>maior nota</strong>.<br>
+          &bull; <strong>&gamma; (Gamma = 0.90):</strong> Peso do futuro (multiplica a maior nota do próximo quadrado por 90%).
+        </div>
+        <div class="qa-mini-box" style="margin:0;">
+          <strong style="color:#2563eb;">4. &alpha; e Erro TD (A Correção)</strong><br>
+          &bull; <strong>Alvo:</strong> Soma dos pontos de agora (<code>R</code>) com o futuro (<code>&gamma; &middot; max Q(s')</code>).<br>
+          &bull; <strong>Erro (&delta;):</strong> Diferença entre o <code>Alvo</code> e a <code>Nota Antiga</code>.<br>
+          &bull; <strong>&alpha; (Alpha = 0.25):</strong> Atualiza 25% dessa diferença na nota!
+        </div>
+      </div>
+
+      <div class="forward-summary" id="lastTransitionSummary" style="margin-top: 18px;">
         <div>
-          <b>1. Estado Anterior (s) e Ação (a)</b>
+          <b>1. Onde estava (s) e Botão apertado (a)</b>
           <code id="summaryStateAction">s = (5, 5) | a = ignorar</code>
         </div>
         <div>
-          <b>2. Novo Estado (s') e Recompensa (R)</b>
+          <b>2. Novo Quadrado (s') e Pontos ganhos (R)</b>
           <code id="summaryNextReward">s' = (6, 4) | R = +10</code>
         </div>
         <div>
-          <b>3. Atualização na Tabela Q(s, a)</b>
+          <b>3. Mudança na Nota Q(s, a) daquele quadrado</b>
           <code id="summaryQDelta">0.00 &rarr; +2.50 (&Delta; = +2.50)</code>
         </div>
       </div>
@@ -781,33 +913,55 @@ function atualizarBellman(estadoKey, acao, recompensa, proximoEstadoKey) {
       function renderBellmanWalkthrough(info) {
         var signR = info.reward > 0 ? '+' + info.reward : String(info.reward);
         var deltaSign = info.newQ - info.oldQ >= 0 ? '+' + (info.newQ - info.oldQ).toFixed(2) : (info.newQ - info.oldQ).toFixed(2);
+        var nextQObj = qTable[info.nextKey] || { alimentar: 0, dormir: 0, ignorar: 0 };
+        var futureWeighted = +(gamma * info.maxNextQ).toFixed(2);
 
         document.getElementById('summaryStateAction').textContent =
-          's = (' + info.prevKey + ') | a = ' + info.action.toUpperCase() + ' [' + info.mode + ']';
+          'Estava em s = (' + info.prevKey + ') | Apertou a = ' + info.action.toUpperCase() + ' [' + info.mode + ']';
         document.getElementById('summaryNextReward').textContent =
-          "s' = (" + info.nextKey + ') | R = ' + signR + (info.done ? ' (EXTREMO -> RESET)' : '');
+          "Caiu em s' = (" + info.nextKey + ') | Ganhou R = ' + signR + ' pts' + (info.done ? ' (EXTREMO -> RESET)' : '');
         document.getElementById('summaryQDelta').textContent =
-          info.oldQ.toFixed(2) + ' → ' + info.newQ.toFixed(2) + ' (Δ = ' + deltaSign + ')';
+          'Nota(' + info.action + ') em (' + info.prevKey + '): ' + info.oldQ.toFixed(2) + ' → ' + info.newQ.toFixed(2) + ' (Δ = ' + deltaSign + ')';
 
         var container = document.getElementById('bellmanMathWalkthrough');
         container.innerHTML =
           '<article class="config-math-card">' +
-            '<span>ETAPA 1 E 2</span>' +
-            '<h3>Alvo de Bellman (TD Target)</h3>' +
-            '<p>Somamos a recompensa imediata R com a melhor expectativa futura no estado s\'=(' + info.nextKey + '):</p>' +
+            '<span>PASSO 1 DA CONTA · ONDE ESTAVA E NOTA ANTIGA</span>' +
+            '<h3>1. Olhar a Nota Antiga Q<sub>antigo</sub>(s, a)</h3>' +
+            '<p>O Agumon estava no quadrado <strong>s = (' + info.prevKey + ')</strong> e escolheu a ação <strong>a = ' + info.action.toUpperCase() + '</strong>. Antes dessa jogada, quanto valia a nota desse botão lá naquele quadrado?</p>' +
             '<div class="config-math-lines">' +
-              '<code>max<sub>a\'</sub> Q(' + info.nextKey + ', a\') = <strong>' + info.maxNextQ.toFixed(2) + '</strong></code>' +
-              '<code>Alvo = R + &gamma; &middot; max Q(s\', a\')</code>' +
-              '<code>Alvo = <em>' + signR + '</em> + <em>' + gamma.toFixed(2) + '</em> &middot; <em>' + info.maxNextQ.toFixed(2) + '</em> = <strong>' + info.tdTarget.toFixed(2) + '</strong></code>' +
+              '<code>Quadrado onde estava: <strong>s = (' + info.prevKey + ')</strong></code>' +
+              '<code>Botão escolhido: <strong>a = ' + info.action + '</strong></code>' +
+              '<code>Nota Antiga salva lá: <strong>Q<sub>antigo</sub>(' + info.prevKey + ', ' + info.action + ') = ' + info.oldQ.toFixed(2) + '</strong></code>' +
             '</div>' +
           '</article>' +
           '<article class="config-math-card">' +
-            '<span>ETAPA 3 E 4</span>' +
-            '<h3>Erro Temporal (TD Error) e Novo Q(s, a)</h3>' +
-            '<p>Atualizamos a célula Q((' + info.prevKey + '), ' + info.action + ') usando a taxa &alpha; = ' + alpha.toFixed(2) + ':</p>' +
+            '<span>PASSO 2 DA CONTA · PARA ONDE FOI E MAIOR NOTA DE LÁ</span>' +
+            '<h3>2. Olhar os Pontos (R) e a Maior Nota do Novo Quadrado s\'</h3>' +
+            '<p>A ação mexeu nos níveis e levou o Agumon para o <strong>novo quadrado s\' = (' + info.nextKey + ')</strong>, dando <strong>R = ' + signR + ' pontos</strong>. Agora olhamos as 3 notas salvas lá no novo quadrado <strong>(' + info.nextKey + ')</strong> e pegamos a maior:</p>' +
             '<div class="config-math-lines">' +
-              '<code>Erro TD (&delta;) = Alvo &minus; Q<sub>antigo</sub> = ' + info.tdTarget.toFixed(2) + ' &minus; ' + info.oldQ.toFixed(2) + ' = <strong>' + info.tdError.toFixed(2) + '</strong></code>' +
-              '<code>Q<sub>novo</sub> = ' + info.oldQ.toFixed(2) + ' + ' + alpha.toFixed(2) + ' &middot; (' + info.tdError.toFixed(2) + ') = <strong>' + info.newQ.toFixed(2) + '</strong></code>' +
+              '<code>3 notas lá no novo quadrado (' + info.nextKey + '): A=' + nextQObj.alimentar.toFixed(2) + ' | D=' + nextQObj.dormir.toFixed(2) + ' | I=' + nextQObj.ignorar.toFixed(2)</code>' +
+              '<code>Maior nota do novo quadrado: <strong>max<sub>a\'</sub> Q(' + info.nextKey + ', a\') = ' + info.maxNextQ.toFixed(2) + '</strong></code>' +
+              '<code>Pontos imediatos recebidos: <strong>R = ' + signR + '</strong></code>' +
+            '</div>' +
+          '</article>' +
+          '<article class="config-math-card">' +
+            '<span>PASSO 3 DA CONTA · ALVO DE BELLMAN E DIFERENÇA (ERRO TD)</span>' +
+            '<h3>3. Quanto essa jogada realmente valeu? (Alvo e Diferença)</h3>' +
+            '<p>Somamos os pontos ganhos agora (<strong>R = ' + signR + '</strong>) com <strong>' + Math.round(gamma * 100) + '% (&gamma; = ' + gamma.toFixed(2) + ')</strong> da maior nota do novo quadrado para descobrir o <strong>Alvo</strong>, e subtraímos a Nota Antiga:</p>' +
+            '<div class="config-math-lines">' +
+              '<code>Alvo = R + (&gamma; &times; MaiorNotaNovoQuadrado) = <em>' + signR + '</em> + (<em>' + gamma.toFixed(2) + '</em> &times; <em>' + info.maxNextQ.toFixed(2) + '</em>) = ' + signR + ' + ' + futureWeighted.toFixed(2) + ' = <strong>' + info.tdTarget.toFixed(2) + '</strong></code>' +
+              '<code>Diferença (Erro &delta;) = Alvo &minus; Q<sub>antigo</sub> = ' + info.tdTarget.toFixed(2) + ' &minus; ' + info.oldQ.toFixed(2) + ' = <strong>' + info.tdError.toFixed(2) + '</strong></code>' +
+            '</div>' +
+          '</article>' +
+          '<article class="config-math-card">' +
+            '<span>PASSO 4 DA CONTA · ATUALIZAR A NOTA NA MATRIZ</span>' +
+            '<h3>4. Gravar a Nova Nota Q<sub>novo</sub>(s, a) no quadrado de onde saiu</h3>' +
+            '<p>Por fim, pegamos a Nota Antiga (<strong>' + info.oldQ.toFixed(2) + '</strong>) e somamos <strong>' + Math.round(alpha * 100) + '% (&alpha; = ' + alpha.toFixed(2) + ')</strong> da diferença para atualizar <em>apenas a nota de ' + info.action.toUpperCase() + ' no quadrado (' + info.prevKey + ')</em>:</p>' +
+            '<div class="config-math-lines">' +
+              '<code>Q<sub>novo</sub> = Q<sub>antigo</sub> + (&alpha; &times; Diferença)</code>' +
+              '<code>Q<sub>novo</sub> = ' + info.oldQ.toFixed(2) + ' + (' + alpha.toFixed(2) + ' &times; ' + info.tdError.toFixed(2) + ') = ' + info.oldQ.toFixed(2) + ' + ' + (alpha * info.tdError).toFixed(2) + ' = <strong>' + info.newQ.toFixed(2) + '</strong></code>' +
+              '<code>&rarr; Na matriz, o quadrado <strong>(' + info.prevKey + ')</strong> teve a nota <strong>' + info.action.toUpperCase() + '</strong> alterada de <strong>' + info.oldQ.toFixed(2) + '</strong> para <strong>' + info.newQ.toFixed(2) + '</strong>!</code>' +
             '</div>' +
           '</article>';
       }
@@ -1162,9 +1316,9 @@ function atualizarBellman(estadoKey, acao, recompensa, proximoEstadoKey) {
       renderBellmanWalkthrough({
         prevKey: '5,5',
         action: 'ignorar',
-        mode: 'INICIAL',
+        mode: 'EXEMPLO INICIAL',
         reward: 10,
-        nextKey: '5,5',
+        nextKey: '6,4',
         done: false,
         inIdeal: true,
         oldQ: 0,

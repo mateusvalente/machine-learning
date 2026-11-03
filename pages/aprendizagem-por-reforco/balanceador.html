@@ -515,6 +515,52 @@ def update_q_table(state: str, action: str, reward: float, next_state: str) -&gt
     return new_q</code></pre>
       </div>
     </section>
+
+    <!-- 5. EXERCÍCIOS PRÁTICOS DO MÓDULO (BALANCEADOR + FLAPPY BIRD) -->
+    <section class="sample-inspector" id="exercicios-praticos" style="margin-top: 36px;">
+      <header>
+        <div>
+          <p class="eyebrow">5 · EXERCÍCIOS PRÁTICOS DO MÓDULO</p>
+          <h2>Aplique a lógica passo a passo em 2 Desafios</h2>
+        </div>
+        <p style="max-width: 540px; margin: 0; color: var(--muted);">Ambos os exercícios também estão disponíveis na página de <a href="../atividades/desafios-integradores.html#atividade-balanceador-rl"><strong>Desafios Integradores</strong></a>.</p>
+      </header>
+
+      <div class="params-spec-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 20px;">
+        <article class="param-spec-card" style="border-left: 5px solid #4e46e5;">
+          <span class="param-tag">EXERCÍCIO 01 · INFRAESTRUTURA DOCKER</span>
+          <h3>Balanceador de Carga com a Lógica Passo a Passo do Q-Learning</h3>
+          <p style="color:#334155; font-size:14.5px; line-height:1.6;">Baixe o <a href="../../assets/downloads/balanceador_rl_aluno.zip" download><strong>Kit do Aluno (<code>balanceador_rl_aluno.zip</code>)</strong></a> e implemente no arquivo <code>agente.py</code> a exata mesma lógica de 6 passos que vimos no Tamagotchi:</p>
+          <ul>
+            <li><strong>1. A Matriz de Estados:</strong> 3 estados de tráfego (<code>carga_baixa</code>, <code>carga_media</code>, <code>carga_alta</code>).</li>
+            <li><strong>2. As 3 Notas por Estado:</strong> Em cada estado, guardar 3 notas (<code>node1</code>, <code>node2</code>, <code>node3</code>) começando em <code>0.0</code>.</li>
+            <li><strong>3. Ação e Pontuação:</strong> Enviar a requisição HTTP para o servidor escolhido, medir a latência e pontuar (<code>+20</code> se &lt;100ms, <code>+2</code> até 250ms, <code>&minus;15</code> acima disso e <code>&minus;100</code> em Timeout).</li>
+            <li><strong>4. Decisão (&epsilon;-greedy):</strong> Olhar apenas o estado atual e escolher a maior nota (Greedy), mas começando com 30%–40% de chance aleatória que vai caindo a cada iteração.</li>
+            <li><strong>5. Equação de Bellman:</strong> Depois de receber a resposta HTTP, atualizar apenas a nota do servidor testado naquele estado.</li>
+            <li><strong>6. Estabilidade:</strong> Rodar <code>simulador_trafego.py</code> e comprovar que o agente estabiliza concentrando o tráfego no <code>node1</code> sem sofrer Timeouts!</li>
+          </ul>
+          <div style="margin-top:14px;">
+            <a class="button" href="../atividades/desafios-integradores.html#atividade-balanceador-rl">Ver especificação completa na página de Exercícios &rarr;</a>
+          </div>
+        </article>
+
+        <article class="param-spec-card" style="border-left: 5px solid #19a987;">
+          <span class="param-tag" style="background:#d1fae5; color:#065f46;">EXERCÍCIO 02 · JOGOS AUTÔNOMOS (FLAPPY BIRD)</span>
+          <h3>Fazer a IA Aprender a Jogar Flappy Bird</h3>
+          <p style="color:#334155; font-size:14.5px; line-height:1.6;">Baseado no projeto de exemplo <a href="https://github.com/mateusvalente/FlappyLearning" target="_blank" rel="noopener"><strong>github.com/mateusvalente/FlappyLearning</strong></a>, faça uma IA aprender do zero a desviar dos canos no Flappy Bird:</p>
+          <ul>
+            <li><strong>1. A Matriz do Jogo:</strong> Discretize a distância horizontal até o próximo cano (<code>&Delta;X</code>) &times; a diferença de altura entre o pássaro e a abertura do cano (<code>&Delta;Y</code>).</li>
+            <li><strong>2. As 2 Notas por Quadrado:</strong> Em cada posição <code>(&Delta;X, &Delta;Y)</code> da matriz, guarde <strong>2 notas</strong>: <code>Nota(Pular)</code> e <code>Nota(Não Pular)</code>.</li>
+            <li><strong>3. Ação e Pontuação:</strong> Cada frame altera a altura do pássaro e pontua: <code>+1</code> por continuar vivo, <code>+50</code> ao atravessar um cano e <code>&minus;1000</code> se bater no cano ou no chão.</li>
+            <li><strong>4. Decisão e Bellman:</strong> Use a mesma política Greedy com chance aleatória decrescente (ou compare com a Neuroevolução de 50 pássaros do repositório <code>FlappyLearning</code>) atualizando a nota da posição anterior a cada frame!</li>
+          </ul>
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="button" href="../atividades/desafios-integradores.html#atividade-flappy-rl">Ver Exercício do Flappy Bird &rarr;</a>
+            <a class="button outline" href="https://github.com/mateusvalente/FlappyLearning" target="_blank" rel="noopener">Abrir Repositório FlappyLearning &nearr;</a>
+          </div>
+        </article>
+      </div>
+    </section>
   </main>
 
   <footer class="site-footer">

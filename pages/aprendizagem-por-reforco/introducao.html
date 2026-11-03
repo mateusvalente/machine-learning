@@ -57,52 +57,80 @@
   <section class="sample-inspector" id="equacao-bellman" style="margin-top:42px;">
     <header>
       <div>
-        <p class="eyebrow">02 · A MATEMÁTICA DO Q-LEARNING TABULAR</p>
-        <h2>Decompondo a Equação de Bellman passo a passo</h2>
+        <p class="eyebrow">02 · PASSO A PASSO DIDÁTICO DO ALGORITMO</p>
+        <h2>Como funciona o Algoritmo do Tamagotchi (Q-Learning Passo a Passo)</h2>
       </div>
-      <p style="max-width:520px; margin:0; color:var(--muted);">A Tabela Q (<em>Q-Table</em>) guarda, para cada linha de Estado <strong>s</strong> e coluna de Ação <strong>a</strong>, a expectativa de recompensa acumulada.</p>
+      <p style="max-width:540px; margin:0; color:var(--muted);">Acompanhe exatamente como o agente enxerga a matriz, como decide cada movimento e como atualiza suas notas a cada iteração.</p>
     </header>
 
-    <div class="backprop-flow" aria-label="Etapas da atualização de Bellman">
-      <article>
-        <b>1 · Valor Atual Q(s, a)</b>
-        <span>O que o agente acreditava que valia tomar a ação <em>a</em> no estado <em>s</em> antes da experiência.</span>
-        <code>Q_antigo = Q[s][a]</code>
+    <div class="problem-grid" style="grid-template-columns: repeat(2, 1fr); gap: 18px; margin-top: 22px;">
+      <article class="problem-card">
+        <span class="eyebrow" style="color:var(--indigo);">PASSO 1</span>
+        <h3>1. O Tabuleiro: A Matriz de Fome &times; Energia</h3>
+        <p>O algoritmo enxerga a vida do Tamagotchi como uma <strong>matriz de 11 &times; 11</strong> (121 quadrados no total):</p>
+        <ul style="margin:8px 0; padding-left:18px; color:#334155; font-size:14.5px; line-height:1.6;">
+          <li><strong>Linhas:</strong> nível de <strong>Fome</strong> de <code>0</code> (cheio) até <code>10</code> (faminto).</li>
+          <li><strong>Colunas:</strong> nível de <strong>Energia</strong> de <code>0</code> (exausto) até <code>10</code> (hiperativo).</li>
+          <li>A posição atual do bichinho nesse tabuleiro é o seu <strong>Estado atual (<em>s</em>)</strong> (ex.: Fome <code>5</code> e Energia <code>5</code> &rarr; quadrado <code>(5, 5)</code>).</li>
+        </ul>
+        <div class="equation">Estado s = (Fome, Energia)</div>
       </article>
-      <i>&rarr;</i>
-      <article>
-        <b>2 · Alvo de Bellman (TD Target)</b>
-        <span>Soma da recompensa imediata <em>R</em> com o melhor valor possível do próximo estado <em>s'</em> descontado por <em>&gamma;</em>.</span>
-        <code>Alvo = R + &gamma; &middot; max Q[s']</code>
-      </article>
-      <i>&rarr;</i>
-      <article>
-        <b>3 · Erro Temporal (TD Error)</b>
-        <span>A surpresa do agente: diferença entre o que realmente aconteceu (Alvo) e o que ele esperava.</span>
-        <code>&delta; = Alvo &minus; Q[s][a]</code>
-      </article>
-      <i>&rarr;</i>
-      <article>
-        <b>4 · Atualização Tabular</b>
-        <span>Corrige a célula da Q-Table dando um passo proporcional à taxa de aprendizado <em>&alpha;</em>.</span>
-        <code>Q[s][a] &larr; Q[s][a] + &alpha; &middot; &delta;</code>
-      </article>
-    </div>
 
-    <div class="config-math-walkthrough">
-      <article class="config-math-card full">
-        <span>FÓRMULA COMPLETA E FUNCIONAMENTO PASSO A PASSO</span>
-        <h3>Como o Algoritmo Decide vs. Como Ele Atualiza as Notas</h3>
-        <p>Uma dúvida muito comum é achar que o agente roda a Equação de Bellman para todos os estados possíveis antes de escolher uma ação. Na prática, o ciclo tem dois momentos separados:</p>
-        <div class="config-math-lines">
-          <code><strong>MOMENTO 1 (ANTES DE AGIR — Decisão &epsilon;-Greedy, quase uma Meta-Heurística):</strong></code>
-          <code>&bull; O agente olha <em>apenas o quadrado onde está agora</em> na matriz e vê as notas já salvas para cada botão.</code>
-          <code>&bull; No começo (<strong>&epsilon; = 30%</strong>), ele sorteia botões aleatórios 30% das vezes para explorar o ambiente. A cada passo, esse &epsilon; vai caindo (ex: &times;0.996) até chegar a <strong>2%</strong>, fazendo com que 98% das decisões escolham diretamente a <strong>maior nota (Greedy)</strong>.</code>
-          <code><strong>MOMENTO 2 (DEPOIS DE AGIR — Atualização pela Equação de Bellman):</strong></code>
-          <code>&bull; A ação escolhida mexe no estado (ex: Fome/Energia ou Servidor escolhido) e o ambiente devolve a Recompensa <strong>R</strong>.</code>
-          <code>&bull; Só agora rodamos a Equação de Bellman para atualizar <em>apenas a nota daquela ação naquele estado de onde o agente saiu</em>:</code>
-          <code><em>Q(s, a)</em> &larr; <em>Q(s, a)</em> + <strong>&alpha;</strong> &middot; [ <strong>R</strong> + <strong>&gamma;</strong> &middot; max<sub>a'</sub> <em>Q(s', a')</em> &minus; <em>Q(s, a)</em> ]</code>
-        </div>
+      <article class="problem-card">
+        <span class="eyebrow" style="color:#19a987;">PASSO 2</span>
+        <h3>2. O que fica guardado em cada quadrado: As 3 Notas</h3>
+        <p>Em vez de guardar uma nota só, <strong>cada quadrado da matriz guarda 3 notas separadas</strong> — uma para cada ação (botão) que a IA pode escolher quando estiver parada ali:</p>
+        <ul style="margin:8px 0; padding-left:18px; color:#334155; font-size:14.5px; line-height:1.6;">
+          <li><strong>Nota A (<code>Alimentar</code>):</strong> o quão bom é dar comida estando nesse quadrado.</li>
+          <li><strong>Nota D (<code>Dormir</code>):</strong> o quão bom é colocar para dormir estando nesse quadrado.</li>
+          <li><strong>Nota I (<code>Ignorar</code>):</strong> o quão bom é não fazer nada estando nesse quadrado.</li>
+        </ul>
+        <div class="equation">Início: { A: 0.00, D: 0.00, I: 0.00 }</div>
+      </article>
+
+      <article class="problem-card">
+        <span class="eyebrow" style="color:#f39149;">PASSO 3</span>
+        <h3>3. Ação e Consequência: Mexe nos níveis e Pontua</h3>
+        <p>A cada rodada, quando o algoritmo escolhe uma das 3 ações, acontecem duas coisas:</p>
+        <ul style="margin:8px 0; padding-left:18px; color:#334155; font-size:14.5px; line-height:1.6;">
+          <li><strong>1. Mexe nos níveis</strong> (muda de quadrado): <strong>🍖 Alimentar</strong> (Fome <code>&minus;3</code>, Energia <code>&minus;1</code>), <strong>💤 Dormir</strong> (Energia <code>+3</code>, Fome <code>+1</code>), <strong>⏳ Ignorar</strong> (Fome <code>+1</code>, Energia <code>&minus;1</code>).</li>
+          <li><strong>2. Pontua (Recompensa <em>R</em>):</strong> centro equilibrado (<code>3..7</code>) ganha <strong><code>+10</code></strong>; zona de alerta (<code>1,2,8,9</code>) perde <strong><code>&minus;1</code></strong>; extremos fatais (<code>0</code> ou <code>10</code>) perde <strong><code>&minus;10</code></strong>.</li>
+        </ul>
+        <div class="equation">Ação a &rarr; Novo Quadrado s' + Pontos R</div>
+      </article>
+
+      <article class="problem-card">
+        <span class="eyebrow" style="color:#20c9e8;">PASSO 4</span>
+        <h3>4. Como toma decisões: Greedy + 30% Aleatório que vai caindo</h3>
+        <p>Na hora de decidir qual botão apertar, o algoritmo <strong>não calcula a Equação de Bellman para cada decisão possível na matriz</strong>: ele olha <strong>apenas o quadrado onde está agora</strong> e lê as 3 notas salvas lá.</p>
+        <ul style="margin:8px 0; padding-left:18px; color:#334155; font-size:14.5px; line-height:1.6;">
+          <li><strong>Começa com 30% aleatório (&epsilon; = 0.30):</strong> 30% das vezes chuta uma ação aleatória para explorar o mapa e 70% escolhe a <strong>maior nota (Greedy)</strong> (quase uma meta-heurística).</li>
+          <li><strong>Vai caindo a cada iteração:</strong> diminui passo a passo (<code>30% &rarr; 20% &rarr; 10%...</code>) até <strong>2%</strong> (98% Greedy no final).</li>
+        </ul>
+        <div class="equation">&epsilon;: 30% (exploração) &rarr; cai até 2% (98% Greedy)</div>
+      </article>
+
+      <article class="problem-card">
+        <span class="eyebrow" style="color:var(--indigo);">PASSO 5</span>
+        <h3>5. Onde entra a Equação de Bellman: Atualiza a nota de onde estava</h3>
+        <p>A Equação de Bellman roda <strong>só depois que a ação acontece</strong> e serve para <strong>mudar a nota daquela ação no quadrado onde ele estava</strong>:</p>
+        <ul style="margin:8px 0; padding-left:18px; color:#334155; font-size:14.5px; line-height:1.6;">
+          <li>Ele estava no quadrado antigo <em>s</em>, escolheu a ação <em>a</em> e foi parar no novo quadrado <em>s'</em> ganhando <em>R</em>.</li>
+          <li>Atualiza <strong>apenas a nota da ação <em>a</em> daquele quadrado <em>s</em> de onde saiu</strong>, somando os pontos ganhos com a maior nota do novo quadrado <em>s'</em>.</li>
+        </ul>
+        <div class="equation">Nova Nota = Nota Antiga + &alpha; &middot; [ Pontos + &gamma;&middot;max Q(s') &minus; Nota Antiga ]</div>
+      </article>
+
+      <article class="problem-card">
+        <span class="eyebrow" style="color:#19a987;">PASSO 6</span>
+        <h3>6. O Resultado Final: Padrão de Comportamento Estável</h3>
+        <p>Depois de várias iterações mudando as notas por onde passa, a matriz inteira fica preenchida com notas certeiras:</p>
+        <ul style="margin:8px 0; padding-left:18px; color:#334155; font-size:14.5px; line-height:1.6;">
+          <li>Onde a <strong>Fome está alta (<code>7, 8</code>)</strong>, a maior nota vira <strong>🍖 Alimentar</strong>.</li>
+          <li>Onde a <strong>Energia está baixa (<code>2, 3</code>)</strong>, a maior nota vira <strong>💤 Dormir</strong>.</li>
+          <li>No <strong>meio (<code>5, 5</code>)</strong>, a maior nota permite <strong>⏳ Ignorar</strong>, mantendo um ciclo infinito estável na zona verde (<code>3..7</code>).</li>
+        </ul>
+        <div class="equation">&pi;*(s) = arg max Q(s, a) &rarr; Estabilidade</div>
       </article>
     </div>
   </section>
