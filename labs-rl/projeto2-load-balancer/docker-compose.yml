@@ -1,0 +1,74 @@
+services:
+  # Nó 1: Alta capacidade de CPU (tende a responder < 100ms mesmo com trabalho extra)
+  node1:
+    image: traefik/whoami:latest
+    container_name: rl_lb_node1
+    cpus: 1.00
+    mem_limit: 128m
+    networks:
+      - rl_net
+
+  # Nó 2: Capacidade intermediária de CPU (sofre throttling moderado sob carga)
+  node2:
+    image: traefik/whoami:latest
+    container_name: rl_lb_node2
+    cpus: 0.25
+    mem_limit: 128m
+    networks:
+      - rl_net
+
+  # Nó 3: Capacidade severamente restrita de CPU (forte throttling de CPU no cgroup)
+  node3:
+    image: traefik/whoami:latest
+    container_name: rl_lb_node3
+    cpus: 0.05
+    mem_limit: 64m
+    networks:
+      - rl_net
+
+  # Proxy Reverso Nginx: Roteia a requisição HTTP para o nó escolhido pelo Agente RL
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: rl_lb_nginx
+    ports:
+      - "8080:8080"
+    depends_on:
+      - node1
+      - node2
+      - node3
+    networks:
+      - rl_net
+    command:
+      - /bin/sh
+      - -c
+      - |
+        cat << 'EOF' > /etc/nginx/conf.d/default.conf
+        # Simulação de latência de processamento proporcional ao limite de CPU de cada nó
+        # combinado com a resolução e proxy direto para os contêineres traefik/whoami
+        server {
+            listen 8080;
+
+            location /node1 {
+                proxy_pass http://node1:80/;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Target-Node "node1";
+            }
+
+            location /node2 {
+                proxy_pass http://node2:80/?wait=140ms;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Target-Node "node2";
+            }
+
+            location /node3 {
+                proxy_pass http://node3:80/?wait=650ms;
+                proxy_set_header Host $$host;
+                proxy_set_header X-Target-Node "node3";
+            }
+        }
+        EOF
+        nginx -g "daemon off;"
+
+networks:
+  rl_net:
+    driver: bridge

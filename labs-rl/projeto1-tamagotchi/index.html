@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projeto 1: Tamagotchi Autônomo via Q-Learning Tabular</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    header {
+      max-width: 1400px;
+      margin: 0 auto 20px auto;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h1 { margin: 0 0 6px 0; font-size: 1.5rem; color: var(--accent); }
+    p.subtitle { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 980px) {
+      .dashboard { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      color: #e2e8f0;
+    }
+
+    .pet-arena {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0b1120;
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .pet-avatar {
+      font-size: 4rem;
+      line-height: 1;
+      margin-bottom: 8px;
+      transition: transform 0.15s ease;
+    }
+
+    .status-badge {
+      font-size: 0.85rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+      background: #1e293b;
+      border: 1px solid var(--border);
+    }
+
+    .meter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .meter-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 14px;
+      background: #0b1120;
+      border-radius: 7px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-fill {
+      height: 100%;
+      transition: width 0.15s ease, background-color 0.15s ease;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: #0b1120;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-box span {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .stat-box strong {
+      font-size: 1.15rem;
+      color: var(--accent);
+      font-family: monospace;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    button.secondary {
+      background: #334155;
+      color: var(--text);
+    }
+
+    button:hover { opacity: 0.9; }
+
+    .formula-box {
+      background: #0b1120;
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      overflow-x: auto;
+    }
+
+    .console-log {
+      background: #0b1120;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      height: 170px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 0.8rem;
+    }
+
+    .log-entry { margin-bottom: 4px; border-bottom: 1px dashed #1e293b; padding-bottom: 2px; }
+    .log-plus { color: var(--good); }
+    .log-minus { color: var(--bad); }
+    .log-neutral { color: var(--muted); }
+
+    /* Responsive Accessible Q-Table Container */
+    .table-wrapper {
+      overflow: auto;
+      max-inline-size: 100%;
+      max-block-size: min(650px, 78vh);
+      container-type: inline-size;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #0b1120;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-family: monospace;
+      font-size: 0.82rem;
+    }
+
+    caption {
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--muted);
+      background: #111827;
+      border-bottom: 1px solid var(--border);
+    }
+
+    thead {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 2;
+      background: #1e293b;
+    }
+
+    th, td {
+      padding: 7px 10px;
+      text-align: right;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    thead th {
+      text-align: right;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    thead th:first-child,
+    tbody th {
+      text-align: left;
+      position: sticky;
+      inset-inline-start: 0;
+      background: #111827;
+      z-index: 1;
+      border-right: 1px solid var(--border);
+    }
+
+    tbody tr.active-state th,
+    tbody tr.active-state td {
+      background: rgba(56, 189, 248, 0.22) !important;
+      font-weight: bold;
+    }
+
+    .best-action {
+      color: var(--good);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Projeto 1: Tamagotchi Autônomo — Q-Learning Tabular (Vanilla JS)</h1>
+    <p class="subtitle">Equação de Bellman aplicada em tempo real para homeostase artificial (Fome e Energia entre 3 e 7).</p>
+  </header>
+
+  <main class="dashboard">
+    <!-- Coluna da Esquerda: Estado do Ambiente e Controles -->
+    <section class="card">
+      <h2>Ambiente &amp; Agente</h2>
+
+      <div class="pet-arena">
+        <div id="petAvatar" class="pet-avatar">🐣</div>
+        <div id="petZoneBadge" class="status-badge">Zona Ideal (Homeostase)</div>
+      </div>
+
+      <div class="meter-group">
+        <div class="meter-label">
+          <span>🍖 Fome (0 = Saciedade, 10 = Faminto)</span>
+          <span id="hungerVal">5 / 10</span>
+        </div>
+        <div class="progress-bar">
+          <div id="hungerBar" class="progress-fill" style="width: 50%; background: var(--good);"></div>
+        </div>
+      </div>
+
+      <div class="meter-group">
+        <div class="meter-label">
+          <span>⚡ Energia (0 = Exausto, 10 = Hiperativo)</span>
+          <span id="energyVal">5 / 10</span>
+        </div>
+        <div class="progress-bar">
+          <div id="energyBar" class="progress-fill" style="width: 50%; background: var(--good);"></div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <span>Passos (Ticks)</span>
+          <strong id="stepCount">0</strong>
+        </div>
+        <div class="stat-box">
+          <span>Episódios (Resets)</span>
+          <strong id="episodeCount">1</strong>
+        </div>
+        <div class="stat-box">
+          <span>Epsilon (Exploração ε)</span>
+          <strong id="epsilonVal">0.30</strong>
+        </div>
+        <div class="stat-box">
+          <span>Recompensa Acumulada</span>
+          <strong id="totalRewardVal">0</strong>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="toggleBtn">⏸ Pausar</button>
+        <button id="speedBtn" class="secondary">⚡ Velocidade: 200ms</button>
+        <button id="resetBtn" class="secondary">🔄 Resetar Estado</button>
+      </div>
+
+      <div class="formula-box">
+        <strong>Equação de Bellman (Q-Learning):</strong><br>
+        Q(s,a) &larr; Q(s,a) + &alpha; &cdot; [ R + &gamma; &cdot; max<sub>a'</sub> Q(s',a') - Q(s,a) ]
+      </div>
+
+      <h2>Console de Interações (Tempo Real)</h2>
+      <div id="consoleLog" class="console-log"></div>
+    </section>
+
+    <!-- Coluna da Direita: Q-Table em Tempo Real -->
+    <section class="card">
+      <h2>Q-Table em Tempo Real (121 Estados &times; 3 Ações)</h2>
+      <div tabindex="0" role="region" aria-labelledby="qtable-caption" class="table-wrapper">
+        <table>
+          <caption id="qtable-caption">
+            Valores Q(s, a) atualizados a cada interação via Equação de Bellman. A linha destacada indica o estado atual (Fome, Energia).
+          </caption>
+          <thead>
+            <tr>
+              <th>Estado (Fome, Energia)</th>
+              <th>Alimentar</th>
+              <th>Dormir</th>
+              <th>Ignorar</th>
+              <th>Política &pi;(s)</th>
+            </tr>
+          </thead>
+          <tbody id="qTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    /**
+     * ============================================================================
+     * PROJETO 1: TAMAGOTCHI DE APRENDIZADO POR REFORÇO (Q-LEARNING PURO)
+     * ============================================================================
+     * Espaço de Estados: Fome in [0..10], Energia in [0..10] -> 11 x 11 = 121 estados
+     * Espaço de Ações: ['alimentar', 'dormir', 'ignorar']
+     */
+
+    const ACTIONS = ['alimentar', 'dormir', 'ignorar'];
+
+    // Hiperparâmetros do Q-Learning (Equação de Bellman)
+    const ALPHA = 0.2;            // Taxa de aprendizado (Learning Rate)
+    const GAMMA = 0.9;            // Fator de desconto futuro (Discount Factor)
+    let epsilon = 0.30;           // Taxa de exploração inicial (Epsilon-Greedy)
+    const EPSILON_MIN = 0.02;     // Exploração residual mínima
+    const EPSILON_DECAY = 0.995;  // Decaimento gradual por passo
+
+    // Estrutura da Q-Table: Dicionário chaveado por "fome,energia"
+    const qTable = {};
+    for (let h = 0; h <= 10; h++) {
+      for (let e = 0; e <= 10; e++) {
+        qTable[`${h},${e}`] = { alimentar: 0.0, dormir: 0.0, ignorar: 0.0 };
+      }
+    }
+
+    // Estado atual do ambiente e métricas
+    let state = { hunger: 5, energy: 5 };
+    let steps = 0;
+    let episodes = 1;
+    let totalReward = 0;
+    let intervalMs = 200;
+    let timerId = null;
+    let isRunning = true;
+
+    // Utilitário de limitação (clamp entre 0 e 10)
+    const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
+
+    /**
+     * Constrói o DOM inicial da Q-Table (121 linhas) para atualização rápida em tempo real
+     */
+    const qTableBody = document.getElementById('qTableBody');
+    const rowElements = {};
+
+    function initQTableDOM() {
+      const fragment = document.createDocumentFragment();
+      for (let h = 0; h <= 10; h++) {
+        for (let e = 0; e <= 10; e++) {
+          const key = `${h},${e}`;
+          const tr = document.createElement('tr');
+          tr.id = `row-${h}-${e}`;
+          tr.innerHTML = `
+            <th>F:${h} | E:${e}</th>
+            <td id="cell-${h}-${e}-alimentar">0.00</td>
+            <td id="cell-${h}-${e}-dormir">0.00</td>
+            <td id="cell-${h}-${e}-ignorar">0.00</td>
+            <td id="cell-${h}-${e}-best" class="best-action">-</td>
+          `;
+          fragment.appendChild(tr);
+          rowElements[key] = tr;
+        }
+      }
+      qTableBody.appendChild(fragment);
+    }
+
+    /**
+     * Seleção de Ação via Política Epsilon-Greedy:
+     * Com probabilidade `epsilon`, explora uma ação aleatória.
+     * Com probabilidade `1 - epsilon`, explota a ação de maior valor Q(s, a).
+     */
+    function chooseAction(stateKey) {
+      if (Math.random() < epsilon) {
+        const randomIndex = Math.floor(Math.random() * ACTIONS.length);
+        return { action: ACTIONS[randomIndex], mode: 'EXPLORAÇÃO' };
+      }
+
+      const qValues = qTable[stateKey];
+      let bestAction = ACTIONS[0];
+      let maxQ = qValues[bestAction];
+
+      // Empates são quebrados aleatoriamente para evitar viés inicial
+      const tiedActions = [bestAction];
+      for (let i = 1; i < ACTIONS.length; i++) {
+        const a = ACTIONS[i];
+        if (qValues[a] > maxQ) {
+          maxQ = qValues[a];
+          bestAction = a;
+          tiedActions.length = 0;
+          tiedActions.push(a);
+        } else if (qValues[a] === maxQ) {
+          tiedActions.push(a);
+        }
+      }
+
+      const chosen = tiedActions[Math.floor(Math.random() * tiedActions.length)];
+      return { action: chosen, mode: 'EXPLOTAÇÃO' };
+    }
+
+    /**
+     * Dinâmica de Transição do Ambiente: executa a ação e retorna { nextState, reward, done }
+     */
+    function stepEnvironment(currentState, action) {
+      let { hunger, energy } = currentState;
+
+      // 1. Efeito físico da ação + metabolismo natural do Tamagotchi
+      if (action === 'alimentar') {
+        hunger = clamp(hunger - 3, 0, 10); // Reduz a fome significativamente
+        energy = clamp(energy - 1, 0, 10); // Digestão consome 1 de energia
+      } else if (action === 'dormir') {
+        energy = clamp(energy + 3, 0, 10); // Recupera bastante energia
+        hunger = clamp(hunger + 1, 0, 10); // Dormir dá fome lentamente
+      } else if (action === 'ignorar') {
+        hunger = clamp(hunger + 1, 0, 10); // Metabolismo basal aumenta a fome
+        energy = clamp(energy - 1, 0, 10); // Cansaço natural reduz a energia
+      }
+
+      // 2. Função de Recompensa (Reward Shaping explícito conforme especificação)
+      let reward = -1; // Custo metabólico padrão fora da zona ideal
+      let done = false;
+
+      const hitExtreme = (hunger === 0 || hunger === 10 || energy === 0 || energy === 10);
+      const inBalancedZone = (hunger >= 3 && hunger <= 7 && energy >= 3 && energy <= 7);
+
+      if (hitExtreme) {
+        reward = -10; // Punição severa por atingir extremos (0 ou 10)
+        done = true;  // Fim do episódio (colapso de homeostase)
+      } else if (inBalancedZone) {
+        reward = +10; // Recompensa máxima por manter os status equilibrados entre 3 e 7
+      }
+
+      return {
+        nextState: { hunger, energy },
+        reward,
+        done
+      };
+    }
+
+    /**
+     * Atualização Tabular pela Equação de Bellman:
+     * Q(s, a) <- Q(s, a) + alpha * [ R + gamma * max_a' Q(s', a') - Q(s, a) ]
+     */
+    function updateQTable(stateKey, action, reward, nextStateKey) {
+      const currentQ = qTable[stateKey][action];
+      const nextQValues = Object.values(qTable[nextStateKey]);
+      const maxNextQ = Math.max(...nextQValues);
+
+      // Erro de Diferença Temporal (TD Error): R + gamma * max Q(s', a') - Q(s, a)
+      const tdTarget = reward + GAMMA * maxNextQ;
+      const tdError = tdTarget - currentQ;
+
+      // Novo valor Q atualizado na tabela
+      const newQ = currentQ + ALPHA * tdError;
+      qTable[stateKey][action] = newQ;
+
+      // Atualiza imediatamente a célula correspondente no DOM
+      updateTableRowDOM(stateKey);
+    }
+
+    /**
+     * Atualiza os valores visuais de uma linha específica da Q-Table
+     */
+    function updateTableRowDOM(stateKey) {
+      const [h, e] = stateKey.split(',');
+      const qVals = qTable[stateKey];
+
+      let bestAct = 'alimentar';
+      for (const a of ACTIONS) {
+        document.getElementById(`cell-${h}-${e}-${a}`).textContent = qVals[a].toFixed(2);
+        if (qVals[a] > qVals[bestAct]) {
+          bestAct = a;
+        }
+      }
+      document.getElementById(`cell-${h}-${e}-best`).textContent = bestAct.toUpperCase();
+    }
+
+    /**
+     * Atualiza medidores, avatar e logs na tela e no DevTools Console
+     */
+    function renderUI(prevKey, action, mode, reward, nextState, done) {
+      const { hunger, energy } = nextState;
+
+      // Barras e textos de Fome e Energia
+      document.getElementById('hungerVal').textContent = `${hunger} / 10`;
+      document.getElementById('energyVal').textContent = `${energy} / 10`;
+
+      const hungerBar = document.getElementById('hungerBar');
+      const energyBar = document.getElementById('energyBar');
+      hungerBar.style.width = `${hunger * 10}%`;
+      energyBar.style.width = `${energy * 10}%`;
+
+      const colorForLevel = (val) => {
+        if (val === 0 || val === 10) return 'var(--bad)';
+        if (val >= 3 && val <= 7) return 'var(--good)';
+        return 'var(--warn)';
+      };
+      hungerBar.style.backgroundColor = colorForLevel(hunger);
+      energyBar.style.backgroundColor = colorForLevel(energy);
+
+      // Avatar e Badge
+      const avatar = document.getElementById('petAvatar');
+      const badge = document.getElementById('petZoneBadge');
+      if (done) {
+        avatar.textContent = '😵';
+        badge.textContent = 'Extremo Atingido (-10 pts) — Reiniciando!';
+        badge.style.color = 'var(--bad)';
+      } else if (hunger >= 3 && hunger <= 7 && energy >= 3 && energy <= 7) {
+        avatar.textContent = action === 'dormir' ? '😴' : (action === 'alimentar' ? '😋' : '😊');
+        badge.textContent = 'Zona Equilibrada [3..7] (+10 pts)';
+        badge.style.color = 'var(--good)';
+      } else {
+        avatar.textContent = '😟';
+        badge.textContent = 'Zona de Alerta (-1 pt)';
+        badge.style.color = 'var(--warn)';
+      }
+
+      // Métricas gerais
+      document.getElementById('stepCount').textContent = steps;
+      document.getElementById('episodeCount').textContent = episodes;
+      document.getElementById('epsilonVal').textContent = epsilon.toFixed(3);
+      document.getElementById('totalRewardVal').textContent = totalReward;
+
+      // Destaque da linha ativa na Q-Table
+      document.querySelectorAll('tbody tr.active-state').forEach(el => el.classList.remove('active-state'));
+      const currentKey = `${hunger},${energy}`;
+      if (rowElements[currentKey]) {
+        rowElements[currentKey].classList.add('active-state');
+      }
+
+      // Registro no console visual e no console do navegador
+      const logBox = document.getElementById('consoleLog');
+      const entry = document.createElement('div');
+      const rewardClass = reward > 0 ? 'log-plus' : (reward <= -10 ? 'log-minus' : 'log-neutral');
+      const sign = reward > 0 ? `+${reward}` : reward;
+      const msg = `[Passo ${steps}] S:(${prevKey}) --(${action.toUpperCase()} | ${mode})--> S':(${currentKey}) | R: ${sign}`;
+
+      entry.className = `log-entry ${rewardClass}`;
+      entry.textContent = msg;
+      logBox.prepend(entry);
+      if (logBox.children.length > 60) {
+        logBox.removeChild(logBox.lastChild);
+      }
+
+      console.log(msg, '| Q(s):', { ...qTable[prevKey] });
+    }
+
+    /**
+     * Passo principal do loop de treinamento (executado via setInterval)
+     */
+    function trainingTick() {
+      steps++;
+      const stateKey = `${state.hunger},${state.energy}`;
+
+      // 1. Escolhe a ação (Epsilon-Greedy)
+      const { action, mode } = chooseAction(stateKey);
+
+      // 2. Interage com o ambiente e observa novo estado + recompensa
+      const { nextState, reward, done } = stepEnvironment(state, action);
+      const nextStateKey = `${nextState.hunger},${nextState.energy}`;
+
+      // 3. Atualiza a Q-Table aplicando a Equação de Bellman
+      updateQTable(stateKey, action, reward, nextStateKey);
+
+      // 4. Atualiza métricas e decai Epsilon
+      totalReward += reward;
+      epsilon = Math.max(EPSILON_MIN, epsilon * EPSILON_DECAY);
+
+      // 5. Renderiza na tela
+      renderUI(stateKey, action, mode, reward, nextState, done);
+
+      // 6. Se atingiu o extremo (0 ou 10), encerra o episódio e reinicia no centro
+      if (done) {
+        episodes++;
+        state = { hunger: 5, energy: 5 };
+      } else {
+        state = nextState;
+      }
+    }
+
+    // Controles de Interface
+    function startLoop() {
+      if (timerId) clearInterval(timerId);
+      timerId = setInterval(trainingTick, intervalMs);
+    }
+
+    document.getElementById('toggleBtn').addEventListener('click', (e) => {
+      isRunning = !isRunning;
+      if (isRunning) {
+        startLoop();
+        e.target.textContent = '⏸ Pausar';
+      } else {
+        clearInterval(timerId);
+        e.target.textContent = '▶ Continuar';
+      }
+    });
+
+    document.getElementById('speedBtn').addEventListener('click', (e) => {
+      const speeds = [200, 50, 15, 500];
+      const nextIdx = (speeds.indexOf(intervalMs) + 1) % speeds.length;
+      intervalMs = speeds[nextIdx];
+      e.target.textContent = `⚡ Velocidade: ${intervalMs}ms`;
+      if (isRunning) startLoop();
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      state = { hunger: 5, energy: 5 };
+      episodes++;
+    });
+
+    // Inicialização
+    initQTableDOM();
+    rowElements['5,5'].classList.add('active-state');
+    startLoop();
+  </script>
+</body>
+</html>

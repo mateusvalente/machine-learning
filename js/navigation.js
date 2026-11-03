@@ -189,6 +189,14 @@
       ]
     },
     {
+      titulo: 'APRENDIZADO POR REFORÇO',
+      itens: [
+        { icone: 'fa-robot', titulo: 'Do Zero à Infraestrutura', caminho: 'pages/aprendizagem-por-reforco/introducao.html' },
+        { icone: 'fa-gamepad', titulo: 'Lab 1 · Agente Tamagotchi (JS)', caminho: 'labs-rl/projeto1-tamagotchi/index.html' },
+        { icone: 'fa-server', titulo: 'Lab 2 · Load Balancer (Docker)', caminho: 'pages/aprendizagem-por-reforco/introducao.html#como-executar' }
+      ]
+    },
+    {
       titulo: 'ATIVIDADES',
       itens: [
         {
